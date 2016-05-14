@@ -1,0 +1,2 @@
+node apollobot.js
+pause
