@@ -4,10 +4,10 @@ var fs = require('fs');
 var ytdl = require('ytdl-core');
 var bot = new DiscordClient({token: botLogin.token, autorun: true})
 var reboot = false;
-var voiceChannels = {};
 var queue = [];
 var playing = false;
 var streamer;
+var replay = false;
 
 function setGame(game) {
 	bot.setPresence({game: game});
@@ -47,21 +47,23 @@ function isInVC(channelID){
 	return false;
 }
 
-function playSong(voiceID, stream){	
-	console.log(queue[0]);
+function playSong(voiceID, stream){
 	stream.playAudioFile(queue[0].file);
 	playing = true;
 	setGame(queue[0].title);
-	stream.once('fileEnd', function() {	
-		setTimeout(fs.unlinkSync, 1000, queue[0].file);
-		queue.shift();					
-		if((queue.length - 1) <= 0) {
+	stream.once('fileEnd', function() {
+		//if(!replay){
+			setTimeout(fs.unlinkSync, 500, queue[0].file);
+			queue.shift();
+		//}
+		replay = false;					
+		if(queue.length === 0) {
 			playing = false;
 			console.log("End of Queued songs")
 			setGame(null);	
 			return;
 		}		
-		setTimeout(playSong, 100, voiceID, stream);
+		setTimeout(playSong, 100, voiceID, stream);		
 	});		
 }
 
@@ -73,12 +75,6 @@ function getVoiceID(channelID){
 			voiceID = bot.servers[serverID].channels[i].id;
 			break;
 		}
-	}
-	if(!(serverID in voiceChannels)){
-		voiceChannels[serverID] = {
-			channelID: voiceID,
-			serverID: serverID
-		};
 	}	
 	return voiceID;
 }
@@ -109,15 +105,25 @@ bot.on('ready', function (rawEvent) {
 
 bot.on('message', function (user, userID, channelID, message, rawEvent){
 
-	if(message === ".about"){
+	if(message.toLowerCase() === ".about"){
 		bot.sendMessage({
 			to: channelID,
-			message: "This bot was created to replace the current shit musicbot that I got sick and tired of, a shitty bot written by shitty people."+
+			message: "**Username**: "+bot.username+"\n**Author**: Mesmaroth\n**Written in**: Node.js\n**Library**: Discord.io\n**Library Version**: "+bot.internals.version+
+			"\n**Avatar**: https://goo.gl/LN6BvU"+"\n\n**Why**: This bot was created to replace the current shit musicbot that I got sick and tired of, a shitty bot written by shitty people."+
 			" So I've decided to write this bot from the ground up."
+
 		});
 	}
 
-	if(message === ".disconnect"){
+	if(message.toLowerCase() === ".music" || message === ".help"){
+		bot.sendMessage({
+			to: channelID,
+			message: '\n**Music**\n•`.play [URL]`: Adds and plays the music from the queue\n•`.skip`: Skip song\n•`.about`: About this bot\n'+
+			'•`.queue`: View the list of songs in queue\n•`.reboot`: Reboot the bot if something is wrong\n'
+		});
+	}
+
+	if(message.toLowerCase() === ".disconnect"){
 		var voiceID = getVoiceID(channelID);
 		if(playing){
 			streamer.stopAudioFile();
@@ -126,14 +132,14 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 		bot.disconnect();
 	}
 
-	if(message === ".reboot"){
+	if(message.toLowerCase() === ".reboot"){
 		var voiceID = getVoiceID(channelID);
 		reboot = true;
 		bot.leaveVoiceChannel(voiceID);
 		bot.disconnect();		
 	}
 
-	if(message === ".join"){
+	if(message.toLowerCase() === ".join"){
 		if(!(isInVC(channelID))){
 			var voiceID = getVoiceID("102910652766519296");
 		    bot.joinVoiceChannel(voiceID, function(){
@@ -150,7 +156,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 		}		
 	}
 
-	if(message === ".skip"){
+	if(message.toLowerCase() === ".skip"){
 		if(isInVC(channelID)){
 			if(playing){
 				streamer.stopAudioFile();
@@ -178,7 +184,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 		}
 	}
 
-	if(message === ".stop"){
+	if(message.toLowerCase() === ".stop"){
 		if(isInVC(channelID)){
 			if(playing){
 				streamer.stopAudioFile();
@@ -187,7 +193,25 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 		}
 	}
 
-	if(message === ".queue"){
+	/*
+	if(message.toLowerCase() === ".replay"){			// Needs re-work
+		if(isInVC(channelID)){
+			if(playing){
+				streamer.stopAudioFile();
+				playing = false;
+				replay = true;
+				var voiceID = getVoiceID(channelID); 
+				setTimeout(playSong, 500, voiceID, streamer);
+				bot.sendMessage({
+					to: channelID,
+					message: "Replaying *"+queue[0].title+"*"
+				});
+			}
+		}
+	}
+	*/
+
+	if(message.toLowerCase() === ".queue"){
 		var songList = [];
 		for(var i = 0; i < queue.length; i++){
 			songList.push(queue[i].title);
@@ -222,15 +246,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 		}
 	}
 
-	if(message === ".music" || message === ".help"){
-		bot.sendMessage({
-			to: channelID,
-			message: '\n**Music**\n•`.play [URL]`: Adds and plays the music from the queue\n•`.about`: About this bot\n'+
-			'•`.queue`: View the list of songs in queue\n•`.reboot`: Reboot the bot if something is wrong'
-		});
-	}	
-
-	if(message.search(".play") === 0){
+	if(message.toLowerCase().search(".play") === 0){
 		if(message.search(' ') !== -1){
 			var message = message.split(' ');
 			var url = message[1];
