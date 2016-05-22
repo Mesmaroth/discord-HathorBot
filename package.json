@@ -1,0 +1,17 @@
+{
+  "name": "discord-apollobot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "apollobot.js",
+  "scripts": {
+    "start": "node apollobot.js"
+  },
+  "dependencies": {
+    "discord.io": "^1.8.1",
+    "node-opus": "^0.1.12",
+    "ytdl-core": "^0.7.14",
+    "uptimer": "^0.1.2"
+  },
+  "author": "",
+  "license": "ISC"
+}
