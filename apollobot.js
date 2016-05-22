@@ -8,7 +8,14 @@ var reboot = false;
 var queue = [];
 var playing = false;
 var streamer = {};
-var stopAudio = false;
+var stayOnQueue = false;
+var stoppedAudio = false;
+var botVersion = "Apbot"
+try{botVersion = "Apbot "+ require("./package.json").version}
+catch(error){
+	if(error) return error
+};
+
 
 function botUptime(){
 	var upSeconds = Math.floor( uptimer.getAppUptime());
@@ -68,26 +75,63 @@ function isInVC(channelID){
 	return false;
 }
 
+function removeSong(song){
+	if(typeof song !== 'object') return;
+
+	var isInQueue = false;
+	var songIndex = 0;
+	for(var i = 0; i < queue.length; i++){
+		if(queue[i] === song){
+			isInQueue = true;
+			songIndex = i;
+			break;
+		}
+	}
+
+	if(isInQueue){
+		var filePath = song.file;
+		var fileName = song.video_id+".mp3";
+		var tempDir = fs.readdirSync('./tempFiles/');
+		var fileExist = false;
+
+		for(var i = 0; i < tempDir.length; i++){
+			if(tempDir[i] === fileName){
+				fileExist = true;
+				break;
+			}
+		}
+
+		if(fileExist){
+			fs.unlinkSync(filePath);
+			queue.splice(songIndex, 1);
+		}
+		else{
+			queue.splice(songIndex, 1);
+		}
+
+	}
+	return;
+}
+
 function playSong(){
-	console.log(queue);
-	streamer.playAudioFile(queue[0].file);
-	var file = queue[0].file;
+	var song = queue[0];
+	streamer.playAudioFile(song.file);	
 	playing = true;
-	setGame(queue[0].title);
+	setGame(song.title);
 
 	streamer.once('fileEnd', function() {
-		console.log("Executed");
 		// Delete File and Remove song from queue.			
-		fs.unlinkSync(file);
-		queue.shift();
-					
+		if(!stayOnQueue) removeSong(song);
+		stayOnQueue = false;
+		
 		if(queue.length === 0) {
-			playing = false;
-			console.log("End of Queued songs");
-			setGame(null);	
+			playing = false;			
+			setGame(null);
+			console.log("End of queued songs");
 			return;
 		}
-		setTimeout(playSong, 500);		
+		if(!stoppedAudio) setTimeout(playSong, 500);
+		stoppedAudio = false;
 	});
 }
 
@@ -103,6 +147,7 @@ function getVoiceID(channelID){
 	return voiceID;
 }
 
+
 bot.on('disconnected', function() {
 	if(reboot){
 		reboot = false;
@@ -115,13 +160,11 @@ bot.on('disconnected', function() {
 bot.on('ready', function (rawEvent) {
 	console.log("\nDiscord.io - Version: " + bot.internals.version);
     console.log("Username: "+bot.username + " - (" + bot.id + ")");
-    setGame("[Alpha Build]");
     console.log('\n');
+    setGame(botVersion);
 
-
-    var voiceID = getVoiceID("102910652766519296");
-    bot.joinVoiceChannel(voiceID, function(){
-		bot.getAudioContext({channel: voiceID, stero: true}, function(stream){
+    bot.joinVoiceChannel("102910652766519296", function(){
+		bot.getAudioContext({channel: "102910652766519296", stero: true}, function(stream){
 			streamer = stream;
 		});	
 	});
@@ -129,12 +172,24 @@ bot.on('ready', function (rawEvent) {
 });
 
 bot.on('message', function (user, userID, channelID, message, rawEvent){
+	if(channelID in bot.directMessages){
+		bot.sendMessage({
+			to: userID,
+			message: "DMs have been disabled for this bot."
+		});
+		setTimeout(bot.deleteChannel, 300, channelID);
+		return;
+	}
+
+	if(message === ".writeout"){
+		fs.writeFileSync(bot.username+".json", JSON.stringify(bot, null, '\t'), 'utf8');
+	}
 
 	if(message.toLowerCase() === ".about"){
 		bot.sendMessage({
 			to: channelID,
-			message: "\n**Username**: "+bot.username+"\n**Author**: Mesmaroth\n**Written in**: Node.js\n**Library**: Discord.io\n**Library Version**: "+bot.internals.version+
-			"\n**Avatar**: https://goo.gl/LN6BvU"+"\n\n**Why**: This bot was created to replace the current shit musicbot that I got sick and tired of, a shitty bot written by shitty people."+
+			message: "\n**Username:** "+bot.username+"\n**Author:** Mesmaroth\n**Written in:** Node.js\n**Version:**" +botVersion+ "\n**Library:** Discord.io\n**Library Version:** "+bot.internals.version+
+			"\n**Avatar:** https://goo.gl/LN6BvU"+"\n\n**Why:** This bot was created to replace the current shit musicbot that I got sick and tired of, a shitty bot written by shitty people."+
 			" So I've decided to write this bot from the ground up."
 
 		});
@@ -143,7 +198,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 	if(message.toLowerCase() === ".music" || message === ".help"){
 		bot.sendMessage({
 			to: channelID,
-			message: '\n**Music**\n•`.play [URL]`: Adds and plays the music from the queue\n•`.stop`: Stop song\n~~•`.skip`: Skip song~~ (Still Needs Work)\n~~•`.replay`: Replay song~~ (Still Needs Work)\n•`.readd`: Re-Add the currently playing song to queue\n•`.about`: About this bot\n'+
+			message: '\n**Music**\n•`.play [URL]`: Adds and plays the music from the queue\n•`.stop`: Stop song\n•`.skip`: Skip song (Still Needs Work)\n•`.replay`: Replay song\n•`.readd`: Re-Add the currently playing song to queue\n•`.about`: About this bot\n'+
 			'•`.queue`: View the list of songs in queue\n•`.reboot`: Reboot the bot if something is wrong\n•`.uptime`: Up time of bot'
 		});
 	}
@@ -156,10 +211,10 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 	}
 
 	if(message.toLowerCase() === ".disconnect"){
+		console.log("[Disconnecting]");
 		var voiceID = getVoiceID(channelID);
 		if(playing){
-			streamer.stopAudioFile();
-			
+			streamer.stopAudioFile();			
 		}		
 		setTimeout(function(){
 			var folder = fs.readdirSync('./tempFiles');
@@ -172,8 +227,13 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 	}
 
 	if(message.toLowerCase() === ".reboot"){
+		console.log("[Rebooting]")
 		var voiceID = getVoiceID(channelID);
 		reboot = true;
+		bot.sendMessage({
+			to: channelID,
+			message: "Rebooting..."
+		})
 		bot.leaveVoiceChannel(voiceID);
 		bot.disconnect();		
 	}
@@ -190,34 +250,40 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 		else{
 			bot.sendMessage({
 				to: channelID,
-				message: "*Already joined the voice channel.*"
+				message: "*Already joined voice channel.*"
 			});
 		}		
 	}
 
-	// Redo skip feature
-
-
-	
+		
 
 	if(message.toLowerCase() === ".stop"){
 		if(isInVC(channelID)){
-			if(playing){
-				setGame(null);
+			if(playing){				
 				playing = false;
-				stopAudio = true;
-				streamer.stopAudioFile();				
+				setGame(null);
+				streamer.stopAudioFile();
+				stayOnQueue = true;
+				stoppedAudio = true;				
+			}
+			else{
+				if(queue.length < 1){
+					bot.sendMessage({
+						to: channelID,
+						message: "Nothing to stop."
+					});
+				}
 			}
 		}
 	}
 
-	/*
+	
 	if(message.toLowerCase() === ".replay"){
 		if(isInVC(channelID)){
 			if(playing){
 				streamer.stopAudioFile();
-				var voiceID = getVoiceID(channelID);
-				setTimeout(playSong, 500)
+				stayOnQueue = true;
+				setTimeout(streamer.playAudioFile, 300, queue[0].file);
 				bot.sendMessage({
 					to: channelID,
 					message: "*Replaying* " + queue[0].title
@@ -225,26 +291,67 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 			}
 		}
 	}
-	*/
+
+	if(message.toLowerCase() === ".skip"){
+		if(isInVC){
+			if(playing){
+				var song = queue[0];
+				streamer.stopAudioFile();
+				playing = false;
+				setGame(null);
+				setTimeout(function (){
+					fs.unlinkSync(song.file);
+				}, 200)
+				queue.splice(0, 1);
+				if(queue.length > 0){
+					setTimeout(function(){
+						song = queue[0];
+						playing = true;
+						setGame(song.title);
+						streamer.playAudioFile(song);
+						bot.sendMessage({
+							to: channelID,
+							message: 'Playing *"' + song.title + '"*'
+						});
+					},1000);
+				}
+				else{
+					bot.sendMessage({
+						to: channelID,
+						message: "Queue is now empty."
+					});
+				}
+			}
+		}
+	}
 
 	if(message.toLowerCase() === ".readd"){
 		if(isInVC(channelID)){
 			if(playing){
-				var newFile =  './tempFiles/'+Math.floor(Math.random()*1000)+queue[0].video_id+".mp3";
-				var origin = fs.createReadStream(queue[0].file);
-				var dest = origin.pipe(fs.createWriteStream(newFile));
+				var newVideoID = Math.floor(Math.random()*1000)+queue[0].video_id;
+				var newFilePath =  './tempFiles/'+newVideoID+".mp3";
+				var songFBuffer = fs.createReadStream(queue[0].file);
+				songFBuffer.pipe(fs.createWriteStream(newFilePath));
 				queue.push({
 					title: queue[0].title,
-					video_id: queue[0].video_id,
+					video_id: newVideoID,
 					url: queue[0].url,
 					user: queue[0].user,
-					file: newFile
+					file: newFilePath
 				});
-				console.log(queue, "\n\n");
+
 				bot.sendMessage({
 					to: channelID,
-					message: '"'+queue[0].title+'" has been re-added back to queue.'
+					message: '*"'+queue[0].title+'"* has been re-added back to queue.'
 				});
+			}
+			else{
+				if(queue.length < 1){
+					bot.sendMessage({
+						to: channelID,
+						message: "No song to re-add."
+					});
+				}
 			}
 		}
 	}
@@ -256,7 +363,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 		}
 
 		for(var i = 0; i < songList.length; i++){
-			if(i === 0) songList[i] = "**Music**\n**Currently Playing**: *" + songList[i]+ "*\n";
+			if(i === 0) songList[i] = '**Music**\n**Currently Playing**: *"' + songList[i]+ '"*\n';
 			else songList[i] = i + ". *"+songList[i]+"*";
 		}
 
@@ -279,7 +386,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 		else{
 			bot.sendMessage({
 				to: channelID,
-				message: "No songs are currently playing and/or queued"
+				message: "No songs are queued."
 			});
 		}
 	}
@@ -290,16 +397,14 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 			var url = message[1];
 			try {
 				getTitleVideoID(url, function (title, video_id){
-					console.log("Getting info...");
 					bot.sendMessage({
 						to: channelID,
-						message: '*'+title+'* has been added to queue.'
+						message: '*"'+title+'"*  has been added to queue.'
 					});
 					addSong(url, title, video_id, user, function(){
-						console.log("Adding song to queue...");
 						if(playing === false){
 							var voiceID = getVoiceID(channelID);
-							setTimeout(playSong, 500);
+							setTimeout(playSong, 250);
 						}						
 					});
 
@@ -312,7 +417,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 				});
 			};
 			return;			
-		}
+		}		
 
 		if(isInVC(channelID)){
 			if(playing === false){
