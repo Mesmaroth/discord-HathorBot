@@ -10,7 +10,7 @@ Prerequisite:
  - Having a bot account, create one at [Discord](https://discordapp.com/developers/applications/me)
 
 ## Installation
-Absoulute beginners guide:
+Absolute beginners guide:
  - Install [Node.js](https://nodejs.org/en/) (preffered LTS)
  - Install node-gyp, type `npm install node-gyp` in your command prompt. [Node-gyp Docs](https://www.npmjs.com/package/node-gyp)
  - `cd` to your project folder in command promt and type `npm install`. The required modules will then be downloaded and saved.
