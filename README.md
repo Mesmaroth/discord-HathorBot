@@ -3,10 +3,11 @@ Music bot for Discord, Written in Node.js.
 
 Library: [Discord.io](https://github.com/izy521/discord.io)
 
-Prerequisite: 
-	- Have Visual Studio Community 2015 and make sure C++ version is installed. [Visual Studio](https://www.visualstudio.com/)
-	- Have Python 2.7 installed: [Python 2.7](https://www.python.org/download/releases/2.7/)
-	- Having a bot account, create one at [Discord](https://discordapp.com/developers/applications/me)
+Prerequisite:
+
+ - Have Visual Studio Community 2015 and make sure C++ version is installed. [Visual Studio](https://www.visualstudio.com/)
+ - Have Python 2.7 installed: [Python 2.7](https://www.python.org/download/releases/2.7/)
+ - Having a bot account, create one at [Discord](https://discordapp.com/developers/applications/me)
 
 ## Installation
 Absoulute beginners guide:
