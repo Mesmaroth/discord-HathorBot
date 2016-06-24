@@ -10,8 +10,14 @@ var playing = false;
 var streamer = {};
 var stayOnQueue = false;
 var stoppedAudio = false;
-try{var botVersion = "Apbot "+ require("./package.json").version}
-catch(error){var botVersion; if(error) return console.error(error)};
+var playingNotify = false;
+try{
+	var botVersion = require("./package.json").version
+}
+catch(error){
+	var botVersion = "#?"; 
+	if(error) console.error(error);
+}
 
 function botUptime(){
 	var upSeconds = Math.floor( uptimer.getAppUptime());
@@ -53,33 +59,25 @@ function getTitleVideoID(url, callback){
 }
 
 function addSong(url, title, video_id, user, callback){
-	fs.access('./tempFiles', function(error){
-		if(error) {
-			fs.mkdir('./tempFiles', function(error){
-				if(error) return callback(error);
-				ytdl(url).pipe(fs.createWriteStream('./tempFiles/'+video_id+'.mp3'));
-				queue.push({
-					title: title,
-					video_id: video_id,
-					url: url,
-					user: user,
-					file: './tempFiles/'+video_id+'.mp3'
-				});
-			callback(null);
-			});
-		} else{
-			ytdl(url).pipe(fs.createWriteStream('./tempFiles/'+video_id+'.mp3'));
-			queue.push({
-				title: title,
-				video_id: video_id,
-				url: url,
-				user: user,
-				file: './tempFiles/'+video_id+'.mp3'
-			});
-			callback(null);
+	// Create a folder if it hasn't been created yet
+	try{
+		fs.accessSync('./tempFiles', fs.F_OK)
+	}
+	catch(error){
+		if(error){
+			fs.mkdirSync('./tempFiles');
 		}
+	}
+
+	ytdl(url).pipe(fs.createWriteStream('./tempFiles/'+video_id+'.mp3'));
+	queue.push({
+		title: title,
+		video_id: video_id,
+		url: url,
+		user: user,
+		file: './tempFiles/' + video_id+  '.mp3'
 	});
-				
+	callback(null);
 }
 
 function isInVC(channelID){
@@ -89,9 +87,7 @@ function isInVC(channelID){
 			if(bot.id in bot.servers[serverID].channels[channel].members) return true;
 			break;
 		}
-
 	}
-
 	return false;
 }
 
@@ -123,9 +119,9 @@ function removeSong(song){
 
 		if(fileExist){
 			fs.unlink(filePath, function(error){
-				if(error) console.error(error);
-				queue.splice(songIndex, 1);
+				if(error) console.error(error);	
 			});
+			queue.splice(songIndex, 1);
 			
 		} else{
 			queue.splice(songIndex, 1);
@@ -135,14 +131,20 @@ function removeSong(song){
 	return;
 }
 
-function playSong(){
+function playSong(channelID){
 	var song = queue[0];
 	streamer.playAudioFile(song.file);	
 	playing = true;
 	setGame(song.title);
+	if(playingNotify){
+		bot.sendMessage({
+			to: channelID,
+			message: ":notes: **Now Playing:** *" + song.title + "*"
+		});
+	}
 
 	streamer.once('fileEnd', function() {
-		// Delete rile and remove song from queue.			
+		// Delete file and remove song from queue.
 		if(!stayOnQueue) removeSong(song);
 		stayOnQueue = false;
 		
@@ -152,7 +154,7 @@ function playSong(){
 			console.log("End of queued songs");
 			return;
 		}
-		if(!stoppedAudio) setTimeout(playSong, 500);
+		if(!stoppedAudio) setTimeout(playSong, 500, channelID);
 		stoppedAudio = false;
 	});
 }
@@ -198,8 +200,8 @@ bot.on('ready', function (rawEvent) {
 	console.log("\nDiscord.io - Version: " + bot.internals.version);
     console.log("Username: "+bot.username + " - (" + bot.id + ")");
     console.log('\n');
-    if(process.argv[2]) setGame(process.argv[2]+ " " + botVersion);
-    else setGame(botVersion);
+    if(process.argv[2]) setGame(process.argv[2]+ " Apbot v"  + botVersion);
+    else setGame("Apbot v" + botVersion);
     joinVC();
 });
 
@@ -207,7 +209,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 	if(channelID in bot.directMessages){
 		bot.sendMessage({
 			to: userID,
-			message: "DMs have been disabled for this bot."
+			message: ":warning: DMs have been disabled for this bot."
 		});
 		setTimeout(bot.deleteChannel, 300, channelID);
 		return;
@@ -234,7 +236,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 		bot.sendMessage({
 			to: channelID,
 			message: '\n**Music**\n•`.play [URL]`: Adds and plays the music from the queue\n•`.play`: If a song is in queue after it has been stopped before\n•`.stop`: Stop song\n•`.skip`: Skip the currently playing song\n•`.replay`: Replay song\n•`.readd`: Re-Add the currently playing song to queue\n•`.about`: About this bot\n'+
-			'•`.queue`: View the list of songs in queue\n•`.reboot`: Reboot the bot if something is wrong\n•`.uptime`: How long this bot has been online for'
+			'•`.queue`: View the list of songs in queue\n•`.reboot`: Reboot the bot if something is wrong\n•`.uptime`: How long this bot has been online for\n•`.notify`: Turns on a "*now playing*" notifcation'
 		});
 	}
 
@@ -285,7 +287,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 		} else {
 			bot.sendMessage({
 				to: channelID,
-				message: "Already in voice channel."
+				message: ":warning: Already in voice channel."
 			});
 		}
 	}
@@ -304,7 +306,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 				if(queue.length < 1){
 					bot.sendMessage({
 						to: channelID,
-						message: "Nothing to stop."
+						message: ":warning: Nothing to stop."
 					});
 				}
 			}
@@ -320,7 +322,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 				setTimeout(streamer.playAudioFile, 300, queue[0].file);
 				bot.sendMessage({
 					to: channelID,
-					message: "*Replaying* " + queue[0].title
+					message: ":notes: **Replaying:** *" + queue[0].title + "*"
 				});
 			}
 		}
@@ -343,10 +345,6 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 						playing = true;
 						setGame(song.title);
 						streamer.playAudioFile(song);
-						bot.sendMessage({
-							to: channelID,
-							message: 'Playing *"' + song.title + '"*'
-						});
 					},1000);
 				} else{
 					bot.sendMessage({
@@ -375,13 +373,13 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 
 				bot.sendMessage({
 					to: channelID,
-					message: '*"'+queue[0].title+'"* has been re-added back to queue.'
+					message: ":radio_button: **Re-Added to Queue:** *" + queue[0].title + "*"
 				});
 			} else{
 				if(queue.length < 1){
 					bot.sendMessage({
 						to: channelID,
-						message: "No song to re-add."
+						message: ":warning: No song to re-add."
 					});
 				}
 			}
@@ -395,7 +393,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 		}
 
 		for(var i = 0; i < songList.length; i++){
-			if(i === 0) songList[i] = '**Music**\n**Currently Playing**: *"' + songList[i]+ '"*\n';
+			if(i === 0) songList[i] = ':bookmark_tabs: **Music**\n**Currently Playing**: *"' + songList[i]+ '"*\n';
 			else songList[i] = i + ". *"+songList[i]+"*";
 		}
 
@@ -416,9 +414,22 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 		} else{
 			bot.sendMessage({
 				to: channelID,
-				message: "No songs are queued."
+				message: ":warning: No songs are queued."
 			});
 		}
+	}
+
+	if(message.toLowerCase() === ".notify"){
+		if(playingNotify){
+			playingNotify = false;
+		} else {
+			playingNotify = true;
+		}
+
+		bot.sendMessage({
+			to: channelID,
+			message: ":bell: Song notifications set to " + playingNotify
+		});
 	}
 
 	if(message.toLowerCase().search(/[.]play/) === 0){
@@ -428,6 +439,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 				var url = message[1];
 				var voiceID = getVoiceID(channelID);
 				
+				// Request can only be made if the user is in the voice channel
 				if( !(userID in bot.servers[bot.serverFromChannel(channelID)].channels[voiceID].members) ){
 					bot.deleteMessage({
 						channel: channelID,
@@ -436,7 +448,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 
 					bot.sendMessage({
 						to: channelID,
-						message: "<@"+userID+"> you aren't in the voice channel."
+						message: ":warning: <@"+userID+"> you aren't in the voice channel."
 					});
 					return;
 				}
@@ -445,7 +457,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 					if(error) {
 						bot.sendMessage({
 							to: channelID,
-							message: "**Error:**```js\n" + error + "\n```" 
+							message: ":warning: **Error:**```js\n" + error + "\n```" 
 						});
 						return;
 					}
@@ -457,15 +469,14 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 					if(hours < 3){
 						bot.sendMessage({
 							to: channelID,
-							message: '"' + title + '" has been added to queue.'
+							message: ':radio_button: **Added to Queue:** *' + title + '*'
 						});
-						addSong(url, title, video_id, user, function(error){
-							if(error) return console.error(error);
+						addSong(url, title, video_id, user, () => {
 							if(playing === false){
-								setTimeout(playSong, 1000);							
+								setTimeout(playSong, 1300, channelID);							
 							}
 						});
-						
+
 					} else {
 						bot.deleteMessage({
 							channel: channelID,
@@ -474,7 +485,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 
 						bot.sendMessage({
 							to: channelID,
-							message: '**Error:** "'+title+'" is too long.'
+							message: ':warning: **Error:** *'+title+'* is too long.'
 						});
 					}						
 				});			
@@ -483,15 +494,11 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 
 			if(playing === false){
 				if(queue.length > 0){
-					bot.sendMessage({
-						to: channelID,
-						message: "Now playing *"+queue[0].title+"*"
-					});
-					playSong();
+					playSong(channelID);
 				} else{
 					bot.sendMessage({
 						to: channelID,
-						message: "No songs curretly in queue."
+						message: ":warning: No songs curretly in queue."
 					});
 				}			
 			}
