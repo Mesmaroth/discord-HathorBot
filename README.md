@@ -31,3 +31,4 @@ Absolute beginners guide:
 - `.reboot`: Reboot the bot if something is wrong
 - `.uptime`: How long this bot has been online for
 - `.join`: If the bot is disconnected from voice server
+- `.notify`: Turns on a "*now playing*" notifcation
