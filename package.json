@@ -1,6 +1,6 @@
 {
   "name": "discord-apollobot",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "apollobot.js",
   "scripts": {
