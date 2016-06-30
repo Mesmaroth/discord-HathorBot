@@ -1,4 +1,6 @@
 var DiscordClient = require('discord.io');
+var child_proc = require('child_process');
+var spawn = child_proc.spawn;
 var uptimer = require('uptimer');
 var fs = require('fs');
 var ytdl = require('ytdl-core');
@@ -11,6 +13,10 @@ var streamer = {};
 var stayOnQueue = false;
 var stoppedAudio = false;
 var playingNotify = false;
+var ffmpeg = {};
+var volume = 1;
+var allowVol = true;
+
 try{
 	var botVersion = require("./package.json").version
 }
@@ -43,7 +49,7 @@ function setGame(game) {
 
 function getTitleVideoID(url, callback){
 	try{
-		ytdl.getInfo(url, function (error, data) {
+		ytdl.getInfo(url, (error, data) => {
 			if(error) return callback(error);
 			video_id = data.video_id;
 			title = data.title;
@@ -61,31 +67,34 @@ function getTitleVideoID(url, callback){
 function addSong(url, title, video_id, user, callback){
 	// Create a folder if it hasn't been created yet
 	try{
-		fs.accessSync('./tempFiles', fs.F_OK)
+		fs.accessSync('./tempFiles', fs.F_OK);
 	}
 	catch(error){
 		if(error){
 			fs.mkdirSync('./tempFiles');
 		}
 	}
+	var options = {
+		filter: 'audio',
+		quality: 'highest'
+	}
+	ytdl(url).pipe(fs.createWriteStream('./tempFiles/' + video_id + '.mp3'), options);
 
-	ytdl(url).pipe(fs.createWriteStream('./tempFiles/'+video_id+'.mp3'));
 	queue.push({
 		title: title,
 		video_id: video_id,
 		url: url,
 		user: user,
-		file: './tempFiles/' + video_id+  '.mp3'
+		file: './tempFiles/' + video_id + '.mp3'
 	});
-	callback(null);
+	callback();
 }
 
 function isInVC(channelID){
 	var serverID = bot.serverFromChannel(channelID);
 	for(var channel in bot.servers[serverID].channels){
 		if(bot.servers[serverID].channels[channel].type === "voice"){
-			if(bot.id in bot.servers[serverID].channels[channel].members) return true;
-			break;
+			if(bot.id in bot.servers[serverID].channels[channel].members) return true;			
 		}
 	}
 	return false;
@@ -118,7 +127,7 @@ function removeSong(song){
 		}
 
 		if(fileExist){
-			fs.unlink(filePath, function(error){
+			fs.unlink(filePath, (error) => {
 				if(error) console.error(error);	
 			});
 			queue.splice(songIndex, 1);
@@ -126,37 +135,69 @@ function removeSong(song){
 		} else{
 			queue.splice(songIndex, 1);
 		}
-
+	} else{ 
+		console.log("Song is not in queue.");
 	}
 	return;
 }
 
 function playSong(channelID){
-	var song = queue[0];
-	streamer.playAudioFile(song.file);	
-	playing = true;
-	setGame(song.title);
-	if(playingNotify){
-		bot.sendMessage({
-			to: channelID,
-			message: ":notes: **Now Playing:** *" + song.title + "*"
-		});
-	}
+	var song = queue[0],
+		players =['ffmpeg', 'avconv'], 
+		player = choosePlayer(players);
 
-	streamer.once('fileEnd', function() {
-		// Delete file and remove song from queue.
-		if(!stayOnQueue) removeSong(song);
-		stayOnQueue = false;
-		
-		if(queue.length === 0) {
-			playing = false;			
-			setGame(null);
-			console.log("End of queued songs");
-			return;
+	// Thanks to izy521 for this method
+	function choosePlayer(players){
+		if (!players[0]) return console.log("You need either need 'ffmpeg' or 'avconv' and they need to be added to PATH");
+		var n = players.shift();
+		var s = child_proc.spawnSync(n);
+		if (s.error) return choosePlayer(players);
+		console.log("Using " + n);
+		return n;
+	}
+	if(!player) return;
+	var options = [
+		'-i', song.file,
+		'-f', 's16le',		
+		'-ar', '48000',
+		'-ac', '2',
+		'pipe:1'
+	]
+
+	if(player === 'ffmpeg') {
+		options.splice(2, 0, '-af', 'volume=' + volume);
+		allowVol = true;
+	} else allowVol = false;
+
+	ffmpeg = spawn(player , options, {stdio: ['pipe', 'pipe', 'ignore']});
+
+	ffmpeg.stdout.once('readable', function() {
+		streamer.send(ffmpeg.stdout);
+		playing = true;
+		setGame(song.title);
+		if(playingNotify){
+			bot.sendMessage({
+				to: channelID,
+				message: ":notes: **Now Playing:** *" + song.title + "*"
+			});
 		}
+	});	
+			
+	ffmpeg.stdout.once('end', function() {
+		playing = false;
+		ffmpeg.kill();
+		setGame(null);
+
+		// Delete file and remove song from queue.
+		if(!stayOnQueue) removeSong(song);		
+		stayOnQueue = false;
+
+		if(queue.length === 0) return;
+
 		if(!stoppedAudio) setTimeout(playSong, 500, channelID);
 		stoppedAudio = false;
 	});
+	return;
 }
 
 // Get the first voice ID in the server
@@ -169,13 +210,26 @@ function getVoiceID(channelID){
 	}
 }
 
-function joinVC () {
+function getCurrentVC(channelID){
+	if(isInVC(channelID)){
+		for(var i in bot.channels){
+			if(bot.channels[i].type === "voice"){
+				if(bot.id in bot.channels[i].members){
+					return bot.channels[i].id;
+				}
+			}
+		}
+	}
+	return null;
+}
+
+function joinVC() {
 	for (var server in bot.servers){
 		for(var channel in bot.servers[server].channels){
 			if(bot.servers[server].channels[channel].type === "voice"){
 				var channelID = bot.servers[server].channels[channel].id;
-				bot.joinVoiceChannel(channelID, function(){
-					bot.getAudioContext({channel: channelID, stero: true}, function(stream){
+				bot.joinVoiceChannel(channelID, () =>{
+					bot.getAudioContext({channel: channelID, stero: true}, (stream) =>{
 				 		streamer = stream;
 				 	});	
 				});
@@ -185,8 +239,7 @@ function joinVC () {
 	}
 }
 
-
-bot.on('disconnected', function() {
+bot.on('disconnected', () =>{
 	if(reboot){
 		reboot = false;
 		console.log("Connecting...");
@@ -196,16 +249,16 @@ bot.on('disconnected', function() {
 	process.exit();
 });
 
-bot.on('ready', function (rawEvent) {
+bot.on('ready', (rawEvent) => {
 	console.log("\nDiscord.io - Version: " + bot.internals.version);
     console.log("Username: "+bot.username + " - (" + bot.id + ")");
     console.log('\n');
     if(process.argv[2]) setGame(process.argv[2]+ " Apbot v"  + botVersion);
-    else setGame("Apbot v" + botVersion);
+    else setGame("ApBot v" + botVersion);
     joinVC();
 });
 
-bot.on('message', function (user, userID, channelID, message, rawEvent){
+bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	if(channelID in bot.directMessages){
 		bot.sendMessage({
 			to: userID,
@@ -216,7 +269,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 	}
 
 	if(message === ".writeout"){		
-		fs.writeFile(bot.username+".json", JSON.stringify(bot, null, '\t'), 'utf8', function(error){
+		fs.writeFile(bot.username+".json", JSON.stringify(bot, null, '\t'), 'utf8', (error) => {
 			if(error) return console.error(error);
 			console.log("Logged bot properties.");
 		});
@@ -247,20 +300,26 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 		});
 	}
 
-	if(message.toLowerCase() === ".disconnect"){
+	if(message.toLowerCase() === ".disconnect"){		
 		console.log("[Disconnecting]");
-		var voiceID = getVoiceID(channelID);
 		if(playing){
-			streamer.stopAudioFile();			
-		}		
-		setTimeout(function(){
+			ffmpeg.kill();		
+		}
+		
+		setTimeout(() => {
 			var folder = fs.readdirSync('./tempFiles');
 			for(var i = 0; i < folder.length; i++){
 				fs.unlinkSync('./tempFiles/'+folder[i]);
 			}
-			bot.leaveVoiceChannel(voiceID);
+
+			if(isInVC){
+				var voiceID = null;
+				voiceID = getCurrentVC(channelID);
+				bot.leaveVoiceChannel(voiceID);
+			}
+
 			bot.disconnect();
-		},400);		
+		},300);		
 	}
 
 	if(message.toLowerCase() === ".reboot"){
@@ -270,36 +329,100 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 		bot.sendMessage({
 			to: channelID,
 			message: "Rebooting..."
-		})
+		});
+
+		if(playing) ffmpeg.kill();
+
+		var folder = fs.readdirSync('./tempFiles');
+		for(var i = 0; i < folder.length; i++){
+			fs.unlinkSync('./tempFiles/'+folder[i]);
+		}
 		bot.leaveVoiceChannel(voiceID);
 		bot.disconnect();		
 	}
 
-	if(message.toLowerCase() === ".join"){
-		if(!isInVC(channelID)){
-			var voiceID = getVoiceID(channelID);
-			bot.joinVoiceChannel(voiceID, function(){
-				bot.getAudioContext({channel: voiceID, stero: true}, function(stream){
-				streamer = stream;
-				});	
-			});
+	if(message.toLowerCase().search(".volume") === 0){
+		if(allowVol){
+			if(message.search(" ") !== -1){
+				var msg = message.split(' ');			
+				var vol = Number(msg[1]);
+				if(isNaN(vol)) vol = null;			
 
-		} else {
+				if(vol >= 1 && vol <= 100){
+					volume = vol / 100;
+					bot.sendMessage({
+						to: channelID,
+						message: ":loud_sound: Volume set to " + vol
+					});
+				} else {
+					bot.sendMessage({
+						to: channelID,
+						message: ":warning: Volume is either not a number or is not between 1 - 100"
+					});
+				}
+			}
+		} else{
 			bot.sendMessage({
 				to: channelID,
-				message: ":warning: Already in voice channel."
+				message: ":warning: Volume has been disabled for avconv"
 			});
 		}
 	}
 
-		
+	if(message.toLowerCase().search(".join") === 0){
+		if(playing){
+			bot.sendMessage({
+				to: channelID,
+				message: ":warning: Can't do that while playing a song."
+			});
+			return;
+		}
+
+		var currentVC = getCurrentVC(channelID);
+		if(currentVC !== null){
+			bot.leaveVoiceChannel(currentVC);
+		}
+
+		if(message.search(" ") !== -1){
+			message = message.split(" ");
+			var input = message[1].toLowerCase();
+
+			for(var i in bot.channels){
+				if(bot.channels[i].name.toLowerCase() === input && bot.channels[i].type === 'voice'){
+					bot.joinVoiceChannel(bot.channels[i].id, () =>{
+						bot.getAudioContext({channel: bot.channels[i].id, stero: true}, function(stream){
+							streamer = stream;
+						});	
+					});
+					return;
+				}
+			}
+
+			bot.sendMessage({
+				to: channelID,
+				message: ":warning: No voice channel found"
+			});
+			return;
+		}
+
+		for(var i in bot.channels){
+			if(bot.channels[i].type === 'voice'){
+				bot.joinVoiceChannel(bot.channels[i].id, () =>{
+					bot.getAudioContext({channel: bot.channels[i].id, stero: true}, function(stream){
+						streamer = stream;
+					});	
+				});
+				return;
+			}
+		}
+	}		
 
 	if(message.toLowerCase() === ".stop"){
 		if(isInVC(channelID)){
 			if(playing){				
 				playing = false;
 				setGame(null);
-				streamer.stopAudioFile();
+				ffmpeg.kill();
 				stayOnQueue = true;
 				stoppedAudio = true;				
 			} else{
@@ -317,9 +440,8 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 	if(message.toLowerCase() === ".replay"){
 		if(isInVC(channelID)){
 			if(playing){
-				streamer.stopAudioFile();
+				ffmpeg.kill();
 				stayOnQueue = true;
-				setTimeout(streamer.playAudioFile, 300, queue[0].file);
 				bot.sendMessage({
 					to: channelID,
 					message: ":notes: **Replaying:** *" + queue[0].title + "*"
@@ -332,25 +454,15 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 		if(isInVC(channelID)){
 			if(playing){
 				var song = queue[0];
-				streamer.stopAudioFile();
+				ffmpeg.kill();
 				playing = false;
 				setGame(null);
-				setTimeout(function (){
-					fs.unlinkSync(song.file);
-				}, 200)
-				queue.splice(0, 1);
-				if(queue.length > 0){
-					setTimeout(function(){
-						song = queue[0];
-						playing = true;
-						setGame(song.title);
-						streamer.playAudioFile(song);
-					},1000);
-				} else{
+
+				if(queue.length-1 === 0){
 					bot.sendMessage({
 						to: channelID,
 						message: "Queue is now empty."
-					});
+					});					
 				}
 			}
 		}
@@ -373,7 +485,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 
 				bot.sendMessage({
 					to: channelID,
-					message: ":radio_button: **Re-Added to Queue:** *" + queue[0].title + "*"
+					message: ":radio: **Re-Added to Queue:** *" + queue[0].title + "*"
 				});
 			} else{
 				if(queue.length < 1){
@@ -414,7 +526,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 		} else{
 			bot.sendMessage({
 				to: channelID,
-				message: ":warning: No songs are queued."
+				message: ":no_entry_sign: No songs currently in queue."
 			});
 		}
 	}
@@ -437,7 +549,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 			if(message.search(' ') !== -1){
 				var message = message.split(' ');
 				var url = message[1];
-				var voiceID = getVoiceID(channelID);
+				var voiceID = getCurrentVC(channelID);
 				
 				// Request can only be made if the user is in the voice channel
 				if( !(userID in bot.servers[bot.serverFromChannel(channelID)].channels[voiceID].members) ){
@@ -453,7 +565,7 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 					return;
 				}
 				
-				getTitleVideoID(url, function (error, title, video_id, length_seconds){
+				getTitleVideoID(url, (error, title, video_id, length_seconds) => {
 					if(error) {
 						bot.sendMessage({
 							to: channelID,
@@ -462,21 +574,22 @@ bot.on('message', function (user, userID, channelID, message, rawEvent){
 						return;
 					}
 
-					var seconds = length_seconds;
+					var seconds = length_seconds;					
 					var hours = Math.trunc((seconds/60)/60);
+					var delay = 2000;
 
-					// Video can only be 3 hours long.
-					if(hours < 3){
-						bot.sendMessage({
-							to: channelID,
-							message: ':radio_button: **Added to Queue:** *' + title + '*'
-						});
-						addSong(url, title, video_id, user, () => {
+					// Video can only be at max 3 hours long.
+					if(hours < 3){						
+						addSong(url, title, video_id, user, function () {
+							bot.sendMessage({
+								to: channelID,
+								message: ':radio: **Added to Queue:** *' + title + '*'
+							});
+
 							if(playing === false){
-								setTimeout(playSong, 1300, channelID);							
+								setTimeout(playSong, delay, channelID);
 							}
 						});
-
 					} else {
 						bot.deleteMessage({
 							channel: channelID,
