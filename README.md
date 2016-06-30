@@ -3,16 +3,22 @@ Music bot for Discord, Written in Node.js.
 
 Library: [Discord.io](https://github.com/izy521/discord.io)
 
-Prerequisite:
+If you have any questions please ask them in my test Server:
 
- - Have Visual Studio Community 2015 and make sure C++ version is installed. [Visual Studio](https://www.visualstudio.com/)
+[![Discord](https://discordapp.com/api/servers/160436336095002624/widget.png?style=banner3)](https://discord.gg/0tYqr4FWusEQHErS)
+
+Prerequisite:
+These are required for building modules using node-gyp Here is a guide to installing node-gyp [Node-gyp Docs](https://www.npmjs.com/package/node-gyp)
+
+ - Have Visual C++ Build Tools [Visual C++ Build Tools](http://landinghub.visualstudio.com/visual-cpp-build-tools)
  - Have Python 2.7 installed: [Python 2.7](https://www.python.org/download/releases/2.7/)
  - Having a bot account, create one at [Discord](https://discordapp.com/developers/applications/me)
+ - ffmpeg or avconv installed to your path. [Windows guide to install ffmpeg](http://www.wikihow.com/Install-FFmpeg-on-Windows)
 
 ## Installation
 Absolute beginners guide:
  - Install [Node.js](https://nodejs.org/en/) (preffered LTS)
- - Install node-gyp, type `npm install node-gyp` in your command prompt. [Node-gyp Docs](https://www.npmjs.com/package/node-gyp)
+ - Install node-gyp, type `npm install node-gyp` in your command prompt. 
  - `cd` to your project folder in command promt and type `npm install`. The required modules will then be downloaded and saved.
  - Enter your bot token in the `botLogin.json` file
  - Double click `start.bat` to start
@@ -30,5 +36,7 @@ Absolute beginners guide:
 - `.queue`: View the list of songs in queue
 - `.reboot`: Reboot the bot if something is wrong
 - `.uptime`: How long this bot has been online for
-- `.join`: If the bot is disconnected from voice server
+- `.join`: If nothing is specified it will join the first voice channel in the server
+- `.join [voice channel name]`: Tells the bot to join the voice channel specified
 - `.notify`: Turns on a "*now playing*" notifcation
+- `.volume [number]`: Set the volume anywhere between 1-100. *Only for FFMPEG
