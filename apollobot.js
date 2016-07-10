@@ -528,8 +528,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				} else {
 					var newVideoID = Math.floor(Math.random()*10)+queue[0].video_id;
 					var newFilePath =  './tempFiles/'+newVideoID+".mp3";
-					var songFBuffer = fs.createReadStream(queue[0].file);
-					songFBuffer.pipe(fs.createWriteStream(newFilePath));
+					fs.createReadStream(queue[0].file).pipe(fs.createWriteStream(newFilePath));
 					queue.push({
 						title: queue[0].title,
 						video_id: newVideoID,
