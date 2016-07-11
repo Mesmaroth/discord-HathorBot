@@ -8,10 +8,9 @@
   },
   "dependencies": {
     "discord.io": "^1.8.1",
-    "node-opus": "^0.1.12",
+    "node-opus": "^0.2.1",
     "ytdl-core": "^0.7.14",
-    "uptimer": "^0.1.2", 
-    "node-opus": "^0.2.1"
+    "uptimer": "^0.1.2"    
   },
   "author": "Robert (Mesmaroth)",
   "license": "ISC"
