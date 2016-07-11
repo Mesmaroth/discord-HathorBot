@@ -736,41 +736,46 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 					song = message.join(" ");
 
 					fs.readdir('./local/', (error, fileList) => {
+						function addPlay(song){
+							console.log(song);
+								queue.push({
+									title: song,
+									local: true,
+									user: user,
+									file: './local/' + song
+								});
+
+								bot.sendMessage({
+									to: channelID,
+									message: ':radio: **Added to Queue:** *' + song + '*'
+								});
+
+								if(!playing) setTimeout(playSong, 300, channelID);
+						}
+
 						// Convert number to song name if searched by index
 						if(!isNaN(song)){
 							song = Math.floor(Number(song));
 							if(song > 0 && song <= fileList.length){
-								song = fileList[song-1].split(".")[0];
+								song = fileList[song-1];
+								addPlay(song);	
 							} else {
 								bot.sendMessage({
 									to: channelID,
 									message: ":warning: No local song found with that index."
 								});
 							}					
-						} 
-
-						// If no song is found
-						if(fileList.indexOf(song + '.mp3') === -1) {
-							bot.sendMessage({
-								to: channelID,
-								message: ":warning: No local song found with that name or index"
-							});
-							return;
-						}
-
-						queue.push({
-							title: song,
-							local: true,
-							user: user,
-							file: './local/' + song + '.mp3'
-						});
-
-						bot.sendMessage({
-							to: channelID,
-							message: ':radio: **Added to Queue:** *' + song + '*'
-						});
-
-						if(!playing) setTimeout(playSong, 300, channelID);
+						} else {
+							// If no song is found
+							if(fileList.indexOf(song + '.mp3') === -1) {
+								bot.sendMessage({
+									to: channelID,
+									message: ":warning: No local song found with that name."
+								});
+								return;
+							}
+							addPlay(song + '.mp3');
+						}						
 					});
 					return;
 				} else {
