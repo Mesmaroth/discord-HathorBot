@@ -57,7 +57,7 @@ function setGame(game) {
 function folderCheck(folderPath) {
 	// Create a folder if it hasn't been created yet
 	try{
-		fs.accessSync(folderPath, fs.F_OK);		
+		fs.accessSync(folderPath);		
 	}
 	catch(error){
 		if(error){
