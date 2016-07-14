@@ -130,7 +130,6 @@ function addSong(url, title, video_id, user, callback){
 }
 
 function removeSong(song){
-	console.log("RemoveSong executed");
 	var inQueue = false;
 	var songIndex = 0;
 	for(var i = 0; i < queue.length; i++){
@@ -274,8 +273,8 @@ function getCurrentVoiceChannel(){
 	return null;
 }
 
-// By default join the first channel in the server. 
-function joinVC() {
+// By default join the first channel in the server when the bot is ready.
+function start_JoinVC() {
 	for (var server in bot.servers){
 		for(var channel in bot.servers[server].channels){
 			if(bot.servers[server].channels[channel].type === "voice"){
@@ -302,7 +301,7 @@ bot.on('ready', (rawEvent) => {
     console.log("Username: "+bot.username + " - (" + bot.id + ")");
     console.log('\n');
     setGame(defaultGame);
-    joinVC();
+    start_JoinVC();
     folderChecks();
 });
 
