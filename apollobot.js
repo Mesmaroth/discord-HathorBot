@@ -702,7 +702,8 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	}
 
 	if(message.toLowerCase().indexOf(".play") === 0){
-		folderChecks();
+		folderCheck('./tempFiles');
+		folderCheck('./local');
 		if(isInVoiceChannel()){
 			if(message.indexOf(" ") !== -1){
 				var message = message.split(" ");
