@@ -296,13 +296,19 @@ bot.on('disconnected', (errMsg, code) =>{
 	process.exit();
 });
 
-bot.on('ready', (rawEvent) => {
+bot.on('ready', rawEvent => {
 	console.log("\nDiscord.io - Version: " + bot.internals.version);
     console.log("Username: "+bot.username + " - (" + bot.id + ")");
     console.log('\n');
     setGame(defaultGame);
     start_JoinVC();
     folderChecks();
+
+    // Display connected Servers
+    console.log("\nServers connected:");
+    for(var i in bot.servers){
+       console.log(bot.servers[i].name + " ID: (" + bot.servers[i].id + ")");
+    }
 });
 
 bot.on('message', (user, userID, channelID, message, rawEvent) => {
