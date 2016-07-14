@@ -54,28 +54,16 @@ function setGame(game) {
 	bot.setPresence({game: game});
 }
 
-function folderChecks() {
+function folderCheck(folderPath) {
 	// Create a folder if it hasn't been created yet
 	try{
-		fs.accessSync('./tempFiles', fs.F_OK);
-		
+		fs.accessSync(folderPath, fs.F_OK);		
 	}
 	catch(error){
 		if(error){
-			fs.mkdirSync('./tempFiles');
-			
+			fs.mkdirSync(folderPath);			
 		}
 	}
-
-	try{
-		fs.accessSync('./local', fs.F_OK);
-	}
-	catch(error){
-		if(error){
-			fs.mkdirSync('./local');
-		}
-	}
-
 }
 
 function getTitleVideoID(url, callback){
@@ -299,10 +287,10 @@ bot.on('disconnected', (errMsg, code) =>{
 bot.on('ready', rawEvent => {
 	console.log("\nDiscord.io - Version: " + bot.internals.version);
     console.log("Username: "+bot.username + " - (" + bot.id + ")");
-    console.log('\n');
     setGame(defaultGame);
     start_JoinVC();
-    folderChecks();
+    folderCheck('./tempFiles');
+    folderCheck('./local');
 
     // Display connected Servers
     console.log("\nServers connected:");
