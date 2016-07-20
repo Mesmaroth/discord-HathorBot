@@ -231,7 +231,7 @@ function playSong(channelID){
 			return;
 		}
 		
-		if(!stoppedAudio) setTimeout(playSong, 1000, channelID);
+		if(!stoppedAudio) setTimeout(playSong, 600, channelID);
 		stoppedAudio = false;
 	});
 	return;
@@ -731,7 +731,6 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 
 					fs.readdir('./local/', (error, fileList) => {
 						function addPlay(song){
-							console.log(song);
 								queue.push({
 									title: song,
 									local: true,
