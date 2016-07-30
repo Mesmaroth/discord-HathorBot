@@ -732,7 +732,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 					fs.readdir('./local/', (error, fileList) => {
 						function addPlay(song){
 								queue.push({
-									title: song,
+									title: song.split('.')[0],
 									local: true,
 									user: user,
 									file: './local/' + song
@@ -740,7 +740,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 
 								bot.sendMessage({
 									to: channelID,
-									message: ':radio: **Added to Queue:** *' + song + '*'
+									message: ':radio: **Added to Queue:** *' + song.split('.')[0] + '*'
 								});
 
 								if(!playing) setTimeout(playSong, 300, channelID);
