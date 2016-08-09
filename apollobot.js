@@ -30,7 +30,7 @@ catch(error){
 	if(error) console.error(error);
 }
 
-var defaultGame = (process.argv[2]) ? process.argv[2] + " v"  + botVersion : "Ready: !help";
+var defaultGame = (process.argv[2]) ? process.argv[2] + " v"  + botVersion : "Ready: .help";
 
 function botUptime(){
 	var upSeconds = Math.floor( uptimer.getAppUptime());
