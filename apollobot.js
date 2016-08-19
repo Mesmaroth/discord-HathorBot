@@ -1,12 +1,12 @@
 // Modules
-var DiscordClient = require('discord.io'),
+var Discord = require('discord.io'),
 	fs = require('fs'),
 	child_proc = require('child_process'),
 	spawn = child_proc.spawn,
 	uptimer = require('uptimer'),	
 	ytdl = require('ytdl-core'),
 	botLogin = require('./botLogin.json'),
-	bot = new DiscordClient({token: botLogin.token, autorun: true});
+	bot = new Discord.Client({token: botLogin.token, autorun: true});
 
 // Music
 var streamer = {},
