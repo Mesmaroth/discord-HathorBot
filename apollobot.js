@@ -268,7 +268,8 @@ function start_JoinVC() {
 			if(bot.servers[server].channels[channel].type === "voice"){
 				var channelID = bot.servers[server].channels[channel].id;
 				bot.joinVoiceChannel(channelID, () =>{
-					bot.getAudioContext({channel: channelID, stero: true}, (stream) =>{
+					bot.getAudioContext({channel: channelID, stero: true}, (error, stream) =>{
+						if(error) console.error(error);
 				 		streamer = stream;
 				 	});	
 				});
@@ -411,7 +412,8 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 			for(var i in bot.channels){
 				if(bot.channels[i].name.toLowerCase() === input && bot.channels[i].type === 'voice'){
 					bot.joinVoiceChannel(bot.channels[i].id, () =>{
-						bot.getAudioContext({channel: bot.channels[i].id, stero: true}, stream => {
+						bot.getAudioContext({channel: bot.channels[i].id, stero: true}, (error, stream) => {
+							if(error) return console.error(error);
 							streamer = stream;
 						});	
 					});
@@ -429,7 +431,8 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		for(var i in bot.channels){
 			if(bot.channels[i].type === 'voice'){
 				bot.joinVoiceChannel(bot.channels[i].id, () =>{
-					bot.getAudioContext({channel: bot.channels[i].id, stero: true}, stream => {
+					bot.getAudioContext({channel: bot.channels[i].id, stero: true}, (error, stream) => {
+						if(error) return console.error(error);
 						streamer = stream;
 					});	
 				});
