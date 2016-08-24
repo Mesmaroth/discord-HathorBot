@@ -51,7 +51,11 @@ function botUptime(){
 }
 
 function setGame(game) {
-	bot.setPresence({game: game});
+	bot.setPresence({
+		game: {
+			name: game
+		}
+	});
 }
 
 function folderCheck(folderPath) {
@@ -279,11 +283,11 @@ function start_JoinVC() {
 	}
 }
 
-bot.on('disconnected', (errMsg, code) =>{
+bot.on('disconnect', (errMsg, code) => {
 	if(errMsg) console.log(errMsg);
 	console.log("Exited with code " + code);
 	process.exit();
-});
+})
 
 bot.on('ready', rawEvent => {
 	console.log("\nDiscord.io - Version: " + bot.internals.version);
@@ -346,22 +350,17 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		});
 	}
 
-	if(message.toLowerCase() === ".disconnect" || message.toLowerCase() === ".exit"){		
-		if(playing){
-			ffmpeg.kill();		
-		}
-		
-		setTimeout(() => {
-			// Remove all temp files
-			fs.readdir('./tempFiles/', (error, files) => {
-				for(var file of files){
-					fs.unlinkSync('./tempFiles/'+file);
-				}
-				bot.disconnect();
-			});
+	if(message.toLowerCase() === ".disconnect" || message.toLowerCase() === ".exit"){
+		// Remove all temp files
+		fs.readdir('./tempFiles/', (error, files) => {
+			if(error) return console.error(error);
+			if(playing) ffmpeg.kill();
 
-			
-		},400);		
+			for(var file of files){
+				fs.unlinkSync('./tempFiles/'+file);
+			}
+			bot.disconnect();
+		});
 	}
 
 	if(message.toLowerCase().indexOf(".volume") === 0){
@@ -644,64 +643,80 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		});
 	}
 
-	if(message.toLowerCase().indexOf(".remlocal") === 0){
-		if(!playing){		
-			if(message.indexOf(" ") !== -1){
-				var location = './local/';
-				var message = message.split(" ");
-				message.splice(0, 1);
-				var target = message;
+	if(message.toLowerCase().indexOf(".remlocal") === 0){				
+		if(message.indexOf(" ") !== -1){
+			var location = './local/';
+			var message = message.split(" ");
+			message.splice(0, 1);
+			var target = message;
 
-				// Remove local file by index number
-				if(!isNaN(target)){
-					target = Math.floor(target);
-					fs.readdir(location, (error, fileList) => {
-						if(target > 0 && target <= fileList.length){
-							fs.unlink(location  + fileList[target - 1], error => {
-								if(error) return console.error(error);
-								bot.sendMessage({
-									to: channelID,
-									message: ':fire: *"' + fileList[target - 1].split(".")[0] + '"*  was removed from local files.'
-								});								
-							});
-						} else {
+			// Remove local file by index number
+			if(!isNaN(target)){
+				target = Math.floor(target);
+				fs.readdir(location, (error, fileList) => {
+					if(target > 0 && target <= fileList.length){
+
+						fs.unlink(location + fileList[target - 1], error => {
+							if(error) {
+								if(error.code === 'EBUSY'){
+									bot.sendMessage({
+										to: channelID,
+										message: ":warning: Can not delete local song while playing it."
+									});
+									return;
+								}
+							}
 							bot.sendMessage({
 								to: channelID,
-								message: ":warning: No local song found with that index."
-							});
-						}	
-					});
-					return;
-				} else {
-					// Remove local file by name
-					target = target.join(" ")
-					var file = target + '.mp3';
-					fs.readdir(location, (error, fileList) => {
-						if(fileList.indexOf(file) === -1) {
+								message: ':fire: *"' + fileList[target - 1].split(".")[0] + '"*  was removed from local files.'
+							});								
+						});
+					} else {
+						bot.sendMessage({
+							to: channelID,
+							message: ":warning: No local song found with that index."
+						});
+					}	
+				});
+				return;
+			} else {	// Remove local file by name					
+				target = target.join(" ")
+				var file = target + '.mp3';
+				fs.readdir(location, (error, fileList) => {
+					if(fileList.indexOf(file) === -1) {
+						bot.sendMessage({
+							to: channelID,
+							message: ":warning: No local song found with that name."
+						});
+						return;
+					}
+
+					if(playing && queue[0].title === file){
+						bot.sendMessage({
+							to: channelID,
+							message: ":warning: Can not remove a local song that is currently playing."
+						});
+						return;
+					}
+
+					fs.unlink(location + file, error => {
+						if(error.code === 'EBUSY'){
 							bot.sendMessage({
 								to: channelID,
-								message: ":warning: No local song found with that name."
+								message: ":warning: Can not delete local song while playing it."
 							});
 							return;
 						}
 
-						fs.unlink(location + file, error => {
-							if(error) return console.error(error);
-							bot.sendMessage({
-								to: channelID,
-								message: ':fire: *"' + target + '"*  was removed from local files.'
-							});	
-						});
+						bot.sendMessage({
+							to: channelID,
+							message: ':fire: *"' + target + '"*  was removed from local files.'
+						});	
 					});
-					return;
-				}
+				});
+				return;
 			}
-		} else {
-			bot.sendMessage({
-				to: channelID,
-				message: ":warning: Can't do that while playing a song."
-			});
-		}		
+		}			
 	}
 
 	if(message.toLowerCase().indexOf(".play") === 0){
