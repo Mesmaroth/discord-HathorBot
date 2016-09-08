@@ -3,10 +3,6 @@ Simple music bot for Discord, Written in Node.js.
 
 Library: [Discord.io](https://github.com/izy521/discord.io)
 
-If you have any questions please ask them in my test Server:
-
-[![Discord](https://discordapp.com/api/servers/160436336095002624/widget.png?style=banner3)](https://discord.gg/0tYqr4FWusEQHErS)
-
 ## Installation:
 
 ### Windows
