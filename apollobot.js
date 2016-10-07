@@ -582,7 +582,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}
 
-	if(message.toLowerCase() === ".queue"){
+	if(message.toLowerCase() === ".queue" || message.toLowerCase() === ".playing"){
 		var songList = [];
 		for(var i = 0; i < queue.length; i++){
 			if(i==0) songList.push(queue[i].title);
