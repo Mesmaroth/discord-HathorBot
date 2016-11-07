@@ -30,7 +30,7 @@ catch(error){
 	if(error) console.error(error);
 }
 
-var defaultGame = (process.argv[2]) ? process.argv[2] + " v"  + botVersion : ".help";
+var defaultGame = (process.argv[2]) ? process.argv[2] + " v"  + botVersion : "with notes";
 
 function botUptime(){
 	var upSeconds = Math.floor( uptimer.getAppUptime());
@@ -241,45 +241,32 @@ function playSong(channelID){
 	return;
 }
 
-function isInVoiceChannel(){
-	for(var channel in bot.channels){
-		if(bot.channels[channel].type === 'voice'){
-			if(bot.id in bot.channels[channel].members){
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
+// Returns voice ID if bot is in a voice channel
 function getCurrentVoiceChannel(){
-	if(isInVoiceChannel()){
-		for(var i in bot.channels){
-			if(bot.channels[i].type === "voice"){
-				if(bot.id in bot.channels[i].members){
-					return bot.channels[i].id;
-				}
+	for(var i in bot.channels){
+		if(bot.channels[i].type === "voice"){
+			if(bot.id in bot.channels[i].members){
+				return bot.channels[i].id;
 			}
 		}
 	}
 	return null;
 }
 
-// By default join the first channel in the server when the bot is ready.
+// joins the first voice channel of the first server it's connected too, see command .join
 function start_JoinVC() {
-	for (var server in bot.servers){
-		for(var channel in bot.servers[server].channels){
-			if(bot.servers[server].channels[channel].type === "voice"){
-				var channelID = bot.servers[server].channels[channel].id;
-				bot.joinVoiceChannel(channelID, () =>{
-					bot.getAudioContext({channel: channelID, stero: true}, (error, stream) =>{
-						if(error) console.error(error);
-				 		streamer = stream;
-				 	});	
+	for(var channel in bot.channels){
+		if(bot.channels[channel].type === "voice"){
+			bot.joinVoiceChannel(bot.channels[channel].id, error => {
+				if(error) return console.error(error);
+				bot.getAudioContext(bot.channels[channel].id, (error, stream) =>{
+					if(error) return console.log(error);
+					streamer = stream					
 				});
-				return;
-			}
-		}
+
+			});
+			return;
+		}		
 	}
 }
 
@@ -398,11 +385,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				message: ":warning: Can't do that while playing a song."
 			});
 			return;
-		}
-
-		if(getCurrentVoiceChannel()){
-			bot.leaveVoiceChannel(getCurrentVoiceChannel());
-		}
+		}		
 
 		if(message.indexOf(' ') !== -1){
 			message = message.split(" ");
@@ -410,13 +393,23 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 
 			for(var i in bot.channels){
 				if(bot.channels[i].name.toLowerCase() === input && bot.channels[i].type === 'voice'){
-					bot.joinVoiceChannel(bot.channels[i].id, () =>{
-						bot.getAudioContext({channel: bot.channels[i].id, stero: true}, (error, stream) => {
+					if(getCurrentVoiceChannel() === bot.channels[i].id) {
+						bot.sendMessage({
+							to: channelID,
+							message: ":warning: Already in channel!"
+						});
+						return;
+					}					
+					else{
+						bot.joinVoiceChannel(bot.channels[i].id, (error, events) =>{
 							if(error) return console.error(error);
-							streamer = stream;
-						});	
-					});
-					return;
+							bot.getAudioContext({channel: bot.channels[i].id, stero: true}, (error, stream) => {
+								if(error) return console.error(error);
+								streamer = stream;
+							});	
+						});
+						return;
+					}
 				}
 			}
 
@@ -425,31 +418,42 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				message: ":warning: No voice channel found"
 			});
 			return;
-		}
+		} else {
+			for(var member in bot.servers[bot.channels[channelID].guild_id].members){
+				if(userID === bot.servers[bot.channels[channelID].guild_id].members[member].id){
+					if(bot.servers[bot.channels[channelID].guild_id].members[member].voice_channel_id){
+						var voiceID = bot.servers[bot.channels[channelID].guild_id].members[member].voice_channel_id;
+						if(getCurrentVoiceChannel() === voiceID) {
+							bot.sendMessage({
+								to: channelID,
+								message: ":warning: Already in channel!"
+							});
+							return;
+						}
 
-		for(var i in bot.channels){
-			if(bot.channels[i].type === 'voice'){
-				bot.joinVoiceChannel(bot.channels[i].id, () =>{
-					bot.getAudioContext({channel: bot.channels[i].id, stero: true}, (error, stream) => {
-						if(error) return console.error(error);
-						streamer = stream;
-					});	
-				});
-				return;
+						bot.joinVoiceChannel(voiceID, error => {
+							if(error) return console.error(error);
+							bot.getAudioContext(voiceID, (error, stream) => {
+								if(error) return console.error(error);
+								streamer = stream;
+							});
+						})
+						return;
+					}
+				}
 			}
 		}
 	}		
 
 	if(message.toLowerCase() === ".stop"){
-		if(isInVoiceChannel()){
+		if(getCurrentVoiceChannel()){
 			if(playing){				
 				playing = false;
-				setGame(defaultGame);
 				keepFile = true;
 				stoppedAudio = true;
 				looping = false;
 				ffmpeg.kill();
-								
+				(queue.length > 0) ? setGame("Stopped: "+queue.length +" song(s) in queue") : setGame(defaultGame);								
 			} else{
 				if(queue.length < 1){
 					bot.sendMessage({
@@ -463,7 +467,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 
 	
 	if(message.toLowerCase() === ".replay"){
-		if(isInVoiceChannel()){
+		if(getCurrentVoiceChannel()){
 			if(playing){
 				keepFile = true;
 				ffmpeg.kill();				
@@ -496,26 +500,39 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	}
 
 	if(message.toLowerCase() === ".skip" || message.toLowerCase() === ".next"){
-		if(isInVoiceChannel()){
+		if(getCurrentVoiceChannel()){
+			looping = false
+			keepFile = false;
+			saveToLocal = false;			
+
 			if(playing){
-				looping = false
-				keepFile = false;
-				saveToLocal = false;
+				bot.sendMessage({
+					to: channelID,
+					message: ":arrow_forward: **Skipping:** *" + queue[0].title +"*"
+				});								
 				ffmpeg.kill();
-				playing = false;								
+				playing = false;
 				if(queue.length-1 === 0){
 					bot.sendMessage({
 						to: channelID,
 						message: "Queue is now empty."
 					});					
 				}
+			} else{
+				bot.sendMessage({
+					to: channelID,
+					message: ":warning: Song must be playing to skip."
+				})
+				return;
 			}
+
+			
 		}
 	}
 
 	// Re-add to queue
 	if(message.toLowerCase() === ".readd"){
-		if(isInVoiceChannel()){
+		if(getCurrentVoiceChannel()){
 			if(playing){
 				// If the file is local than just add to queue
 				if(queue[0].local) {
@@ -722,7 +739,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	if(message.toLowerCase().indexOf(".play") === 0){
 		folderCheck('./tempFiles');
 		folderCheck('./local');
-		if(isInVoiceChannel()){
+		if(getCurrentVoiceChannel()){
 			if(message.indexOf(" ") !== -1){
 				var message = message.split(" ");
 				message.splice(0, 1);
@@ -730,7 +747,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				
 
 				// Request can only be made if the user is in the bots voice channel
-				if( !(userID in bot.channels[getCurrentVoiceChannel()].members)){
+				if(!(userID in bot.channels[getCurrentVoiceChannel()].members)){
 					bot.deleteMessage({
 						channel: channelID,
 						messageID: rawEvent.d.id
@@ -821,7 +838,9 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 								});
 
 								if(!playing){
-									setTimeout(playSong, 2000, channelID);
+									if(!(queue.length > 1)){
+										setTimeout(playSong, 2000, channelID);
+									}
 								}
 							});							
 						} else {
