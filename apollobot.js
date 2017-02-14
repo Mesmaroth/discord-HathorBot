@@ -8,6 +8,9 @@ var Discord = require('discord.io'),
 	botLogin = require('./botLogin.json'),
 	bot = new Discord.Client({token: botLogin.token, autorun: true});
 
+// command initializer to execute bot commands
+const COMMAND_EXEC = ".";
+
 // Music
 var streamer = {},
 	queue = [],
@@ -261,7 +264,7 @@ function start_JoinVC() {
 				if(error) return console.error(error);
 				bot.getAudioContext(bot.channels[channel].id, (error, stream) =>{
 					if(error) return console.log(error);
-					streamer = stream					
+					streamer = stream
 				});
 
 			});
@@ -301,14 +304,14 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		return;
 	}
 
-	if(message === ".writeout"){		
+	if(message === COMMAND_EXEC+"writeout"){		
 		fs.writeFile(bot.username+".json", JSON.stringify(bot, null, '\t'), 'utf8', (error) => {
 			if(error) return console.error(error);
 			console.log("Logged bot properties.");
 		});
 	}
 
-	if(message.toLowerCase() === ".about"){
+	if(message.toLowerCase() === COMMAND_EXEC+"about"){
 		bot.sendMessage({
 			to: channelID,
 			message: "\n**Username:** "+bot.username+"\n**Author:** Mesmaroth\n**Written in:** Node.js\n**Version:** " +botVersion+ "\n**Library:** Discord.io\n**Library Version:** "+bot.internals.version+
@@ -318,7 +321,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		});
 	}
 
-	if(message.toLowerCase() === ".music" || message.toLowerCase() === ".help"){
+	if(message.toLowerCase() === COMMAND_EXEC+"music" || message.toLowerCase() === COMMAND_EXEC+"help"){
 		bot.sendMessage({
 			to: channelID,
 			message: '\n**Music**\n•`.about`: About this bot\n•`.play [URL or file name]`: Adds and plays the music from the queue\n'+
@@ -330,14 +333,14 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		});
 	}
 
-	if(message.toLowerCase() === ".uptime"){
+	if(message.toLowerCase() === COMMAND_EXEC+"uptime"){
 		bot.sendMessage({
 			to: channelID,
 			message: botUptime()
 		});
 	}
 
-	if(message.toLowerCase() === ".disconnect" || message.toLowerCase() === ".exit"){
+	if(message.toLowerCase() === COMMAND_EXEC+"disconnect" || message.toLowerCase() === COMMAND_EXEC+"exit"){
 		// Remove all temp files
 		fs.readdir('./tempFiles/', (error, files) => {
 			if(error) return console.error(error);
@@ -350,7 +353,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		});
 	}
 
-	if(message.toLowerCase().indexOf(".volume") === 0){
+	if(message.toLowerCase().indexOf(COMMAND_EXEC+"volume") === 0){
 		if(allowVol){
 			if(message.indexOf(' ') !== -1){
 				var msg = message.split(' ');			
@@ -378,7 +381,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}
 
-	if(message.toLowerCase().indexOf(".join") === 0){
+	if(message.toLowerCase().indexOf(COMMAND_EXEC+"join") === 0){
 		if(playing){
 			bot.sendMessage({
 				to: channelID,
@@ -445,7 +448,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}		
 
-	if(message.toLowerCase() === ".stop"){
+	if(message.toLowerCase() === COMMAND_EXEC+"stop"){
 		if(getCurrentVoiceChannel()){
 			if(playing){				
 				playing = false;
@@ -466,7 +469,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	}
 
 	
-	if(message.toLowerCase() === ".replay"){
+	if(message.toLowerCase() === COMMAND_EXEC+"replay"){
 		if(getCurrentVoiceChannel()){
 			if(playing){
 				keepFile = true;
@@ -479,7 +482,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}
 
-	if(message.toLowerCase() === '.loop'){
+	if(message.toLowerCase() === COMMAND_EXEC+'loop'){
 		if(playing){
 			if(looping){
 				looping = false;
@@ -499,7 +502,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}
 
-	if(message.toLowerCase() === ".skip" || message.toLowerCase() === ".next"){
+	if(message.toLowerCase() === COMMAND_EXEC+"skip" || message.toLowerCase() === COMMAND_EXEC+"next"){
 		if(getCurrentVoiceChannel()){
 			looping = false
 			keepFile = false;
@@ -531,7 +534,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	}
 
 	// Re-add to queue
-	if(message.toLowerCase() === ".readd"){
+	if(message.toLowerCase() === COMMAND_EXEC+"readd"){
 		if(getCurrentVoiceChannel()){
 			if(playing){
 				// If the file is local than just add to queue
@@ -565,7 +568,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}
 
-	if(message.toLowerCase() === ".save"){
+	if(message.toLowerCase() === COMMAND_EXEC+"save"){
 		if(queue.length > 0){
 			fs.readdir('./local/', (error, files) => {
 				if(files.length  > maxLocalFiles) {
@@ -599,7 +602,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}
 
-	if(message.toLowerCase() === ".queue" || message.toLowerCase() === ".playing"){
+	if(message.toLowerCase() === COMMAND_EXEC+"queue" || message.toLowerCase() === COMMAND_EXEC+"playing"){
 		var songList = [];
 		for(var i = 0; i < queue.length; i++){
 			if(i==0) songList.push(queue[i].title);
@@ -625,7 +628,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}
 
-	if(message.toLowerCase() === ".notify"){
+	if(message.toLowerCase() === COMMAND_EXEC+"notify"){
 		if(playingNotify){
 			playingNotify = false;
 		} else {
@@ -638,7 +641,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		});
 	}
 
-	if(message.toLowerCase().indexOf('.local') === 0){
+	if(message.toLowerCase().indexOf(COMMAND_EXEC+'local') === 0){
 		fs.readdir('./local/', (error, fileList) => {
 			var songs = [];
 			fileList.forEach( (file, index) => {
@@ -660,7 +663,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		});
 	}
 
-	if(message.toLowerCase().indexOf(".remlocal") === 0){				
+	if(message.toLowerCase().indexOf(COMMAND_EXEC+"remlocal") === 0){				
 		if(message.indexOf(" ") !== -1){
 			var location = './local/';
 			var message = message.split(" ");
@@ -736,7 +739,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}			
 	}
 
-	if(message.toLowerCase().indexOf(".play") === 0){
+	if(message.toLowerCase().indexOf(COMMAND_EXEC+"play") === 0){
 		folderCheck('./tempFiles');
 		folderCheck('./local');
 		if(getCurrentVoiceChannel()){
