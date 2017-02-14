@@ -219,7 +219,7 @@ function playSong(channelID){
 				console.log("File saved to local");
 				bot.sendMessage({
 					to: channelID,
-					message: ':file_folder: *"'  + fileTitle + '"* saved to local. Use `.local` to browse saved songs.'
+					message: ":file_folder: *"'  + fileTitle + '"* saved to local. Use `" + COMMAND_EXEC + "local` to browse saved songs."
 				});
 			});
 				
@@ -320,8 +320,10 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	if(message.toLowerCase() === COMMAND_EXEC+"about"){
 		bot.sendMessage({
 			to: channelID,
-			message: "\n**Username:** "+bot.username+"\n**Author:** Mesmaroth\n**Written in:** Node.js\n**Version:** " +botVersion+ "\n**Library:** Discord.io\n**Library Version:** "+bot.internals.version+
-			"\n**Avatar:** https://goo.gl/LN6BvU\n\n**Why:** This bot was created to replace the current shit musicbot that I got sick and tired of. " +
+			message: "\n**Username:** "+bot.username+"\n**Author:** Mesmaroth\n**Written in:** Node.js"+
+			"\n**Version:** " +botVersion+ "\n**Library:** Discord.io\n**Library Version:** "+bot.internals.version+
+			"\n**Avatar:** https://goo.gl/LN6BvU\n\n"+
+			"**Why:** This bot was created to replace the current shit musicbot that I got sick and tired of. " +
 			"So I've decided to write this bot from the ground up."
 
 		});
