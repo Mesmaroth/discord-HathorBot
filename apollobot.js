@@ -9,7 +9,7 @@ var Discord = require('discord.io'),
 	bot = new Discord.Client({token: botLogin.token, autorun: true});
 
 // command initializer to execute bot commands
-const COMMAND_EXEC = "$";
+const COMMAND_EXEC = ">";
 
 // Music
 var streamer = {},
@@ -330,12 +330,21 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	if(message.toLowerCase() === COMMAND_EXEC+"music" || message.toLowerCase() === COMMAND_EXEC+"help"){
 		bot.sendMessage({
 			to: channelID,
-			message: '\n**Music**\n•`.about`: About this bot\n•`.play [URL or file name]`: Adds and plays the music from the queue\n'+
-			'•`.play`: Plays song in queue after it has been stopped\n•`.stop`: Stop the song from playing\n'+
-			'•`.skip`: Skip the currently playing song\n•`.replay`: Replay song\n•`.readd`: Re-Add the currently playing song to queue\n'+
-			'•`.queue`: View the list of songs in queue\n•`.uptime`: How long this bot has been online for\n'+
-			'•`.notify`: Turns on a "*now playing*" notifcation\n•`.loop`: Loops a song on or off. Continues looping until its off\n'+
-			'•`.local`: List all local songs you can play instantly\n•`.save`: Save the current song to local.\n•`.remlocal [Song or Number]`: Removes a local song'
+			message: "\n**Music**\n"+
+			"•`" +COMMAND_EXEC+ "about`: About this bot\n"+
+			"•`" +COMMAND_EXEC+ "play [URL or file name]`: Adds and plays the music from the queue\n"+
+			"•`" +COMMAND_EXEC+ "play`: Plays song in queue after it has been stopped\n"+
+			"•`" +COMMAND_EXEC+ "stop`: Stop the song from playing\n"+
+			"•`" +COMMAND_EXEC+ "skip`: Skip the currently playing song\n"+
+			"•`" +COMMAND_EXEC+ "replay`: Replay song\n"+
+			"•`" +COMMAND_EXEC+ "readd`: Re-Add the currently playing song to queue\n"+
+			"•`" +COMMAND_EXEC+ "queue`: View the list of songs in queue\n"+
+			"•`" +COMMAND_EXEC+ "uptime`: How long this bot has been online for\n"+
+			"•`" +COMMAND_EXEC+ "notify`: Turns on a \'*now playing*\' notifcation\n"+
+			"•`" +COMMAND_EXEC+ "loop`: Loops a song on or off. Continues looping until its off\n"+
+			"•`" +COMMAND_EXEC+ "local`: List all local songs you can play instantly\n"+
+			"•`" +COMMAND_EXEC+ "save`: Save the current song to local.\n"+
+			"•`" +COMMAND_EXEC+ "remlocal [Song or Number]`: Removes a local song"
 		});
 	}
 
