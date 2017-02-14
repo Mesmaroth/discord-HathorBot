@@ -34,7 +34,7 @@ catch(error){
 	if(error) console.error(error);
 }
 
-var defaultGame = (process.argv[2]) ? process.argv[2] + " v"  + botVersion : "with notes";
+var defaultGame = (process.argv[2]) ? process.argv[2] + " v"  + botVersion : botVersion;
 
 function botUptime(){
 	var upSeconds = Math.floor( uptimer.getAppUptime());
@@ -472,6 +472,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				keepFile = true;
 				stoppedAudio = true;
 				looping = false;
+				loopCounter = 0;
 				ffmpeg.kill();
 				(queue.length > 0) ? setGame("Stopped: "+queue.length +" song(s) in queue") : setGame(defaultGame);								
 			} else{
@@ -540,7 +541,8 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 
 	if(message.toLowerCase() === COMMAND_EXEC+"skip" || message.toLowerCase() === COMMAND_EXEC+"next"){
 		if(getCurrentVoiceChannel()){
-			looping = false
+			looping = false;
+			loopCounter = 0;
 			keepFile = false;
 			saveToLocal = false;			
 
