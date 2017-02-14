@@ -219,7 +219,7 @@ function playSong(channelID){
 				console.log("File saved to local");
 				bot.sendMessage({
 					to: channelID,
-					message: ":file_folder: *"'  + fileTitle + '"* saved to local. Use `" + COMMAND_EXEC + "local` to browse saved songs."
+					message: ":file_folder: *"  + fileTitle + "* saved to local. Use `" + COMMAND_EXEC + "local` to browse saved songs."
 				});
 			});
 				
