@@ -9,7 +9,7 @@ var Discord = require('discord.io'),
 	bot = new Discord.Client({token: botLogin.token, autorun: true});
 
 // command initializer to execute bot commands
-const COMMAND_EXEC = ".";
+const COMMAND_EXEC = "$";
 
 // Music
 var streamer = {},
@@ -23,7 +23,8 @@ var streamer = {},
 	volume = 1,
 	allowVol = true,
 	looping = false,
-	maxLocalFiles = 15;		// Max amount of files that can be saved locally. Having alot can take up space.
+	loopCounter = 0,
+	maxLocalFiles = 15;		// Max amount of files that can be saved locally. Having alot can take up space.	
 
 try{
 	var botVersion = require("./package.json").version
@@ -160,7 +161,7 @@ function removeSong(song){
 function playSong(channelID){
 	var song = queue[0],
 		players =['ffmpeg', 'avconv'], 
-		player = choosePlayer(players);	
+		player = choosePlayer(players);
 
 	// Thanks to izy521 for this method
 	function choosePlayer(players){
@@ -186,12 +187,12 @@ function playSong(channelID){
 		allowVol = true;
 	} else allowVol = false;
 
-	ffmpeg = spawn(player , options, {stdio: ['pipe', 'pipe', 'ignore']});
+	ffmpeg = spawn(player , options, {stdio: ['pipe', 'pipe', 'ignore']});	
 
 	ffmpeg.stdout.once('readable', () => {
 		streamer.send(ffmpeg.stdout);
 		playing = true;
-		if(looping) setGame("[Looping] " + song.title);
+		if(looping) (loopCounter > 0) ? setGame("[Loop " + loopCounter + "] " + song.title) : setGame("[Looping] " + song.title);
 		else setGame(song.title);
 		if(playingNotify){
 			bot.sendMessage({
@@ -232,6 +233,11 @@ function playSong(channelID){
 		}
 		// If looping has been set then stay on queue
 		if(!looping) keepFile = false;
+
+		if(loopCounter > 0){
+			loopCounter = loopCounter -1;
+			if(loopCounter === 0) looping = false;
+		}
 
 		if(queue.length === 0){
 			setGame(defaultGame);
@@ -482,11 +488,21 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}
 
-	if(message.toLowerCase() === COMMAND_EXEC+'loop'){
+	if(message.indexOf(COMMAND_EXEC+'loop') === 0){
 		if(playing){
+			if(message.indexOf(' ') !== -1){
+				message = message.split(' ');
+				if( !(isNaN(message[1])) ){
+					loopCounter = Number(message[1]);					
+				}
+			} else{
+				loopCounter = null;
+			}
+
 			if(looping){
 				looping = false;
-				keepFile = false;		
+				keepFile = false;
+				loopCounter = 0;
 				bot.sendMessage({
 					to: channelID,
 					message: ":arrows_counterclockwise: Stopped looping song."
@@ -494,12 +510,21 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 			} else {
 				looping = true;
 				keepFile = true;
-				bot.sendMessage({
-					to: channelID,
-					message: ":arrows_counterclockwise: Looping started"
-				});
+				if(loopCounter > 0){
+					bot.sendMessage({
+						to: channelID,
+						message: ":arrows_counterclockwise: Looping song for `" + loopCounter + "` times."
+					})
+				} else{
+					bot.sendMessage({
+						to: channelID,
+						message: ":arrows_counterclockwise: Looping started"
+					});
+				}
+				
 			}
 		}
+		return;
 	}
 
 	if(message.toLowerCase() === COMMAND_EXEC+"skip" || message.toLowerCase() === COMMAND_EXEC+"next"){
