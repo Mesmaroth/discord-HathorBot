@@ -8,9 +8,6 @@ var Discord = require('discord.io'),
 	botLogin = require('./botLogin.json'),
 	bot = new Discord.Client({token: botLogin.token, autorun: true});
 
-// command initializer to execute bot commands
-const COMMAND_EXEC = ">";
-
 // Music
 var streamer = {},
 	queue = [],
@@ -34,7 +31,9 @@ catch(error){
 	if(error) console.error(error);
 }
 
-var defaultGame = (process.argv[2]) ? process.argv[2] + " v"  + botVersion : botVersion;
+// command initializer to execute bot commands
+const COMMAND_EXEC = ">";
+const DEFAULT_GAME = (process.argv[2]) ? process.argv[2] + " v"  + botVersion : botVersion;
 
 function botUptime(){
 	var upSeconds = Math.floor( uptimer.getAppUptime());
@@ -173,6 +172,10 @@ function playSong(channelID){
 		return n;
 	}
 
+	if(looping && (loopCounter-1) === 0){
+		looping = false;
+	}
+
 	if(!player) return;
 	var options = [
 		'-i', song.file,
@@ -187,12 +190,12 @@ function playSong(channelID){
 		allowVol = true;
 	} else allowVol = false;
 
-	ffmpeg = spawn(player , options, {stdio: ['pipe', 'pipe', 'ignore']});	
+	ffmpeg = spawn(player , options, {stdio: ['pipe', 'pipe', 'ignore']});
 
 	ffmpeg.stdout.once('readable', () => {
 		streamer.send(ffmpeg.stdout);
 		playing = true;
-		if(looping) (loopCounter > 0) ? setGame("[Loop " + loopCounter + "] " + song.title) : setGame("[Looping] " + song.title);
+		if(looping) ((loopCounter + 1) > 0) ? setGame("[Looping " + (loopCounter+1) + "t] " + song.title) : setGame("[Looping] " + song.title);
 		else setGame(song.title);
 		if(playingNotify){
 			bot.sendMessage({
@@ -200,6 +203,7 @@ function playSong(channelID){
 				message: ":notes: **Now Playing:** *" + song.title + "*"
 			});
 		}
+
 	});
 			
 	ffmpeg.stdout.once('end', () => {
@@ -234,13 +238,12 @@ function playSong(channelID){
 		// If looping has been set then stay on queue
 		if(!looping) keepFile = false;
 
-		if(loopCounter > 0){
-			loopCounter = loopCounter -1;
-			if(loopCounter === 0) looping = false;
-		}
+		if(looping && loopCounter > 0){
+			loopCounter = loopCounter - 1;
+		}			
 
 		if(queue.length === 0){
-			setGame(defaultGame);
+			setGame(DEFAULT_GAME);
 			return;
 		}
 		
@@ -288,7 +291,7 @@ bot.on('disconnect', (errMsg, code) => {
 bot.on('ready', rawEvent => {
 	console.log("\nDiscord.io - Version: " + bot.internals.version);
     console.log("Username: "+bot.username + " - (" + bot.id + ")");
-    setGame(defaultGame);
+    setGame(DEFAULT_GAME);
     start_JoinVC();
     folderCheck('./tempFiles');
     folderCheck('./local');
@@ -474,7 +477,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				looping = false;
 				loopCounter = 0;
 				ffmpeg.kill();
-				(queue.length > 0) ? setGame("Stopped: "+queue.length +" song(s) in queue") : setGame(defaultGame);								
+				(queue.length > 0) ? setGame("Stopped: "+queue.length +" song(s) in queue") : setGame(DEFAULT_GAME);								
 			} else{
 				if(queue.length < 1){
 					bot.sendMessage({
@@ -505,10 +508,11 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 			if(message.indexOf(' ') !== -1){
 				message = message.split(' ');
 				if( !(isNaN(message[1])) ){
-					loopCounter = Number(message[1]);					
+					loopCounter = Number(message[1]);
+					console.log("looping for " + loopCounter);
 				}
 			} else{
-				loopCounter = null;
+				loopCounter = 0;
 			}
 
 			if(looping){
