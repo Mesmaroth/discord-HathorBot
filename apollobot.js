@@ -33,7 +33,7 @@ catch(error){
 
 // command initializer to execute bot commands
 const COMMAND_EXEC = ">";
-const DEFAULT_GAME = (process.argv[2]) ? process.argv[2] + " v"  + botVersion : botVersion;
+const DEFAULT_GAME = (process.argv[2]) ? process.argv[2] + " v"  + botVersion : "v"  +botVersion;
 
 function botUptime(){
 	var upSeconds = Math.floor( uptimer.getAppUptime());
@@ -237,7 +237,7 @@ function playSong(channelID){
 		}
 		// If looping has been set then stay on queue
 		if(!looping) keepFile = false;
-
+		// Removing 1 from loop counter
 		if(looping && loopCounter > 0){
 			loopCounter = loopCounter - 1;
 		}			
@@ -265,7 +265,7 @@ function getCurrentVoiceChannel(){
 	return null;
 }
 
-// joins the first voice channel of the first server it's connected too, see command .join
+// joins the first voice channel of the first server it's connected too
 function start_JoinVC() {
 	for(var channel in bot.channels){
 		if(bot.channels[channel].type === "voice"){
@@ -280,6 +280,12 @@ function start_JoinVC() {
 			return;
 		}		
 	}
+}
+
+function matchStr(string1, string2){
+	var keyword = new RegExp(string2, 'gi');
+	if(string1.search(keyword) === 0) return true;
+	else return false;
 }
 
 bot.on('disconnect', (errMsg, code) => {
@@ -373,7 +379,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		});
 	}
 
-	if(message.toLowerCase().indexOf(COMMAND_EXEC+"volume") === 0){
+	if(matchStr(message, COMMAND_EXEC + "volume")){
 		if(allowVol){
 			if(message.indexOf(' ') !== -1){
 				var msg = message.split(' ');			
@@ -401,7 +407,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}
 
-	if(message.toLowerCase().indexOf(COMMAND_EXEC+"join") === 0){
+	if(matchStr(message, COMMAND_EXEC + "join")){
 		if(playing){
 			bot.sendMessage({
 				to: channelID,
@@ -503,7 +509,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}
 
-	if(message.indexOf(COMMAND_EXEC+'loop') === 0){
+	if(matchStr(message, COMMAND_EXEC + "loop")){
 		if(playing){
 			if(message.indexOf(' ') !== -1){
 				message = message.split(' ');
@@ -511,8 +517,6 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 					loopCounter = Number(message[1]);
 					console.log("looping for " + loopCounter);
 				}
-			} else{
-				loopCounter = 0;
 			}
 
 			if(looping){
@@ -683,7 +687,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		});
 	}
 
-	if(message.toLowerCase().indexOf(COMMAND_EXEC+'local') === 0){
+	if(message.toLowerCase() === COMMAND_EXEC + "local"){
 		fs.readdir('./local/', (error, fileList) => {
 			var songs = [];
 			fileList.forEach( (file, index) => {
@@ -705,7 +709,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		});
 	}
 
-	if(message.toLowerCase().indexOf(COMMAND_EXEC+"remlocal") === 0){				
+	if(matchStr(message, COMMAND_EXEC + "remlocal")){				
 		if(message.indexOf(" ") !== -1){
 			var location = './local/';
 			var message = message.split(" ");
@@ -781,7 +785,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}			
 	}
 
-	if(message.toLowerCase().indexOf(COMMAND_EXEC+"play") === 0){
+	if( matchStr(message, COMMAND_EXEC+"play") ){
 		folderCheck('./tempFiles');
 		folderCheck('./local');
 		if(getCurrentVoiceChannel()){
