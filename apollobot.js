@@ -327,11 +327,12 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	}
 
 	if(message.toLowerCase() === COMMAND_EXEC+"about"){
+		var botAvatarURL = "https://cdn.discordapp.com/avatars/" + bot.id + "/" + bot.avatar + ".jpg";
 		bot.sendMessage({
 			to: channelID,
 			message: "\n**Username:** "+bot.username+"\n**Author:** Mesmaroth\n**Written in:** Node.js"+
 			"\n**Version:** " +botVersion+ "\n**Library:** Discord.io\n**Library Version:** "+bot.internals.version+
-			"\n**Avatar:** https://goo.gl/LN6BvU\n\n"+
+			"\n**Avatar:** " + botAvatarURL +"\n\n"+
 			"**Why:** This bot was created to replace the current shit musicbot that I got sick and tired of. " +
 			"So I've decided to write this bot from the ground up."
 
