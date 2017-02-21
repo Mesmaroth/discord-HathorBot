@@ -544,6 +544,53 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				
 			}
 		}
+	}
+
+	if(matchStr(message, COMMAND_EXEC + "playlist")){
+		if(message.indexOf(" ") !== -1){
+			message = message.split(" ");
+			var queuedSongs = queue;
+			if(message.length < 3) return;
+
+			if(message[1] === "save" && queue.length > 0){
+				fs.readdir('./playlist/', (error, files) =>{
+					if(error) return console.error(error);
+
+					for(var i = 0; i < files.length; i++){
+						if(files[i] === message[2] + '.txt'){
+							bot.sendMessage({
+								to: channelID,
+								message: "Playlist already set with that name."
+							});
+							return;
+						}
+					}					
+					fs.writeFile('./playlist/' + message[2] + '.txt', JSON.stringify(queuedSongs, null, '\t'), 'utf8', (error) => {
+						if(error) return console.error(error);
+						bot.sendMessage({
+							to:channelID,
+							message: "Playlist saved as `" + message[2] + "`"
+						});
+					});
+				});
+			} else if(queue.length < 1){
+				bot.sendMessage({
+					to:channelID,
+					message: "There aren't any songs in queue."
+				});
+			}	
+		} else {
+			fs.readdir('./playlist/', (error, files) => {
+				if(error) return console.error(error);
+				for(var i = 0; i < files.length; i++){
+					files[i] = "**"+(i+1)+"**. "+files[i].split(".")[0];
+				}
+				bot.sendMessage({
+					to:channelID,
+					message: "**Playlist**\n" + files.join("\n")
+				});
+			});
+		}
 		return;
 	}
 
