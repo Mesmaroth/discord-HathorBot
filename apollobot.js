@@ -299,8 +299,6 @@ bot.on('ready', rawEvent => {
     console.log("Username: "+bot.username + " - (" + bot.id + ")");
     setGame(DEFAULT_GAME);
     start_JoinVC();
-    folderCheck('./tempFiles');
-    folderCheck('./local');
 
     // Display connected Servers
     console.log("\nServers connected:");
@@ -638,6 +636,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				} else {
 					var newVideoID = Math.floor(Math.random()*10)+queue[0].video_id;
 					var newFilePath =  './tempFiles/'+newVideoID+".mp3";
+					folderCheck('./tempFiles/');
 					fs.createReadStream(queue[0].file).pipe(fs.createWriteStream(newFilePath));
 					queue.push({
 						title: queue[0].title,
@@ -764,6 +763,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 			var message = message.split(" ");
 			message.splice(0, 1);
 			var target = message;
+			folderCheck('./local/');
 
 			// Remove local file by index number
 			if(!isNaN(target)){
