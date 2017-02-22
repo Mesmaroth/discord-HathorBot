@@ -317,12 +317,28 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		return;
 	}
 
-	if(message === COMMAND_EXEC+"writeout"){		
+	//developer Commands
+	if(message.toLowerCase() === "~writeout"){		
 		fs.writeFile(bot.username+".json", JSON.stringify(bot, null, '\t'), 'utf8', (error) => {
 			if(error) return console.error(error);
 			console.log("Logged bot properties.");
 		});
 	}
+
+	if(message.toLowerCase() === "~disconnect" || message.toLowerCase() === "~exit"){
+		// Remove all temp files
+		fs.readdir('./tempFiles/', (error, files) => {
+			if(error) return console.error(error);
+			if(playing) ffmpeg.kill();
+
+			for(var file of files){
+				fs.unlinkSync('./tempFiles/'+file);
+			}
+			bot.disconnect();
+		});
+	}
+
+	// -----
 
 	if(message.toLowerCase() === COMMAND_EXEC+"about"){
 		var botAvatarURL = "https://cdn.discordapp.com/avatars/" + bot.id + "/" + bot.avatar + ".jpg";
@@ -337,23 +353,23 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		});
 	}
 
-	if(message.toLowerCase() === COMMAND_EXEC+"music" || message.toLowerCase() === COMMAND_EXEC+"help"){
+	if(message.toLowerCase() === COMMAND_EXEC+"help"){
 		bot.sendMessage({
 			to: channelID,
 			message: "\n**Music**\n"+
 			"•`" +COMMAND_EXEC+ "about`: About this bot\n"+
-			"•`" +COMMAND_EXEC+ "play [URL or file name]`: Adds and plays the music from the queue\n"+
-			"•`" +COMMAND_EXEC+ "play`: Plays song in queue after it has been stopped\n"+
-			"•`" +COMMAND_EXEC+ "stop`: Stop the song from playing\n"+
-			"•`" +COMMAND_EXEC+ "skip`: Skip the currently playing song\n"+
-			"•`" +COMMAND_EXEC+ "replay`: Replay song\n"+
-			"•`" +COMMAND_EXEC+ "readd`: Re-Add the currently playing song to queue\n"+
+			"•`" +COMMAND_EXEC+ "play`: Without parameter, plays a song in the queue if it has been stopped.\n"+
+			"•`" +COMMAND_EXEC+ "play [URL or file index/name]`: Adds song to queue. Plays if it's first up in queue. \n"+			
+			"•`" +COMMAND_EXEC+ "stop`: Stop the song from playing.\n"+
 			"•`" +COMMAND_EXEC+ "queue`: View the list of songs in queue\n"+
+			"•`" +COMMAND_EXEC+ "skip` or `" + COMMAND_EXEC + "next`: Skip the currently playing song\n"+
+			"•`" +COMMAND_EXEC+ "replay`: Stops and replays song\n"+
+			"•`" +COMMAND_EXEC+ "readd`: Re-Add the currently playing song to queue\n"+			
 			"•`" +COMMAND_EXEC+ "uptime`: How long this bot has been online for\n"+
 			"•`" +COMMAND_EXEC+ "notify`: Turns on a \'*now playing*\' notifcation\n"+
-			"•`" +COMMAND_EXEC+ "loop`: Loops a song on or off. Continues looping until its off\n"+
+			"•`" +COMMAND_EXEC+ "loop` or `" +COMMAND_EXEC+ "loop [number of times]`: Loops a song on or off. Continues looping until its off\n"+
 			"•`" +COMMAND_EXEC+ "local`: List all local songs you can play instantly\n"+
-			"•`" +COMMAND_EXEC+ "save`: Save the current song to local.\n"+
+			"•`" +COMMAND_EXEC+ "save`: Save the current song to locally play.\n"+
 			"•`" +COMMAND_EXEC+ "remlocal [Song or Number]`: Removes a local song"
 		});
 	}
@@ -363,21 +379,9 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 			to: channelID,
 			message: botUptime()
 		});
-	}
+	}	
 
-	if(message.toLowerCase() === COMMAND_EXEC+"disconnect" || message.toLowerCase() === COMMAND_EXEC+"exit"){
-		// Remove all temp files
-		fs.readdir('./tempFiles/', (error, files) => {
-			if(error) return console.error(error);
-			if(playing) ffmpeg.kill();
-
-			for(var file of files){
-				fs.unlinkSync('./tempFiles/'+file);
-			}
-			bot.disconnect();
-		});
-	}
-
+	// Optional volume controls for ffmpeg players
 	if(matchStr(message, COMMAND_EXEC + "volume")){
 		if(allowVol){
 			if(message.indexOf(' ') !== -1){
