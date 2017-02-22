@@ -32,7 +32,7 @@ catch(error){
 }
 
 // command initializer to execute bot commands
-const COMMAND_EXEC = ">";
+const COMMAND_EXEC = ".";
 const DEFAULT_GAME = (process.argv[2]) ? process.argv[2] + " v"  + botVersion : "v"  +botVersion;
 
 function botUptime(){
@@ -370,7 +370,11 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 			"•`" +COMMAND_EXEC+ "loop` or `" +COMMAND_EXEC+ "loop [number of times]`: Loops a song on or off. Continues looping until its off\n"+
 			"•`" +COMMAND_EXEC+ "local`: List all local songs you can play instantly\n"+
 			"•`" +COMMAND_EXEC+ "save`: Save the current song to locally play.\n"+
-			"•`" +COMMAND_EXEC+ "remlocal [Song or Number]`: Removes a local song"
+			"•`" +COMMAND_EXEC+ "remlocal [Song or Number]`: Removes a local song\n"+
+			"•`" +COMMAND_EXEC+ "playlist`: List available playlist\n"+
+			"•`" +COMMAND_EXEC+ "playlist [song or number]`: List songs from a playlist\n"+
+			"•`" +COMMAND_EXEC+ "playlist save [name of playlist]`: Save a playlist from what is in queue\n"+
+			"•`" +COMMAND_EXEC+ "playlist play [playlist name or number]`: Plays and loads songs from a playlist"
 		});
 	}
 
