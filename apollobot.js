@@ -550,13 +550,14 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	}
 
 	if(matchStr(message, COMMAND_EXEC + "playlist")){
-		var playlistLocation = './playlist/';
+		var playlistLocation = "./playlist/";
 		if(message.indexOf(" ") !== -1){
 			message = message.split(" ");
 			var queuedSongs = queue;
-			if(message.length < 3) return;
+			if(message.length < 2) return;
 
 			if(message[1] === "save" && queue.length > 0){
+				if(!message[2]) return;
 				fs.readdir(playlistLocation, (error, files) =>{
 					if(error) return console.error(error);
 
@@ -582,6 +583,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 
 			if(message[1] === "play") {
 				var playList = [];
+				if(!message[2]) return;
 				fs.readdir(playlistLocation, (error, files) =>{
 					if(error) return console.error(error);
 					for(var i = 0; i < files.length; i++){
@@ -601,11 +603,13 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 								}
 								// Play if nothing is playing
 								if(!playing){
-									playSong(channelID);
-									bot.sendMessage({
-										to: channelID,
-										message: "Playing playlist `" + playlistFileName + "`"
-									});
+									setTimeout(() =>{
+										playSong(channelID);
+										bot.sendMessage({
+											to: channelID,
+											message: "Playing playlist `" + playlistFileName + "`"
+										});
+									}, 2500)
 								}
 							}								
 							return;							
@@ -614,6 +618,26 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				});
 				return;				
 			}
+
+			fs.readdir(playlistLocation, (error, files) =>{
+				if(error) return console.error(error);
+				for(var i = 0; i < files.length; i++){
+					if(files[i] === message[1]+".json" || (i+1) === Number(message[1])){
+						var playList = require(playlistLocation + files[i]);
+						var songList = [];
+						var playListName = files[i].split(".")[0];
+
+						for(var i = 0; i < playList.length; i++){
+							songList.push("**" + (i+1) + "**. " + playList[i].title);
+						}
+
+						bot.sendMessage({
+							to: channelID,
+							message: "**" + playListName + " playlist**\n"+songList.join("\n")
+						});
+					}
+				}
+			});
 		} else {
 			fs.readdir(playlistLocation, (error, files) => {
 				if(error) return console.error(error);
