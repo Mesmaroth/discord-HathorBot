@@ -548,13 +548,14 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	}
 
 	if(matchStr(message, COMMAND_EXEC + "playlist")){
+		var playlistLocation = './playlist/';
 		if(message.indexOf(" ") !== -1){
 			message = message.split(" ");
 			var queuedSongs = queue;
 			if(message.length < 3) return;
 
 			if(message[1] === "save" && queue.length > 0){
-				fs.readdir('./playlist/', (error, files) =>{
+				fs.readdir(playlistLocation, (error, files) =>{
 					if(error) return console.error(error);
 
 					for(var i = 0; i < files.length; i++){
@@ -566,7 +567,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 							return;
 						}
 					}					
-					fs.writeFile('./playlist/' + message[2] + '.txt', JSON.stringify(queuedSongs, null, '\t'), 'utf8', (error) => {
+					fs.writeFile(playlistLocation + message[2] + '.txt', JSON.stringify(queuedSongs, null, '\t'), 'utf8', (error) => {
 						if(error) return console.error(error);
 						bot.sendMessage({
 							to:channelID,
@@ -581,7 +582,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				});
 			}	
 		} else {
-			fs.readdir('./playlist/', (error, files) => {
+			fs.readdir(playlistLocation, (error, files) => {
 				if(error) return console.error(error);
 				for(var i = 0; i < files.length; i++){
 					files[i] = "**"+(i+1)+"**. "+files[i].split(".")[0];
@@ -840,8 +841,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 			if(message.indexOf(" ") !== -1){
 				var message = message.split(" ");
 				message.splice(0, 1);
-				var song = message;
-				
+				var song = message;				
 
 				// Request can only be made if the user is in the bots voice channel
 				if(!(userID in bot.channels[getCurrentVoiceChannel()].members)){
@@ -918,8 +918,8 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 						var seconds = length_seconds;					
 						var hours = Math.trunc((seconds/60)/60);
 
-						// Video can only be at max 3 hours long.
-						if(hours < 3){						
+						// Video can only be at max 2 hours long.
+						if(hours < 2){						
 							addSong(song, title, video_id, user, (error) => {
 								if(error) {
 									bot.sendMessage({
