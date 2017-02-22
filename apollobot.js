@@ -318,14 +318,14 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	}
 
 	//developer Commands
-	if(message.toLowerCase() === "~writeout"){		
+	if(message.toLowerCase() === "?writeout"){		
 		fs.writeFile(bot.username+".json", JSON.stringify(bot, null, '\t'), 'utf8', (error) => {
 			if(error) return console.error(error);
 			console.log("Logged bot properties.");
 		});
 	}
 
-	if(message.toLowerCase() === "~disconnect" || message.toLowerCase() === "~exit"){
+	if(message.toLowerCase() === "?disconnect" || message.toLowerCase() === "~exit"){
 		// Remove all temp files
 		fs.readdir('./tempFiles/', (error, files) => {
 			if(error) return console.error(error);
@@ -561,7 +561,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 					if(error) return console.error(error);
 
 					for(var i = 0; i < files.length; i++){
-						if(files[i] === message[2] + '.txt'){
+						if(files[i] === message[2] + ".json"){
 							bot.sendMessage({
 								to: channelID,
 								message: "Playlist already set with that name."
@@ -569,7 +569,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 							return;
 						}
 					}					
-					fs.writeFile(playlistLocation + message[2] + '.txt', JSON.stringify(queuedSongs, null, '\t'), 'utf8', (error) => {
+					fs.writeFile(playlistLocation + message[2] + '.json', JSON.stringify(queuedSongs, null, '\t'), 'utf8', (error) => {
 						if(error) return console.error(error);
 						bot.sendMessage({
 							to:channelID,
@@ -577,12 +577,43 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 						});
 					});
 				});
-			} else if(queue.length < 1){
-				bot.sendMessage({
-					to:channelID,
-					message: "There aren't any songs in queue."
+				return;
+			}
+
+			if(message[1] === "play") {
+				var playList = [];
+				fs.readdir(playlistLocation, (error, files) =>{
+					if(error) return console.error(error);
+					for(var i = 0; i < files.length; i++){
+						if(files[i] === message[2] + ".json" || (i+1) === Number(message[2])){
+							var playlistFileName = files[i].split(".")[0];
+							playList = require(playlistLocation + files[i]);
+							if(playList.length > 0){
+								for(var i = 0; i < playList.length; i++){
+									// Load song to queue if the file is local							
+									if(playList[i].local){
+										queue.push(playList[i]);
+									} else if(!(playList[i].local)){
+										addSong(playList[i].url, playList[i].title, playList[i].video_id, bot.user, (error) =>{
+											if(error) return console.error(error);											
+										});
+									}
+								}
+								// Play if nothing is playing
+								if(!playing){
+									playSong(channelID);
+									bot.sendMessage({
+										to: channelID,
+										message: "Playing playlist `" + playlistFileName + "`"
+									});
+								}
+							}								
+							return;							
+						}
+					}
 				});
-			}	
+				return;				
+			}
 		} else {
 			fs.readdir(playlistLocation, (error, files) => {
 				if(error) return console.error(error);
