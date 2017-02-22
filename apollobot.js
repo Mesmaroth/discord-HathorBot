@@ -5,7 +5,7 @@ var Discord = require('discord.io'),
 	spawn = child_proc.spawn,
 	uptimer = require('uptimer'),	
 	ytdl = require('ytdl-core'),
-	botLogin = require('./botLogin.json'),
+	botLogin = require('./config/botLogin.json'),
 	bot = new Discord.Client({token: botLogin.token, autorun: true});
 
 // Music
