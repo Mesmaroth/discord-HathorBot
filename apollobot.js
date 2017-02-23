@@ -555,6 +555,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 
 	if(matchStr(message, COMMAND_EXEC + "playlist")){
 		var playlistLocation = "./playlist/";
+		folderCheck(playlistLocation);
 		if(message.indexOf(" ") !== -1){
 			message = message.split(" ");
 			var queuedSongs = queue;
@@ -645,6 +646,13 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		} else {
 			fs.readdir(playlistLocation, (error, files) => {
 				if(error) return console.error(error);
+				if(files.length === 0){
+					bot.sendMessage({
+						to: channelID,
+						message: "No playlist available."
+					});
+					return;
+				}
 				for(var i = 0; i < files.length; i++){
 					files[i] = "**"+(i+1)+"**. "+files[i].split(".")[0];
 				}
