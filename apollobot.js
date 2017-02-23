@@ -561,6 +561,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 			var queuedSongs = queue;
 			if(message.length < 2) return;
 
+			// Saving playlist from the queue
 			if(message[1] === "save" && queue.length > 0){
 				if(!message[2]) return;
 				fs.readdir(playlistLocation, (error, files) =>{
@@ -586,6 +587,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				return;
 			}
 
+			// Playing and loading songs from a playlist to queue
 			if(message[1] === "play") {
 				var playList = [];
 				if(!message[2]) return;
@@ -624,6 +626,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				return;				
 			}
 
+			// Deleting playlist file
 			if(message[1] === "delete" || message[1] === "remove"){
 				if(!message[2]) return;
 				fs.readdir(playlistLocation, (error, files) => {
@@ -646,6 +649,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				})
 			}
 
+			// List songs from a playlist
 			fs.readdir(playlistLocation, (error, files) =>{
 				if(error) return console.error(error);
 				for(var i = 0; i < files.length; i++){
@@ -666,6 +670,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				}
 			});
 		} else {
+			// List playlist
 			fs.readdir(playlistLocation, (error, files) => {
 				if(error) return console.error(error);
 				if(files.length === 0){
