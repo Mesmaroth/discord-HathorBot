@@ -624,6 +624,28 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				return;				
 			}
 
+			if(message[1] === "delete" || message[1] === "remove"){
+				if(!message[2]) return;
+				fs.readdir(playlistLocation, (error, files) => {
+					if(error) return console.error(error);
+					for(var i = 0; i < files.length; i++){
+						if(files[i] === message[2] + ".json" || (i+1) === Number(message[2])){
+							fs.unlinkSync(playlistLocation + files[i]);
+							bot.sendMessage({
+								to: channelID,
+								message: "Playlist `" + files[i].split(".")[0] + "` deleted." 
+							})
+							return;
+						}
+					}
+
+					bot.sendMessage({
+						to: channelID,
+						message: "Playlist not found."
+					});
+				})
+			}
+
 			fs.readdir(playlistLocation, (error, files) =>{
 				if(error) return console.error(error);
 				for(var i = 0; i < files.length; i++){
