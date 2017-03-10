@@ -382,6 +382,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 			"•`" +COMMAND_EXEC+ "loop queue`: Loops entire queue ON or OFF\n"+
 			"•`" +COMMAND_EXEC+ "local`: List all local songs you can play instantly\n"+
 			"•`" +COMMAND_EXEC+ "save`: Save the current song to locally play.\n"+
+			"•`" +COMMAND_EXEC+ "remove [index or name]`: Removes a song from the queue.\n"+
 			"•`" +COMMAND_EXEC+ "remlocal [Song or Number]`: Removes a local song\n"+
 			"•`" +COMMAND_EXEC+ "playlist`: List available playlist\n"+
 			"•`" +COMMAND_EXEC+ "playlist [song or number]`: List songs from a playlist\n"+
@@ -517,8 +518,8 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 
 	if(matchStr(message, "remove")){
 		console.log("execute");
-		message = message.split(" ");
-		var song = message[1];
+		if(message.indexOf(" ") === -1) return;
+		var song = message.slice(message.indexOf(" ")+1);
 		if(!isNaN(song)){
 			song = Number(song);
 			if( !(song > 0)|| !(song < queue.length)){
