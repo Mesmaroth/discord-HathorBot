@@ -283,9 +283,9 @@ function start_JoinVC() {
 }
 
 function matchStr(string1, string2){
-	var keyword = new RegExp(string2, 'gi');
-	if(keyword.test(string1)) return true;
-	else return false;
+	if(string1[0] === COMMAND_EXEC && string1.slice(1, string1.indexOf(" ")).toLowerCase() === string2){
+		return true;
+	} else return false;
 }
 
 bot.on('disconnect', (errMsg, code) => {
@@ -524,6 +524,10 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				if( !(isNaN(message[1])) ){
 					loopCounter = Number(message[1]);
 					console.log("looping for " + loopCounter);
+				}
+				else if(message[1] === "queue"){
+					console.log("Executed loop queue");
+					return;
 				}
 			}
 
@@ -933,7 +937,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}			
 	}
 
-	if(matchStr(message, COMMAND_EXEC+"play")){
+	if(matchStr(message,"play")){
 		folderCheck('./tempFiles');
 		folderCheck('./local');
 		if(getCurrentVoiceChannel()){
