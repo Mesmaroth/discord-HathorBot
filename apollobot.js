@@ -284,7 +284,7 @@ function start_JoinVC() {
 
 function matchStr(string1, string2){
 	var keyword = new RegExp(string2, 'gi');
-	if(string1.search(keyword) === 0) return true;
+	if(keyword.test(string1)) return true;
 	else return false;
 }
 
@@ -374,7 +374,8 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 			"•`" +COMMAND_EXEC+ "playlist`: List available playlist\n"+
 			"•`" +COMMAND_EXEC+ "playlist [song or number]`: List songs from a playlist\n"+
 			"•`" +COMMAND_EXEC+ "playlist save [name of playlist]`: Save a playlist from what is in queue\n"+
-			"•`" +COMMAND_EXEC+ "playlist play [playlist name or number]`: Plays and loads songs from a playlist"
+			"•`" +COMMAND_EXEC+ "playlist play [playlist name or number]`: Plays and loads songs from a playlist\n"+
+			"•`" +COMMAND_EXEC+ "playlist remove [song or number]` or `playlist delete [song or number]`: Removes a playlist"
 		});
 	}
 
@@ -646,7 +647,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 						to: channelID,
 						message: "Playlist not found."
 					});
-				})
+				});
 			}
 
 			// List songs from a playlist
@@ -932,7 +933,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}			
 	}
 
-	if( matchStr(message, COMMAND_EXEC+"play") ){
+	if(matchStr(message, COMMAND_EXEC+"play")){
 		folderCheck('./tempFiles');
 		folderCheck('./local');
 		if(getCurrentVoiceChannel()){
