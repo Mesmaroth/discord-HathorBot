@@ -21,6 +21,7 @@ var streamer = {},
 	allowVol = true,
 	looping = false,
 	loopCounter = 0,
+	loopQueue = false;
 	maxLocalFiles = 15;		// Max amount of files that can be saved locally. Having alot can take up space.	
 
 try{
@@ -179,7 +180,7 @@ function playSong(channelID){
 	if(!player) return;
 	var options = [
 		'-i', song.file,
-		'-f', 's16le',		
+		'-f', 's16le',
 		'-ar', '48000',
 		'-ac', '2',
 		'pipe:1'
@@ -228,7 +229,14 @@ function playSong(channelID){
 			});
 				
 			saveToLocal = false;
-		}	
+		}
+
+		// Keep file and readd song into the back of the queue if looping the entire queue
+		if(loopQueue){
+			keepFile = true;
+			queue.push(queue[0]);
+		}
+
 		// Delete file and remove song from queue.
 		if(!keepFile) {
 			// Remove song from queue if its a local file otherwise remove song from queue and delete file
@@ -240,7 +248,9 @@ function playSong(channelID){
 		// Removing 1 from loop counter
 		if(looping && loopCounter > 0){
 			loopCounter = loopCounter - 1;
-		}			
+		}
+
+				
 
 		if(queue.length === 0){
 			setGame(DEFAULT_GAME);
@@ -318,14 +328,14 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	}
 
 	//developer Commands
-	if(message.toLowerCase() === "?writeout"){		
+	if(message.toLowerCase() === "$writeout"){		
 		fs.writeFile(bot.username+".json", JSON.stringify(bot, null, '\t'), 'utf8', (error) => {
 			if(error) return console.error(error);
 			console.log("Logged bot properties.");
 		});
 	}
 
-	if(message.toLowerCase() === "?disconnect" || message.toLowerCase() === "~exit"){
+	if(message.toLowerCase() === "$disconnect" || message.toLowerCase() === "$exit"){
 		// Remove all temp files
 		fs.readdir('./tempFiles/', (error, files) => {
 			if(error) return console.error(error);
@@ -368,6 +378,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 			"•`" +COMMAND_EXEC+ "uptime`: How long this bot has been online for\n"+
 			"•`" +COMMAND_EXEC+ "notify`: Turns on a \'*now playing*\' notifcation\n"+
 			"•`" +COMMAND_EXEC+ "loop` or `" +COMMAND_EXEC+ "loop [number of times]`: Loops a song on or off. Continues looping until its off\n"+
+			"•`" +COMMAND_EXEC+ "loop queue`: Loops entire queue ON or OFF\n"+
 			"•`" +COMMAND_EXEC+ "local`: List all local songs you can play instantly\n"+
 			"•`" +COMMAND_EXEC+ "save`: Save the current song to locally play.\n"+
 			"•`" +COMMAND_EXEC+ "remlocal [Song or Number]`: Removes a local song\n"+
@@ -523,10 +534,18 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				message = message.split(' ');
 				if( !(isNaN(message[1])) ){
 					loopCounter = Number(message[1]);
-					console.log("looping for " + loopCounter);
 				}
-				else if(message[1] === "queue"){
-					console.log("Executed loop queue");
+				else if(message[1] === "queue" && !looping){
+					if(!loopQueue){
+						loopQueue = true
+					} else loopQueue = false;
+					bot.sendMessage({
+						to: channelID,
+						message: (loopQueue) ? ":arrows_counterclockwise: Loop queue `ON`" : ":arrows_counterclockwise: Loop queue `OFF`"
+					});
+					return;
+				} else if(message[1] === "queue" && loooping){
+					bot.sendMessage("A song is already looping. Can not loop queue.");
 					return;
 				}
 			}
@@ -807,10 +826,17 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 
 		if(songList.length === 1){
-			bot.sendMessage({
-				to: channelID,
-				message: "**Music**\n**Currently Playing:** *" + songList[0] + "*"
-			});
+			if(loopQueue){
+				bot.sendMessage({
+					to: channelID,
+					message: "**Music - Looping Queue**\n**Currently Playing:** *" + songList[0] + "*"
+				});
+			} else {
+				bot.sendMessage({
+					to: channelID,
+					message: "**Music**\n**Currently Playing:** *" + songList[0] + "*"
+				});
+			}
 		} else if(songList.length > 1){
 			var firstSong = songList.splice(0,1);
 			bot.sendMessage({
