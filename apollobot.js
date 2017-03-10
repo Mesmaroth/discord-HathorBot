@@ -387,7 +387,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	}	
 
 	// Optional volume controls for ffmpeg players
-	if(matchStr(message, COMMAND_EXEC + "volume")){
+	if(matchStr(message,"volume")){
 		if(allowVol){
 			if(message.indexOf(' ') !== -1){
 				var msg = message.split(' ');			
@@ -415,7 +415,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}
 
-	if(matchStr(message, COMMAND_EXEC + "join")){
+	if(matchStr(message, "join")){
 		if(playing){
 			bot.sendMessage({
 				to: channelID,
@@ -517,7 +517,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}
 
-	if(matchStr(message, COMMAND_EXEC + "loop")){
+	if(matchStr(message, "loop")){
 		if(playing){
 			if(message.indexOf(' ') !== -1){
 				message = message.split(' ');
@@ -558,7 +558,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}
 
-	if(matchStr(message, COMMAND_EXEC + "playlist")){
+	if(matchStr(message, "playlist")){
 		var playlistLocation = "./playlist/";
 		folderCheck(playlistLocation);
 		if(message.indexOf(" ") !== -1){
@@ -860,7 +860,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		});
 	}
 
-	if(matchStr(message, COMMAND_EXEC + "remlocal")){				
+	if(matchStr(message, "remlocal")){				
 		if(message.indexOf(" ") !== -1){
 			var location = './local/';
 			var message = message.split(" ");
