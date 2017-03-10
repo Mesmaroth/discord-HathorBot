@@ -33,7 +33,7 @@ catch(error){
 }
 
 // command initializer to execute bot commands
-const COMMAND_EXEC = ">";
+const COMMAND_EXEC = ".";
 const DEFAULT_GAME = (process.argv[2]) ? process.argv[2] + " v"  + botVersion : "v"  +botVersion;
 
 function botUptime(){
@@ -329,14 +329,14 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	}
 
 	//developer Commands
-	if(message.toLowerCase() === "$writeout"){		
+	if(message.toLowerCase() === "?writeout"){		
 		fs.writeFile(bot.username+".json", JSON.stringify(bot, null, '\t'), 'utf8', (error) => {
 			if(error) return console.error(error);
 			console.log("Logged bot properties.");
 		});
 	}
 
-	if(message.toLowerCase() === "$disconnect" || message.toLowerCase() === "$exit"){
+	if(message.toLowerCase() === "?disconnect" || message.toLowerCase() === "?exit"){
 		// Remove all temp files
 		fs.readdir('./tempFiles/', (error, files) => {
 			if(error) return console.error(error);
