@@ -217,9 +217,6 @@ function playSong(channelID){
 			fileTitle = fileTitle.replace(/[&\/\\#,+()$~%.'":*?<>{}]/g,'_');
 			var newFilePath = './local/'+fileTitle+'.mp3';
 
-			// Remove song from queue so that the next song can play
-			queue.splice(0,1);
-
 			fs.rename(filePath, newFilePath, () => {
 				console.log("File saved to local");
 				bot.sendMessage({
@@ -227,14 +224,18 @@ function playSong(channelID){
 					message: ":file_folder: *"  + fileTitle + "* saved to local. Use `" + COMMAND_EXEC + "local` to browse saved songs."
 				});
 			});
-				
-			saveToLocal = false;
+
+			if(keepFile) {
+				queue[0].file = newFilePath;
+			}
+			saveToLocal = false;			
 		}
 
 		// Keep file and readd song into the back of the queue if looping the entire queue
 		if(loopQueue){
 			keepFile = true;
-			queue.push(queue[0]);
+			queue.push(song);
+			queue.shift(song);
 		}
 
 		// Delete file and remove song from queue.
@@ -721,30 +722,22 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 			looping = false;
 			loopCounter = 0;
 			keepFile = false;
-			saveToLocal = false;			
+			saveToLocal = false;
 
-			if(playing){
-				bot.sendMessage({
-					to: channelID,
-					message: ":arrow_forward: **Skipping:** *" + queue[0].title +"*"
-				});								
-				ffmpeg.kill();
-				playing = false;
-				if(queue.length-1 === 0){
-					bot.sendMessage({
-						to: channelID,
-						message: "Queue is now empty."
-					});					
-				}
-			} else{
-				bot.sendMessage({
-					to: channelID,
-					message: ":warning: Song must be playing to skip."
-				})
-				return;
-			}
+			ffmpeg.kill();
+			playing = false;	
 
+			bot.sendMessage({
+				to: channelID,
+				message: ":arrow_forward: **Skipping:** *" + queue[0].title +"*"
+			});
 			
+			if(queue.length-1 === 0){
+				bot.sendMessage({
+					to: channelID,
+					message: "Queue is now empty."
+				});					
+			}			
 		}
 	}
 
@@ -839,10 +832,17 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 			}
 		} else if(songList.length > 1){
 			var firstSong = songList.splice(0,1);
-			bot.sendMessage({
-				to: channelID,
-				message: "**Music**\n**Currently Playing:** *" + firstSong + "*\n\n**Queue** \n" + songList.join("\n")
-			});
+			if(loopQueue){
+				bot.sendMessage({
+					to: channelID,
+					message: "**Music - Looping Queue**\n**Currently Playing:** *" + firstSong + "*\n\n**Queue** \n" + songList.join("\n")
+				});
+			} else {
+				bot.sendMessage({
+					to: channelID,
+					message: "**Music**\n**Currently Playing:** *" + firstSong + "*\n\n**Queue** \n" + songList.join("\n")
+				});
+			}
 		} else {
 			bot.sendMessage({
 				to: channelID,
