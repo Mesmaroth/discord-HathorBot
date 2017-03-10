@@ -32,7 +32,7 @@ catch(error){
 }
 
 // command initializer to execute bot commands
-const COMMAND_EXEC = ".";
+const COMMAND_EXEC = ">";
 const DEFAULT_GAME = (process.argv[2]) ? process.argv[2] + " v"  + botVersion : "v"  +botVersion;
 
 function botUptime(){
@@ -283,7 +283,7 @@ function start_JoinVC() {
 }
 
 function matchStr(string1, string2){
-	if(string1[0] === COMMAND_EXEC && string1.slice(1, string1.indexOf(" ")).toLowerCase() === string2){
+	if(string1[0] === COMMAND_EXEC && (string1.slice(1, string1.indexOf(" ")).toLowerCase() === string2 || string1.slice(1).toLowerCase() === string2) ){
 		return true;
 	} else return false;
 }
