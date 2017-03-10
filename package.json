@@ -1,6 +1,6 @@
 {
   "name": "discord-apollobot",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Discord music bot",
   "main": "apollobot.js",
   "scripts": {
