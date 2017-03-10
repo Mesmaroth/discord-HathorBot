@@ -515,6 +515,61 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}
 
+	if(matchStr(message, "remove")){
+		console.log("execute");
+		message = message.split(" ");
+		var song = message[1];
+		if(!isNaN(song)){
+			song = Number(song);
+			if( !(song > 0)|| !(song < queue.length)){
+				bot.sendMessage({
+					to: channelID,
+					message: "No song queued with that index."
+				});
+				return;
+			}	
+			var songName = queue[song].title;
+			var filePath = queue[song].file;
+			if(queue[song].local){
+				queue.splice(song, 1);
+			} else if(queue[song].local === false){
+				fs.unlinkSync(filePath);
+				queue.splice(song, 1);
+			}
+
+			bot.sendMessage({
+				to: channelID,
+				message: "Removed *" + songName	+ "* from queue."
+			});
+			return;
+		} else{
+			for(var i = 1; i < queue.length; i++){
+				if(queue[i].title.toLowerCase() === song.toLowerCase()){
+					var songName = queue[i].title;
+					var filePath = queue[i].file;
+					if(queue[i].local){
+						queue.splice(i, 1);
+					} else if(queue[i].local === false){
+						fs.unlinkSync(filePath);
+						queue.splice(i, 1);
+					}
+
+					bot.sendMessage({
+						to: channelID,
+						message: "Removed *" + songName	+ "* from queue."
+					});
+					return;
+				}
+			}
+
+			bot.sendMessage({
+				to: channelID,
+				message: "No song with that name found."
+			});
+			return;
+		}		
+	}
+
 	
 	if(message.toLowerCase() === COMMAND_EXEC+"replay"){
 		if(getCurrentVoiceChannel()){
