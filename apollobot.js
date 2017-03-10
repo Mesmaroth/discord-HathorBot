@@ -517,7 +517,6 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	}
 
 	if(matchStr(message, "remove")){
-		console.log("execute");
 		if(message.indexOf(" ") === -1) return;
 		var song = message.slice(message.indexOf(" ")+1);
 		if(!isNaN(song)){
@@ -698,6 +697,11 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 											message: "Playing playlist `" + playlistFileName + "`"
 										});
 									}, 2500)
+								} else{
+									bot.sendMessage({
+										to: channelID,
+										message: "Added playlist `" + playlistFileName + "` to queue."
+									});
 								}
 							}								
 							return;							
