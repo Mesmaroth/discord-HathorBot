@@ -33,7 +33,8 @@ catch(error){
 }
 
 // command initializer to execute bot commands
-const COMMAND_EXEC = ".";
+const CMD_INIT = ".";
+const DEV_INIT = "$";
 const DEFAULT_GAME = (process.argv[2]) ? process.argv[2] + " v"  + botVersion : "v"  +botVersion;
 
 function botUptime(){
