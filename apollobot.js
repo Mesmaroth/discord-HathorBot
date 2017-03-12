@@ -222,7 +222,7 @@ function playSong(channelID){
 				console.log("File saved to local");
 				bot.sendMessage({
 					to: channelID,
-					message: ":file_folder: *"  + fileTitle + "* saved to local. Use `" + COMMAND_EXEC + "local` to browse saved songs."
+					message: ":file_folder: *"  + fileTitle + "* saved to local. Use `" + CMD_INIT + "local` to browse saved songs."
 				});
 			});
 
@@ -295,7 +295,7 @@ function start_JoinVC() {
 }
 
 function matchStr(string1, string2){
-	if(string1[0] === COMMAND_EXEC && (string1.slice(1, string1.indexOf(" ")).toLowerCase() === string2 || string1.slice(1).toLowerCase() === string2) ){
+	if(string1[0] === CMD_INIT && (string1.slice(1, string1.indexOf(" ")).toLowerCase() === string2 || string1.slice(1).toLowerCase() === string2) ){
 		return true;
 	} else return false;
 }
@@ -330,14 +330,14 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	}
 
 	//developer Commands
-	if(message.toLowerCase() === "?writeout"){		
+	if(message.toLowerCase() === DEV_INIT + "writeout"){		
 		fs.writeFile(bot.username+".json", JSON.stringify(bot, null, '\t'), 'utf8', (error) => {
 			if(error) return console.error(error);
 			console.log("Logged bot properties.");
 		});
 	}
 
-	if(message.toLowerCase() === "?disconnect" || message.toLowerCase() === "?exit"){
+	if(message.toLowerCase() === DEV_INIT + "disconnect" || message.toLowerCase() === DEV_INIT + "exit"){
 		// Remove all temp files
 		fs.readdir('./tempFiles/', (error, files) => {
 			if(error) return console.error(error);
@@ -352,7 +352,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 
 	// -----
 
-	if(message.toLowerCase() === COMMAND_EXEC+"about"){
+	if(message.toLowerCase() === CMD_INIT+"about"){
 		var botAvatarURL = "https://cdn.discordapp.com/avatars/" + bot.id + "/" + bot.avatar + ".jpg";
 		bot.sendMessage({
 			to: channelID,
@@ -365,35 +365,35 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		});
 	}
 
-	if(message.toLowerCase() === COMMAND_EXEC+"help"){
+	if(message.toLowerCase() === CMD_INIT+"help"){
 		bot.sendMessage({
 			to: channelID,
 			message: "\n**Music**\n"+
-			"•`" +COMMAND_EXEC+ "about`: About this bot\n"+
-			"•`" +COMMAND_EXEC+ "play`: Without parameter, plays a song in the queue if it has been stopped.\n"+
-			"•`" +COMMAND_EXEC+ "play [URL or file index/name]`: Adds song to queue. Plays if it's first up in queue. \n"+			
-			"•`" +COMMAND_EXEC+ "stop`: Stop the song from playing.\n"+
-			"•`" +COMMAND_EXEC+ "queue`: View the list of songs in queue\n"+
-			"•`" +COMMAND_EXEC+ "skip` or `" + COMMAND_EXEC + "next`: Skip the currently playing song\n"+
-			"•`" +COMMAND_EXEC+ "replay`: Stops and replays song\n"+
-			"•`" +COMMAND_EXEC+ "readd`: Re-Add the currently playing song to queue\n"+			
-			"•`" +COMMAND_EXEC+ "uptime`: How long this bot has been online for\n"+
-			"•`" +COMMAND_EXEC+ "notify`: Turns on a \'*now playing*\' notifcation\n"+
-			"•`" +COMMAND_EXEC+ "loop` or `" +COMMAND_EXEC+ "loop [number of times]`: Loops a song on or off. Continues looping until its off\n"+
-			"•`" +COMMAND_EXEC+ "loop queue`: Loops entire queue ON or OFF\n"+
-			"•`" +COMMAND_EXEC+ "local`: List all local songs you can play instantly\n"+
-			"•`" +COMMAND_EXEC+ "save`: Save the current song to locally play.\n"+
-			"•`" +COMMAND_EXEC+ "remove [index or name]`: Removes a song from the queue.\n"+
-			"•`" +COMMAND_EXEC+ "remlocal [Song or Number]`: Removes a local song\n"+
-			"•`" +COMMAND_EXEC+ "playlist`: List available playlist\n"+
-			"•`" +COMMAND_EXEC+ "playlist [song or number]`: List songs from a playlist\n"+
-			"•`" +COMMAND_EXEC+ "playlist save [name of playlist]`: Save a playlist from what is in queue\n"+
-			"•`" +COMMAND_EXEC+ "playlist play [playlist name or number]`: Plays and loads songs from a playlist\n"+
-			"•`" +COMMAND_EXEC+ "playlist remove [song or number]` or `playlist delete [song or number]`: Removes a playlist"
+			"•`" +CMD_INIT+ "about`: About this bot\n"+
+			"•`" +CMD_INIT+ "play`: Without parameter, plays a song in the queue if it has been stopped.\n"+
+			"•`" +CMD_INIT+ "play [URL or file index/name]`: Adds song to queue. Plays if it's first up in queue. \n"+			
+			"•`" +CMD_INIT+ "stop`: Stop the song from playing.\n"+
+			"•`" +CMD_INIT+ "queue`: View the list of songs in queue\n"+
+			"•`" +CMD_INIT+ "skip` or `" + CMD_INIT + "next`: Skip the currently playing song\n"+
+			"•`" +CMD_INIT+ "replay`: Stops and replays song\n"+
+			"•`" +CMD_INIT+ "readd`: Re-Add the currently playing song to queue\n"+			
+			"•`" +CMD_INIT+ "uptime`: How long this bot has been online for\n"+
+			"•`" +CMD_INIT+ "notify`: Turns on a \'*now playing*\' notifcation\n"+
+			"•`" +CMD_INIT+ "loop` or `" +CMD_INIT+ "loop [number of times]`: Loops a song on or off. Continues looping until its off\n"+
+			"•`" +CMD_INIT+ "loop queue`: Loops entire queue ON or OFF\n"+
+			"•`" +CMD_INIT+ "local`: List all local songs you can play instantly\n"+
+			"•`" +CMD_INIT+ "save`: Save the current song to locally play.\n"+
+			"•`" +CMD_INIT+ "remove [index or name]`: Removes a song from the queue.\n"+
+			"•`" +CMD_INIT+ "remlocal [Song or Number]`: Removes a local song\n"+
+			"•`" +CMD_INIT+ "playlist`: List available playlist\n"+
+			"•`" +CMD_INIT+ "playlist [song or number]`: List songs from a playlist\n"+
+			"•`" +CMD_INIT+ "playlist save [name of playlist]`: Save a playlist from what is in queue\n"+
+			"•`" +CMD_INIT+ "playlist play [playlist name or number]`: Plays and loads songs from a playlist\n"+
+			"•`" +CMD_INIT+ "playlist remove [song or number]` or `playlist delete [song or number]`: Removes a playlist"
 		});
 	}
 
-	if(message.toLowerCase() === COMMAND_EXEC+"uptime"){
+	if(message.toLowerCase() === CMD_INIT+"uptime"){
 		bot.sendMessage({
 			to: channelID,
 			message: botUptime()
@@ -496,7 +496,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}		
 
-	if(message.toLowerCase() === COMMAND_EXEC+"stop"){
+	if(message.toLowerCase() === CMD_INIT+"stop"){
 		if(getCurrentVoiceChannel()){
 			if(playing){				
 				playing = false;
@@ -572,7 +572,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	}
 
 	
-	if(message.toLowerCase() === COMMAND_EXEC+"replay"){
+	if(message.toLowerCase() === CMD_INIT+"replay"){
 		if(getCurrentVoiceChannel()){
 			if(playing){
 				keepFile = true;
@@ -778,7 +778,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		return;
 	}
 
-	if(message.toLowerCase() === COMMAND_EXEC+"skip" || message.toLowerCase() === COMMAND_EXEC+"next"){
+	if(message.toLowerCase() === CMD_INIT+"skip" || message.toLowerCase() === CMD_INIT+"next"){
 		if(getCurrentVoiceChannel()){
 			looping = false;
 			loopCounter = 0;
@@ -803,7 +803,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	}
 
 	// Re-add to queue
-	if(message.toLowerCase() === COMMAND_EXEC+"readd"){
+	if(message.toLowerCase() === CMD_INIT+"readd"){
 		if(getCurrentVoiceChannel()){
 			if(playing){
 				// If the file is local than just add to queue
@@ -838,7 +838,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}
 
-	if(message.toLowerCase() === COMMAND_EXEC+"save"){
+	if(message.toLowerCase() === CMD_INIT+"save"){
 		if(queue.length > 0){
 			fs.readdir('./local/', (error, files) => {
 				if(files.length  > maxLocalFiles) {
@@ -872,7 +872,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}
 
-	if(message.toLowerCase() === COMMAND_EXEC+"queue" || message.toLowerCase() === COMMAND_EXEC+"playing"){
+	if(message.toLowerCase() === CMD_INIT+"queue" || message.toLowerCase() === CMD_INIT+"playing"){
 		var songList = [];
 		for(var i = 0; i < queue.length; i++){
 			if(i==0) songList.push(queue[i].title);
@@ -912,7 +912,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		}
 	}
 
-	if(message.toLowerCase() === COMMAND_EXEC+"notify"){
+	if(message.toLowerCase() === CMD_INIT+"notify"){
 		if(playingNotify){
 			playingNotify = false;
 		} else {
@@ -925,7 +925,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		});
 	}
 
-	if(message.toLowerCase() === COMMAND_EXEC + "local"){
+	if(message.toLowerCase() === CMD_INIT + "local"){
 		fs.readdir('./local/', (error, fileList) => {
 			var songs = [];
 			fileList.forEach( (file, index) => {
@@ -1031,7 +1031,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 			if(message.indexOf(" ") !== -1){
 				var message = message.split(" ");
 				message.splice(0, 1);
-				var song = message;				
+				var song = message;			
 
 				// Request can only be made if the user is in the bots voice channel
 				if(!(userID in bot.channels[getCurrentVoiceChannel()].members)){
