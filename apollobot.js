@@ -227,7 +227,7 @@ function playSong(channelID){
 
 			if(keepFile) {
 				queue[0].file = newFilePath;
-			}
+			} else queue.splice(0,1);
 			saveToLocal = false;			
 		}
 
