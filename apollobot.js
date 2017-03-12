@@ -1046,11 +1046,18 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 					});
 					return;
 				}
+				var isLink = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/
 
 				// Plays a local file if no http link is requested
-				if(song[0].indexOf("http") !== 0){
+				if( !(isLink.test(song[0])) ){
+					if(/http(?:s?):/.test(song[0])){
+						bot.sendMessage({
+							to: channelID,
+							message: ":warning: Not a valid youtube link"
+						});
+						return;
+					}
 					song = message.join(" ");
-
 					fs.readdir('./local/', (error, fileList) => {
 						function addPlay(song){
 								queue.push({
@@ -1093,7 +1100,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 						}						
 					});
 					return;
-				} else {
+				} else{
 					// download and play from url
 					song = song[0];
 					getTitleVideoID(song, (error, title, video_id, length_seconds) => {
@@ -1142,8 +1149,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 							});
 						}						
 					});		
-				}
-					
+				}					
 				return;
 			}
 
