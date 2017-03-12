@@ -226,9 +226,7 @@ function playSong(channelID){
 				});
 			});
 
-			if(keepFile) {
-				queue[0].file = newFilePath;
-			} else queue.splice(0,1);
+			if(keepFile) queue[0].file = newFilePath;
 			saveToLocal = false;			
 		}
 
@@ -850,9 +848,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				}
 
 				if(!queue[0].local){
-					saveToLocal = true;
-					// Keep file until after the saved file is done then delete
-					keepFile = true;			
+					saveToLocal = true;			
 					bot.sendMessage({
 						to: channelID,
 						message: ":file_cabinet: File queued to be saved."
