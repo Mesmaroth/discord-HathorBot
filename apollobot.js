@@ -1042,6 +1042,9 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 					});
 					return;
 				}
+				/* YT REGEX : https://stackoverflow.com/questions/3717115/regular-expression-for-youtube-links
+				*	by Adrei Zisu
+				*/
 				var isLink = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/
 
 				// Plays a local file if no http link is requested
