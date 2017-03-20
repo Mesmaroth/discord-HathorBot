@@ -3,9 +3,9 @@ var Discord = require('discord.io'),
 	fs = require('fs'),
 	child_proc = require('child_process'),
 	spawn = child_proc.spawn,
-	uptimer = require('uptimer'),	
+	uptimer = require('uptimer'),
 	ytdl = require('ytdl-core'),
-	botLogin = require('./config/botLogin.json'),
+	botLogin = require('./config/botLogin.js'),
 	bot = new Discord.Client({token: botLogin.token, autorun: true});
 
 // Music
@@ -22,13 +22,13 @@ var streamer = {},
 	looping = false,
 	loopCounter = 0,
 	loopQueue = false;
-	maxLocalFiles = 15;		// Max amount of files that can be saved locally. Having alot can take up space.	
+	maxLocalFiles = 15;		// Max amount of files that can be saved locally. Having alot can take up space.
 
 try{
 	var botVersion = require("./package.json").version
 }
 catch(error){
-	var botVersion = "#?"; 
+	var botVersion = "#?";
 	if(error) console.error(error);
 }
 
@@ -52,7 +52,7 @@ function botUptime(){
 		upMinutes = Math.floor(upMinutes % 60);
 	}
 
-	return "**Uptime:** *" + upHours + " hour(s) : " + upMinutes + " minute(s) : " + upSeconds + " second(s)*"; 
+	return "**Uptime:** *" + upHours + " hour(s) : " + upMinutes + " minute(s) : " + upSeconds + " second(s)*";
 }
 
 function setGame(game) {
@@ -66,11 +66,11 @@ function setGame(game) {
 function folderCheck(folderPath) {
 	// Create a folder if it hasn't been created yet
 	try{
-		fs.accessSync(folderPath);		
+		fs.accessSync(folderPath);
 	}
 	catch(error){
 		if(error){
-			fs.mkdirSync(folderPath);			
+			fs.mkdirSync(folderPath);
 		}
 	}
 }
@@ -149,11 +149,11 @@ function removeSong(song){
 			}
 		}
 
-		if(fileExist){				
+		if(fileExist){
 			fs.unlinkSync(filePath);
-			queue.splice(songIndex, 1);							
-		} else queue.splice(songIndex, 1);		
-	} else{ 
+			queue.splice(songIndex, 1);
+		} else queue.splice(songIndex, 1);
+	} else{
 		console.log("Song is not in queue.");
 	}
 	return;
@@ -161,7 +161,7 @@ function removeSong(song){
 
 function playSong(channelID){
 	var song = queue[0],
-		players =['ffmpeg', 'avconv'], 
+		players =['ffmpeg', 'avconv'],
 		player = choosePlayer(players);
 
 	// Thanks to izy521 for this method
@@ -207,7 +207,7 @@ function playSong(channelID){
 		}
 
 	});
-			
+
 	ffmpeg.stdout.once('end', () => {
 		playing = false;
 		ffmpeg.kill();
@@ -227,7 +227,7 @@ function playSong(channelID){
 			});
 
 			if(keepFile) queue[0].file = newFilePath;
-			saveToLocal = false;			
+			saveToLocal = false;
 		}
 
 		// Keep file and readd song into the back of the queue if looping the entire queue
@@ -250,13 +250,13 @@ function playSong(channelID){
 			loopCounter = loopCounter - 1;
 		}
 
-				
+
 
 		if(queue.length === 0){
 			setGame(DEFAULT_GAME);
 			return;
 		}
-		
+
 		if(!stoppedAudio) setTimeout(playSong, 600, channelID);
 		stoppedAudio = false;
 	});
@@ -288,7 +288,7 @@ function start_JoinVC() {
 
 			});
 			return;
-		}		
+		}
 	}
 }
 
@@ -328,7 +328,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 	}
 
 	//developer Commands
-	if(message.toLowerCase() === DEV_INIT + "writeout"){		
+	if(message.toLowerCase() === DEV_INIT + "writeout"){
 		fs.writeFile(bot.username+".json", JSON.stringify(bot, null, '\t'), 'utf8', (error) => {
 			if(error) return console.error(error);
 			console.log("Logged bot properties.");
@@ -369,12 +369,12 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 			message: "\n**Music**\n"+
 			"•`" +CMD_INIT+ "about`: About this bot\n"+
 			"•`" +CMD_INIT+ "play`: Without parameter, plays a song in the queue if it has been stopped.\n"+
-			"•`" +CMD_INIT+ "play [URL or file index/name]`: Adds song to queue. Plays if it's first up in queue. \n"+			
+			"•`" +CMD_INIT+ "play [URL or file index/name]`: Adds song to queue. Plays if it's first up in queue. \n"+
 			"•`" +CMD_INIT+ "stop`: Stop the song from playing.\n"+
 			"•`" +CMD_INIT+ "queue`: View the list of songs in queue\n"+
 			"•`" +CMD_INIT+ "skip` or `" + CMD_INIT + "next`: Skip the currently playing song\n"+
 			"•`" +CMD_INIT+ "replay`: Stops and replays song\n"+
-			"•`" +CMD_INIT+ "readd`: Re-Add the currently playing song to queue\n"+			
+			"•`" +CMD_INIT+ "readd`: Re-Add the currently playing song to queue\n"+
 			"•`" +CMD_INIT+ "uptime`: How long this bot has been online for\n"+
 			"•`" +CMD_INIT+ "notify`: Turns on a \'*now playing*\' notifcation\n"+
 			"•`" +CMD_INIT+ "loop` or `" +CMD_INIT+ "loop [number of times]`: Loops a song on or off. Continues looping until its off\n"+
@@ -396,15 +396,15 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 			to: channelID,
 			message: botUptime()
 		});
-	}	
+	}
 
 	// Optional volume controls for ffmpeg players
 	if(matchStr(message,"volume")){
 		if(allowVol){
 			if(message.indexOf(' ') !== -1){
-				var msg = message.split(' ');			
+				var msg = message.split(' ');
 				var vol = Number(msg[1]);
-				if(isNaN(vol)) vol = null;			
+				if(isNaN(vol)) vol = null;
 
 				if(vol >= 1 && vol <= 100){
 					volume = vol / 100;
@@ -434,7 +434,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				message: ":warning: Can't do that while playing a song."
 			});
 			return;
-		}		
+		}
 
 		if(message.indexOf(' ') !== -1){
 			message = message.split(" ");
@@ -448,14 +448,14 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 							message: ":warning: Already in channel!"
 						});
 						return;
-					}					
+					}
 					else{
 						bot.joinVoiceChannel(bot.channels[i].id, (error, events) =>{
 							if(error) return console.error(error);
 							bot.getAudioContext({channel: bot.channels[i].id, stero: true}, (error, stream) => {
 								if(error) return console.error(error);
 								streamer = stream;
-							});	
+							});
 						});
 						return;
 					}
@@ -492,18 +492,18 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				}
 			}
 		}
-	}		
+	}
 
 	if(message.toLowerCase() === CMD_INIT+"stop"){
 		if(getCurrentVoiceChannel()){
-			if(playing){				
+			if(playing){
 				playing = false;
 				keepFile = true;
 				stoppedAudio = true;
 				looping = false;
 				loopCounter = 0;
 				ffmpeg.kill();
-				(queue.length > 0) ? setGame("Stopped: "+queue.length +" song(s) in queue") : setGame(DEFAULT_GAME);								
+				(queue.length > 0) ? setGame("Stopped: "+queue.length +" song(s) in queue") : setGame(DEFAULT_GAME);
 			} else{
 				if(queue.length < 1){
 					bot.sendMessage({
@@ -526,7 +526,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 					message: "No song queued with that index."
 				});
 				return;
-			}	
+			}
 			var songName = queue[song].title;
 			var filePath = queue[song].file;
 			if(queue[song].local){
@@ -566,15 +566,15 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				message: "No song with that name found."
 			});
 			return;
-		}		
+		}
 	}
 
-	
+
 	if(message.toLowerCase() === CMD_INIT+"replay"){
 		if(getCurrentVoiceChannel()){
 			if(playing){
 				keepFile = true;
-				ffmpeg.kill();				
+				ffmpeg.kill();
 				bot.sendMessage({
 					to: channelID,
 					message: ":notes: **Replaying:** *" + queue[0].title + "*"
@@ -627,7 +627,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 						message: ":arrows_counterclockwise: Looping started"
 					});
 				}
-				
+
 			}
 		}
 	}
@@ -654,7 +654,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 							});
 							return;
 						}
-					}					
+					}
 					fs.writeFile(playlistLocation + message[2] + '.json', JSON.stringify(queuedSongs, null, '\t'), 'utf8', (error) => {
 						if(error) return console.error(error);
 						bot.sendMessage({
@@ -678,12 +678,12 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 							playList = require(playlistLocation + files[i]);
 							if(playList.length > 0){
 								for(var i = 0; i < playList.length; i++){
-									// Load song to queue if the file is local							
+									// Load song to queue if the file is local
 									if(playList[i].local){
 										queue.push(playList[i]);
 									} else if(!(playList[i].local)){
 										addSong(playList[i].url, playList[i].title, playList[i].video_id, bot.user, (error) =>{
-											if(error) return console.error(error);											
+											if(error) return console.error(error);
 										});
 									}
 								}
@@ -702,12 +702,12 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 										message: "Added playlist `" + playlistFileName + "` to queue."
 									});
 								}
-							}								
-							return;							
+							}
+							return;
 						}
 					}
 				});
-				return;				
+				return;
 			}
 
 			// Deleting playlist file
@@ -720,7 +720,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 							fs.unlinkSync(playlistLocation + files[i]);
 							bot.sendMessage({
 								to: channelID,
-								message: "Playlist `" + files[i].split(".")[0] + "` deleted." 
+								message: "Playlist `" + files[i].split(".")[0] + "` deleted."
 							})
 							return;
 						}
@@ -784,19 +784,19 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 			saveToLocal = false;
 
 			ffmpeg.kill();
-			playing = false;	
+			playing = false;
 
 			bot.sendMessage({
 				to: channelID,
 				message: ":arrow_forward: **Skipping:** *" + queue[0].title +"*"
 			});
-			
+
 			if(queue.length-1 === 0){
 				bot.sendMessage({
 					to: channelID,
 					message: "Queue is now empty."
-				});					
-			}			
+				});
+			}
 		}
 	}
 
@@ -819,7 +819,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 						user: queue[0].user,
 						file: newFilePath
 					});
-				}			
+				}
 
 				bot.sendMessage({
 					to: channelID,
@@ -848,7 +848,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 				}
 
 				if(!queue[0].local){
-					saveToLocal = true;			
+					saveToLocal = true;
 					bot.sendMessage({
 						to: channelID,
 						message: ":file_cabinet: File queued to be saved."
@@ -859,7 +859,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 						message: ":warning: This song is already local."
 					});
 				}
-			});								
+			});
 		} else {
 			bot.sendMessage({
 				to: channelID,
@@ -943,7 +943,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 		});
 	}
 
-	if(matchStr(message, "remlocal")){				
+	if(matchStr(message, "remlocal")){
 		if(message.indexOf(" ") !== -1){
 			var location = './local/';
 			var message = message.split(" ");
@@ -970,17 +970,17 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 							bot.sendMessage({
 								to: channelID,
 								message: ':fire: *"' + fileList[target - 1].split(".")[0] + '"*  was removed from local files.'
-							});								
+							});
 						});
 					} else {
 						bot.sendMessage({
 							to: channelID,
 							message: ":warning: No local song found with that index."
 						});
-					}	
+					}
 				});
 				return;
-			} else {	// Remove local file by name					
+			} else {	// Remove local file by name
 				target = target.join(" ")
 				var file = target + '.mp3';
 				fs.readdir(location, (error, fileList) => {
@@ -1012,12 +1012,12 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 						bot.sendMessage({
 							to: channelID,
 							message: ':fire: *"' + target + '"*  was removed from local files.'
-						});	
+						});
 					});
 				});
 				return;
 			}
-		}			
+		}
 	}
 
 	if(matchStr(message,"play")){
@@ -1027,7 +1027,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 			if(message.indexOf(" ") !== -1){
 				var message = message.split(" ");
 				message.splice(0, 1);
-				var song = message;			
+				var song = message;
 
 				// Request can only be made if the user is in the bots voice channel
 				if(!(userID in bot.channels[getCurrentVoiceChannel()].members)){
@@ -1079,13 +1079,13 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 							song = Math.floor(Number(song));
 							if(song > 0 && song <= fileList.length){
 								song = fileList[song-1];
-								addPlay(song);	
+								addPlay(song);
 							} else {
 								bot.sendMessage({
 									to: channelID,
 									message: ":warning: No local song found with that index."
 								});
-							}					
+							}
 						} else {
 							// If no song is found
 							if(fileList.indexOf(song + '.mp3') === -1) {
@@ -1096,7 +1096,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 								return;
 							}
 							addPlay(song + '.mp3');
-						}						
+						}
 					});
 					return;
 				} else{
@@ -1106,16 +1106,16 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 						if(error) {
 							bot.sendMessage({
 								to: channelID,
-								message: ":warning: **Error:**```js\n" + error + "\n```" 
+								message: ":warning: **Error:**```js\n" + error + "\n```"
 							});
 							return;
 						}
 
-						var seconds = length_seconds;					
+						var seconds = length_seconds;
 						var hours = Math.trunc((seconds/60)/60);
 
 						// Video can only be at max 2 hours long.
-						if(hours < 2){						
+						if(hours < 2){
 							addSong(song, title, video_id, user, (error) => {
 								if(error) {
 									bot.sendMessage({
@@ -1135,7 +1135,7 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 										setTimeout(playSong, 2000, channelID);
 									}
 								}
-							});							
+							});
 						} else {
 							bot.deleteMessage({
 								channel: channelID,
@@ -1146,9 +1146,9 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 								to: channelID,
 								message: ':warning: **Error:** *'+title+'* is too long.'
 							});
-						}						
-					});		
-				}					
+						}
+					});
+				}
 				return;
 			}
 
@@ -1160,8 +1160,8 @@ bot.on('message', (user, userID, channelID, message, rawEvent) => {
 						to: channelID,
 						message: ":warning: No songs in queue to play from."
 					});
-				}			
+				}
 			}
-		}		 				
+		}
 	}
 });
