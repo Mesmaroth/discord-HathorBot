@@ -5,17 +5,44 @@ const bot = new Discord.Client();
 const token = require('./config/botLogin.js').token;
 
 // command initializer
-const CMDINIT = '.';
+const CMDINIT = '-';
 const localPath = './local/';
 
 var adminRole = "admin";		// This can be changed to what ever 
+
+var defaultChannels = [{}];
+var defualtChannelsPath = './config/default_channels.json';
 
 try{
 	var botVersion = require('./package.json').version;
 }catch(error) {
 	if(error) console.error(error);
-	botVersion = "#?";
+	var botVersion = "#?";
 }
+
+
+function checkDefaultChannels(){
+	if(fs.existsSync(defualtChannelsPath)){
+		try {
+			defaultChannels = require(defualtChannelsPath);
+		} catch(error){
+			console.log("ERROR: reading file:\n" +  error.message);
+			fs.rename(defualtChannelsPath, './config/default_channels_ERROR.json', () =>{
+				fs.writeFile(fdefualtChannelsPath, JSON.stringify(defaultChannels, null, '\t'), error =>{
+					if(error) return console.error(error);
+					console.log("\nRESPONSE: Renamed config file with error and created new config file. Please revise and replace!\n");
+				});
+			});
+		}
+	} else{
+		defaultChannels = [{}];
+		fs.writeFile('./config/default_channels.json', JSON.stringify(defaultChannels, null, '\t'), error =>{
+			if(error) return console.error(error);
+			console.log("Default channel config file created");
+		});
+	}
+}
+
 
 function isCommand(message, command){
 	if(message[0] === CMDINIT && (message.toLowerCase().slice(1) === command.toLowerCase() || message.toLowerCase().slice(1, message.indexOf(" ")) === command.toLowerCase()) ){
@@ -27,7 +54,6 @@ function isCommand(message, command){
 function isDev(message){
 	var roles = message.member.roles.array();
 	for(var role = 0; role < roles.length; role++){
-		console.log(roles[role].name);
 		if(roles[role].name.toLowerCase() === adminRole)			
 			return true;
 	}
@@ -50,33 +76,30 @@ function getChannelByString(guild, channelName){
 
 function setGame(game){
 	bot.user.setGame(game);
+	console.log("DISCORD: Game set to " + game);
 }
 
-// Attempt to join the very first voice Channel each time the client is started
-function joinFirstVC(){
-	var guilds = bot.guilds.array();
-	for(var guild = 0; guild < guilds.length; guild++){
-		var channels = guilds[guild].channels.array();
-		for(var channel = 0; channel < channels.length; channel++){
-			if(channels[channel].type === 'voice'){
-				var VCS = bot.voiceConnections.array();
-				VCS.forEach( (vc) => {
-					if(vc === channels[channel])
-						return;
-				});
-				channels[channel].join();
-				break;
+
+function joinDefaultChannels(){
+	var botGuilds = bot.guilds.array();
+		botGuilds.forEach( guild => {
+			for(var i = 0; i < defaultChannels.length; i++){
+				if(guild.id === defaultChannels[i].guildID){
+					var voiceChannel = guild.channels.filterArray( channel =>{
+						return channel.id === defaultChannels[i].voiceID;
+					})[0];
+
+					voiceChannel.join();
+					console.log("DISCORD: Joined voice channel: " + defaultChannels[i].name + " at [" + defaultChannels[i].guild + "]");
+				}
 			}
-		}
-	}
+		});
 }
+
 
 bot.on('ready', () => {
 	console.log("ApolloBot V" + botVersion)
 	console.log(bot.user.username + " (" + bot.user.id + ")");
-	console.log();
-
-	joinFirstVC();
 
 	// display servers
 	var guilds = [];
@@ -86,12 +109,16 @@ bot.on('ready', () => {
 	console.log("Servers:");
 	console.log(guilds.join("\n"));	
 	console.log();
+
+	checkDefaultChannels();
+	joinDefaultChannels();
 });
 
 bot.on('disconnect', (event) =>{
 	console.log("Exited with code: " + event.code);
 	if(event.reason) 
 		console.log("Reason: " + event.reason);
+	process.exit(0);
 });
 
 bot.on('message', message => {
