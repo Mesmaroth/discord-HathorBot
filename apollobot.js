@@ -143,6 +143,52 @@ bot.on('message', message => {
   		});
   	}
 
+  	if(isCommand(message.content, 'setvc')){
+  		if(message.content.indexOf(" ") !== -1){
+  			var voiceChannelName = message.content.split(" ")[1];
+
+  			var guild = message.member.guild;
+  			var channel = getChannelByString(guild, voiceChannelName);
+
+  			function writeOutChannels(){
+  				fs.writeFile(defualtChannelsPath, JSON.stringify(defaultChannels, null, '\t'), () =>{
+		  			message.channel.sendMessage("Server default voice channel set to " + voiceChannelName);
+		  		});
+  			}
+
+  			if(channel){
+  				
+  				for(var i = 0; i < defaultChannels.length; i++){
+  					if(guild.id === defaultChannels[i].guildID){
+  						defaultChannels[i].voiceID = channel.id;
+  						defaultChannels[i].name = voiceChannelName;
+  						writeOutChannels();
+		  				return;
+  					}
+  				}
+
+  				// Create a default voice channel if there are none.
+  				defaultChannels.push({
+					name: voiceChannelName,
+					guild: guild.name,
+					voiceID: channel.id,
+					guildID: guild.id
+				});
+				writeOutChannels();
+  			} else{
+  				message.channel.sendMessage("No voice channel found");
+  			}
+  		}
+  	}
+
+  	if(isCommand(message.content, 'join')){
+  		var userVoiceChannel = message.member.voiceChannel;
+  		if(userVoiceChannel) 
+  			userVoiceChannel.join();
+  		else
+  			message.channel.sendMessage("You are not in a voice channel.");
+  	}
+
 });
 
 bot.login(token);
