@@ -97,8 +97,11 @@ function play(connection, message) {
 		.on('end', ()=>{
 			playing = false;
 			queue.shift();
-			if(queue.length > 0)
+			if(queue.length > 0){
 				play(connection);
+			} else{
+				setGame();
+			}
 		});
 
 	playing = true;
@@ -252,30 +255,32 @@ bot.on('message', message => {
 	  						});
 	  					});
 	  				} else{
-	  					fs.readdir(localPath, (error, files) =>{
-	  						if(error) return console.error(error);
+	  					if(!isNaN(song)){	  						
+	  						fs.readdir(localPath, (error, files) =>{
+		  						if(error) return console.error(error);
 
-	  						for(var i = 0; i < files.length; i++){
-	  							if( i == song){
-	  								var title = files[i].split('.')[0];
-	  								var file = localPath + files[i];
-	  								queue.push({
-	  									title: title,
-	  									file: file
-	  								});
+		  						for(var i = 0; i < files.length; i++){
+		  							if( (song + 1) === i ){
+		  								var title = files[i].split('.')[0];
+		  								var file = localPath + files[i];
+		  								queue.push({
+		  									title: title,
+		  									file: file
+		  								});
 
-	  								if(!playing) 
-		  								play(connection, message);
-		  								return;
-		  							else {
-		  								message.channel.sendMessage("**Added to Queue:**\n" + title);
-		  								return;
+		  								if(!playing){ 
+			  								play(connection, message);
+			  								return;
+			  							} else {
+			  								message.channel.sendMessage("**Added to Queue:**\n" + title);
+			  								return;
+			  							}
 		  							}
-	  							}
-	  						}
+		  						}
 
-	  						message.channel.sendMessage("**No local song found with that index.**");
-	  					});
+		  						message.channel.sendMessage("No local song found with that index.");
+		  					});
+	  					}
 	  				}
   				});
   			} else
