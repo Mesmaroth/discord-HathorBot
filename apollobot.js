@@ -1,17 +1,16 @@
 const Discord = require('discord.js');
 const fs = require('fs');
-const ytdl = require('ytdl-core');
 const bot = new Discord.Client();
 const token = require('./config/botLogin.js').token;
+const yt = require('./youtube.js');
 
 // command initializer
 const CMDINIT = '-';
 const localPath = './local/';
 
 var adminRole = "admin";		// This can be changed to what ever 
-
-var defaultChannels = [{}];
-var defualtChannelsPath = './config/default_channels.json';
+var defaultChannel = {};
+var defaultChannelPath = './config/default_channel.json';
 
 try{
 	var botVersion = require('./package.json').version;
@@ -20,27 +19,38 @@ try{
 	var botVersion = "#?";
 }
 
-
-function checkDefaultChannels(){
-	if(fs.existsSync(defualtChannelsPath)){
+function checkDefaultChannel(){
+	if(fs.existsSync(defaultChannelPath)){
 		try {
-			defaultChannels = require(defualtChannelsPath);
+			defaultChannel = require(defaultChannelPath);
 		} catch(error){
 			console.log("ERROR: reading file:\n" +  error.message);
-			fs.rename(defualtChannelsPath, './config/default_channels_ERROR.json', () =>{
-				fs.writeFile(fdefualtChannelsPath, JSON.stringify(defaultChannels, null, '\t'), error =>{
+			fs.rename(defaultChannelPath, './config/default_channel_ERROR.json', () =>{
+				fs.writeFile(defaultChannelPath, JSON.stringify(defaultChannel, null, '\t'), error =>{
 					if(error) return console.error(error);
 					console.log("\nRESPONSE: Renamed config file with error and created new config file. Please revise and replace!\n");
 				});
 			});
 		}
 	} else{
-		defaultChannels = [{}];
-		fs.writeFile('./config/default_channels.json', JSON.stringify(defaultChannels, null, '\t'), error =>{
+		fs.writeFile(defaultChannelPath, JSON.stringify(defaultChannel, null, '\t'), error =>{
 			if(error) return console.error(error);
 			console.log("Default channel config file created");
 		});
 	}
+}
+
+function joinDefaultChannel(){
+	var botGuilds = bot.guilds.array();
+	botGuilds.forEach( guild => {
+		if(defaultChannel.guildID === guild.id){
+			var channel = guild.channels.filterArray( channel =>{
+				return channel.id === defaultChannel.voiceID;
+			})[0];
+			channel.join();
+			console.log("DISCORD: Joined voice channel " + channel.name);
+		}
+	});
 }
 
 
@@ -80,23 +90,6 @@ function setGame(game){
 }
 
 
-function joinDefaultChannels(){
-	var botGuilds = bot.guilds.array();
-		botGuilds.forEach( guild => {
-			for(var i = 0; i < defaultChannels.length; i++){
-				if(guild.id === defaultChannels[i].guildID){
-					var voiceChannel = guild.channels.filterArray( channel =>{
-						return channel.id === defaultChannels[i].voiceID;
-					})[0];
-
-					voiceChannel.join();
-					console.log("DISCORD: Joined voice channel: " + defaultChannels[i].name + " at [" + defaultChannels[i].guild + "]");
-				}
-			}
-		});
-}
-
-
 bot.on('ready', () => {
 	console.log("ApolloBot V" + botVersion)
 	console.log(bot.user.username + " (" + bot.user.id + ")");
@@ -110,8 +103,8 @@ bot.on('ready', () => {
 	console.log(guilds.join("\n"));	
 	console.log();
 
-	checkDefaultChannels();
-	joinDefaultChannels();
+	checkDefaultChannel();
+	joinDefaultChannel();
 });
 
 bot.on('disconnect', (event) =>{
@@ -151,33 +144,19 @@ bot.on('message', message => {
   			var channel = getChannelByString(guild, voiceChannelName);
 
   			function writeOutChannels(){
-  				fs.writeFile(defualtChannelsPath, JSON.stringify(defaultChannels, null, '\t'), () =>{
+  				fs.writeFile(defaultChannelPath, JSON.stringify(defaultChannel, null, '\t'), () =>{
 		  			message.channel.sendMessage("Server default voice channel set to " + voiceChannelName);
 		  		});
   			}
 
-  			if(channel){
-  				
-  				for(var i = 0; i < defaultChannels.length; i++){
-  					if(guild.id === defaultChannels[i].guildID){
-  						defaultChannels[i].voiceID = channel.id;
-  						defaultChannels[i].name = voiceChannelName;
-  						writeOutChannels();
-		  				return;
-  					}
-  				}
-
-  				// Create a default voice channel if there are none.
-  				defaultChannels.push({
-					name: voiceChannelName,
-					guild: guild.name,
-					voiceID: channel.id,
-					guildID: guild.id
-				});
+  			if(channel){  				
+  				defaultChannel.name = voiceChannelName;
+				defaultChannel.guild = guild.name;
+				defaultChannel.voiceID = channel.id;
+				defaultChannel.guildID = guild.id;
 				writeOutChannels();
-  			} else{
-  				message.channel.sendMessage("No voice channel found");
-  			}
+  			} else
+  			  	message.channel.sendMessage("No voice channel found");
   		}
   	}
 
