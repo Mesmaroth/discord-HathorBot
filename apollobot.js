@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const fs = require('fs');
 const bot = new Discord.Client();
 const token = require('./config/botLogin.js').token;
-const yt = require('./youtube.js');
+const yt = require('./modules/youtube.js');
 
 // command initializer
 const CMDINIT = '-';
@@ -11,6 +11,9 @@ const localPath = './local/';
 var adminRole = "admin";		// This can be changed to what ever 
 var defaultChannel = {};
 var defaultChannelPath = './config/default_channel.json';
+
+var playing = false;
+var queue = [];
 
 try{
 	var botVersion = require('./package.json').version;
@@ -48,7 +51,7 @@ function joinDefaultChannel(){
 				return channel.id === defaultChannel.voiceID;
 			})[0];
 			channel.join();
-			console.log("DISCORD: Joined voice channel " + channel.name);
+			console.log("DISCORD: Joined voice channel " + channel.name + "\n");
 		}
 	});
 }
@@ -89,6 +92,20 @@ function setGame(game){
 	console.log("DISCORD: Game set to " + game);
 }
 
+function play(connection, message) {
+	connection.playFile(queue[0].file)
+		.on('end', ()=>{
+			playing = false;
+			queue.shift();
+			if(queue.length > 0)
+				play(connection);
+		});
+
+	playing = true;
+	setGame(queue[0].title);
+	message.channel.sendMessage("**Playing:**\n" + queue[0].title);
+}
+
 
 bot.on('ready', () => {
 	console.log("ApolloBot V" + botVersion)
@@ -117,7 +134,6 @@ bot.on('disconnect', (event) =>{
 bot.on('message', message => {
 	// Admin commands
   	if(isCommand(message.content, 'exit')){
-  		// Disconnect from voice channels first
   		if(!isDev(message)) return;
   		var connections = bot.voiceConnections.array();
 			connections.forEach( (connection) =>{
@@ -166,6 +182,76 @@ bot.on('message', message => {
   			userVoiceChannel.join();
   		else
   			message.channel.sendMessage("You are not in a voice channel.");
+  	}
+
+  	if(isCommand(message.content, 'play')){
+  		if(message.content.indexOf(' ') !== -1){
+  			var song = message.content.split(' ')[1];
+  			var tempPath = './tempFiles/';
+  			var localPath = './local/';
+
+  			/* YT REGEX : https://stackoverflow.com/questions/3717115/regular-expression-for-youtube-links
+				*	by Adrei Zisu
+				*/
+			var isLink = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/
+
+  			
+  			if(bot.voiceConnections.firstKey(channel =>{ return channel === message.member.voiceChannel} )){
+  				message.member.voiceChannel.join().then( connection =>{
+	  				if(isLink.test(song)){
+	  					var url = song;
+	  					yt.getInfo(url, (error, rawData, id, title, length_seconds) => {
+	  						if(error) {
+	  							message.channel.sendMessage("An Error has a occured and has been reported");
+	  							console.error(error);
+	  							return;
+	  						}
+
+	  						yt.getFile(url, tempPath + id + '.mp3', (error) =>{
+	  							if(error) return console.error(error);
+	  							queue.push({
+	  								title: title,
+	  								id: id,
+	  								file: tempPath + id + '.mp3',
+	  							});
+
+	  							if(!playing) 
+	  								play(connection, message);
+	  							else {
+	  								message.channel.sendMessage("**Added to Queue:**\n" + title);
+	  							}
+	  						});
+	  					});
+	  				} else{
+	  					fs.readdir(localPath, (error, files) =>{
+	  						if(error) return console.error(error);
+
+	  						for(var i = 0; i < files.length; i++){
+	  							if( i == song){
+	  								var title = files[i].split('.')[0];
+	  								var file = localPath + files[i];
+	  								queue.push({
+	  									title: title,
+	  									file: file
+	  								});
+
+	  								if(!playing) 
+		  								play(connection, message);
+		  								return;
+		  							else {
+		  								message.channel.sendMessage("**Added to Queue:**\n" + title);
+		  								return;
+		  							}
+	  							}
+	  						}
+
+	  						message.channel.sendMessage("**No local song found with that index.**");
+	  					});
+	  				}
+  				});
+  			} else
+  				message.member.channel.sendMessage("You are not in the voice channel.");
+  		}
   	}
 
 });
