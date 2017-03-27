@@ -13,8 +13,11 @@ var defaultChannel = {};
 var defaultChannelPath = './config/default_channel.json';
 
 var playing = false;
+var stopped = false;
 var queue = [];
-var botVoiceConnection = {};
+var botPlayback;
+var voiceConnection;
+var stayOnQueue = false;
 
 try{
 	var botVersion = require('./package.json').version;
@@ -93,16 +96,30 @@ function setGame(game){
 	console.log("DISCORD: Game set to " + game);
 }
 
-function play(message) {
-	botVoiceConnection.playFile(queue[0].file)
+function play(connection, message) {	
+	botPlayback = connection.playFile(queue[0].file)
 		.on('end', ()=>{
 			playing = false;
-			queue.shift();
-			if(queue.length > 0){
-				play(botVoiceConnection);
-			} else{
-				setGame();
-			}
+
+			if(!stopped){				
+				if(!stayOnQueue){
+					console.log("shifted");
+					queue.shift();
+				}
+
+				if(queue.length > 0){
+					play(connection, message);
+				} else{
+					setGame();
+				}
+			} else
+				stopped = false;
+
+
+
+		})
+		.on('error', ()=>{
+			console.error(error);
 		});
 
 	playing = true;
@@ -139,10 +156,8 @@ bot.on('message', message => {
 	// Admin commands
   	if(isCommand(message.content, 'exit')){
   		if(!isDev(message)) return;
-  		var connections = bot.voiceConnections.array();
-			connections.forEach( (connection) =>{
-			connection.disconnect();
-		});
+  		if(voiceConnection)
+  			voiceConnection.disconnect();
   		bot.destroy();
   	}
   	// ----
@@ -204,7 +219,8 @@ bot.on('message', message => {
   				}
   				message.channel.sendMessage("**Queue - Playlist**\n**Playing:** " + firstSong + "\n\n" + songs.join("\n"));
   			}
-  		}
+  		} else
+  			message.channel.sendMessage("No songs queued");
   	}
 
   	if(isCommand(message.content, 'local')){
@@ -231,7 +247,7 @@ bot.on('message', message => {
   			
   			if(bot.voiceConnections.firstKey(channel =>{ return channel === message.member.voiceChannel} )){
   				message.member.voiceChannel.join().then( connection =>{
-  					botVoiceConnection = connection;
+  					voiceConnection = connection;
 	  				if(isLink.test(song)){
 	  					var url = song;
 	  					yt.getInfo(url, (error, rawData, id, title, length_seconds) => {
@@ -249,8 +265,8 @@ bot.on('message', message => {
 	  								file: tempPath + id + '.mp3',
 	  							});
 
-	  							if(!playing) 
-	  								play( message);
+	  							if(!playing && !stopped) 
+	  								play(voiceConnection, message);
 	  							else {
 	  								message.channel.sendMessage("**Added to Queue:**\n" + title);
 	  							}
@@ -260,9 +276,8 @@ bot.on('message', message => {
 	  					if(!isNaN(song)){	  						
 	  						fs.readdir(localPath, (error, files) =>{
 		  						if(error) return console.error(error);
-
 		  						for(var i = 0; i < files.length; i++){
-		  							if( (song + 1) === i ){
+		  							if( Number(song) === (i+1)){
 		  								var title = files[i].split('.')[0];
 		  								var file = localPath + files[i];
 		  								queue.push({
@@ -270,8 +285,8 @@ bot.on('message', message => {
 		  									file: file
 		  								});
 
-		  								if(!playing){ 
-			  								play(message);
+		  								if(!playing && !stopped){ 
+			  								play(voiceConnection, message);
 			  								return;
 			  							} else {
 			  								message.channel.sendMessage("**Added to Queue:**\n" + title);
@@ -287,6 +302,37 @@ bot.on('message', message => {
   				});
   			} else
   				message.member.channel.sendMessage("You are not in the voice channel.");
+  		} else{
+  			if(queue.length > 0)
+  				play(voiceConnection, message);
+  			else
+  				message.channel.sendMessage("No songs queued");
+  		}
+  	}
+
+  	if(isCommand(message.content, 'stop')){
+  		if(playing){
+  			playing = false;
+  			stayOnQueue = true;
+  			stopped = true;
+  			botPlayback.end();  			  			
+  		}
+  	}
+
+  	if(isCommand(message.content, 'skip') || isCommand(message.content, 'next')){
+  		if (playing){
+  			playing = false;  
+  			botPlayback.end();  						
+  		} else{
+  			queue.shift();
+  		}
+  	}
+
+  	if(isCommand(message.content, 'replay')){
+  		if(playing){
+  			playing = false;
+  			stayOnQueue = true;
+  			botPlayback.end();  			
   		}
   	}
 
