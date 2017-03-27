@@ -184,6 +184,35 @@ bot.on('message', message => {
   			message.channel.sendMessage("You are not in a voice channel.");
   	}
 
+  	if(isCommand(message.content, 'queue' || isCommand(message.content, 'playing'))){
+  		var songs = [];
+  		for (var i = 0; i < queue.length; i++) {
+  			songs.push(queue[i].title);
+  		}
+
+  		if(songs.length > 0){
+  			if(songs.length === 1){
+  				message.channel.sendMessage("**Queue - Playlist**\n**Playing:** " + songs[0]);
+  			} else{
+  				var firstSong = songs.shift();
+  				for (var i = 0; i < songs.length; i++) {
+  					songs[i] = "**" + (i+1) + ". **"+ songs[i];
+  				}
+  				message.channel.sendMessage("**Queue - Playlist**\n**Playing:** " + firstSong + "\n\n" + songs.join("\n"));
+  			}
+  		}
+  	}
+
+  	if(isCommand(message.content, 'local')){
+  		fs.readdir('./local/', (error, files) =>{
+  			for(var i = 0; i < files.length; i++){
+  				files[i] = "**" + (i+1) + ".** " + files[i].split(".")[0];
+  			}
+
+  			message.channel.sendMessage("**Local Songs**\n" + files.join("\n"));
+  		});
+  	}
+
   	if(isCommand(message.content, 'play')){
   		if(message.content.indexOf(' ') !== -1){
   			var song = message.content.split(' ')[1];
