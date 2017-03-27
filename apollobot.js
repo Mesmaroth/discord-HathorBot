@@ -14,6 +14,7 @@ var defaultChannelPath = './config/default_channel.json';
 
 var playing = false;
 var queue = [];
+var botVoiceConnection = {};
 
 try{
 	var botVersion = require('./package.json').version;
@@ -92,13 +93,13 @@ function setGame(game){
 	console.log("DISCORD: Game set to " + game);
 }
 
-function play(connection, message) {
-	connection.playFile(queue[0].file)
+function play(message) {
+	botVoiceConnection.playFile(queue[0].file)
 		.on('end', ()=>{
 			playing = false;
 			queue.shift();
 			if(queue.length > 0){
-				play(connection);
+				play(botVoiceConnection);
 			} else{
 				setGame();
 			}
@@ -230,6 +231,7 @@ bot.on('message', message => {
   			
   			if(bot.voiceConnections.firstKey(channel =>{ return channel === message.member.voiceChannel} )){
   				message.member.voiceChannel.join().then( connection =>{
+  					botVoiceConnection = connection;
 	  				if(isLink.test(song)){
 	  					var url = song;
 	  					yt.getInfo(url, (error, rawData, id, title, length_seconds) => {
@@ -248,7 +250,7 @@ bot.on('message', message => {
 	  							});
 
 	  							if(!playing) 
-	  								play(connection, message);
+	  								play( message);
 	  							else {
 	  								message.channel.sendMessage("**Added to Queue:**\n" + title);
 	  							}
@@ -269,7 +271,7 @@ bot.on('message', message => {
 		  								});
 
 		  								if(!playing){ 
-			  								play(connection, message);
+			  								play(message);
 			  								return;
 			  							} else {
 			  								message.channel.sendMessage("**Added to Queue:**\n" + title);
