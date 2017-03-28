@@ -9,14 +9,15 @@ const CMDINIT = '-';
 const localPath = './local/';
 
 var adminRole = "admin";		// This can be changed to what ever 
-var defaultChannel = {};
+var defaultChannel = {};	// The object guild details of the defualt server
+var currentVoiceChannel;	// The object voice channel the bot is in
 var defaultChannelPath = './config/default_channel.json';
 
+var queue = [];
+var botPlayback;	// stream dispatcher
+var voiceConnection;	// voice Connection object
 var playing = false;
 var stopped = false;
-var queue = [];
-var botPlayback;
-var voiceConnection;
 var stayOnQueue = false;
 
 try{
@@ -49,15 +50,17 @@ function checkDefaultChannel(){
 
 function joinDefaultChannel(){
 	var botGuilds = bot.guilds.array();
-	botGuilds.forEach( guild => {
-		if(defaultChannel.guildID === guild.id){
-			var channel = guild.channels.filterArray( channel =>{
+	for(var i = 0; i < botGuilds.length; i++){
+		if(defaultChannel.guildID === botGuilds[i].id){
+			var channel = botGuilds[i].channels.filterArray( channel =>{
 				return channel.id === defaultChannel.voiceID;
 			})[0];
+
 			channel.join();
 			console.log("DISCORD: Joined voice channel " + channel.name + "\n");
+			currentVoiceChannel = channel;
 		}
-	});
+	}
 }
 
 
@@ -93,7 +96,8 @@ function getChannelByString(guild, channelName){
 
 function setGame(game){
 	bot.user.setGame(game);
-	console.log("DISCORD: Game set to " + game);
+	if(game)
+		console.log("DISCORD: GAME SET: " + game)
 }
 
 function play(connection, message) {	
@@ -103,20 +107,19 @@ function play(connection, message) {
 
 			if(!stopped){				
 				if(!stayOnQueue){
-					console.log("shifted");
 					queue.shift();
-				}
+				} else
+					stayOnQueue = false;
 
 				if(queue.length > 0){
 					play(connection, message);
 				} else{
 					setGame();
 				}
-			} else
+			} else{
 				stopped = false;
-
-
-
+				setGame();
+			}
 		})
 		.on('error', ()=>{
 			console.error(error);
@@ -171,6 +174,10 @@ bot.on('message', message => {
   		});
   	}
 
+  	if(isCommand(message.content, 'uptime')){
+  		message.channel.sendMessage("**Uptime:** " + bot.uptime);
+  	}
+
   	if(isCommand(message.content, 'setvc')){
   		if(message.content.indexOf(" ") !== -1){
   			var voiceChannelName = message.content.split(" ")[1];
@@ -197,8 +204,10 @@ bot.on('message', message => {
 
   	if(isCommand(message.content, 'join')){
   		var userVoiceChannel = message.member.voiceChannel;
-  		if(userVoiceChannel) 
+  		if(userVoiceChannel){ 
   			userVoiceChannel.join();
+  			currentVoiceChannel = userVoiceChannel;
+  		}
   		else
   			message.channel.sendMessage("You are not in a voice channel.");
   	}
@@ -244,9 +253,8 @@ bot.on('message', message => {
 				*/
 			var isLink = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/
 
-  			
-  			if(bot.voiceConnections.firstKey(channel =>{ return channel === message.member.voiceChannel} )){
-  				message.member.voiceChannel.join().then( connection =>{
+  			if( currentVoiceChannel === message.member.voiceChannel){
+  				currentVoiceChannel.join().then( connection =>{
   					voiceConnection = connection;
 	  				if(isLink.test(song)){
 	  					var url = song;
@@ -263,6 +271,8 @@ bot.on('message', message => {
 	  								title: title,
 	  								id: id,
 	  								file: tempPath + id + '.mp3',
+	  								local: false,
+	  								url: url
 	  							});
 
 	  							if(!playing && !stopped) 
@@ -282,7 +292,8 @@ bot.on('message', message => {
 		  								var file = localPath + files[i];
 		  								queue.push({
 		  									title: title,
-		  									file: file
+		  									file: file,
+		  									local: true
 		  								});
 
 		  								if(!playing && !stopped){ 
@@ -301,7 +312,7 @@ bot.on('message', message => {
 	  				}
   				});
   			} else
-  				message.member.channel.sendMessage("You are not in the voice channel.");
+  				message.channel.sendMessage("You're not in the voice channel.");
   		} else{
   			if(queue.length > 0)
   				play(voiceConnection, message);
@@ -322,7 +333,7 @@ bot.on('message', message => {
   	if(isCommand(message.content, 'skip') || isCommand(message.content, 'next')){
   		if (playing){
   			playing = false;  
-  			botPlayback.end();  						
+  			botPlayback.end();						
   		} else{
   			queue.shift();
   		}
@@ -334,6 +345,60 @@ bot.on('message', message => {
   			stayOnQueue = true;
   			botPlayback.end();  			
   		}
+  	}
+
+  	if(isCommand(message.content, 'save')){
+	  	if(message.content.indexOf(' ') !== -1){
+	  		var url = message.content.split(' ')[1];
+	  		yt.getInfo(url, (error, rawData, id, title, length_seconds) =>{
+	  			yt.getFile(url, './local/' + title + '.mp3', () =>{
+	  				message.channel.sendMessage("**Saved:** *" + title + "*");
+	  			});
+	  		});
+
+	  	}
+	  	else{
+	  		var song = queue[0];
+	  		var title = song.title.replace(/[&\/\\#,+()$~%.'":*?<>{}]/g,'_');
+		  	var output = './local/' + title + '.mp3';
+	  		if(playing){
+	  			if(!song.local){  			
+		  		
+	  			if(!fs.existsSync(output)){
+	  				fs.createReadStream(song.file).pipe(fs.createWriteStream(output));
+	  				message.channel.sendMessage("**Saved:** *" + title + "*");
+	  			} else{
+	  				message.channel.sendMessage("You already saved this song")
+	  			}
+		  		} else{
+		  			message.channel.sendMessage("You already saved this song");
+		  		}
+	  		}
+	  	}
+  	}
+
+  	if(isCommand(message.content, 'remlocal')){
+  		var path = './local/';
+  		var index = Number(message.content.split(' ')[1]);
+
+  		fs.readdir(path, (error, files) =>{
+  			if(error) return console.error(error);
+  			
+  			for (var i = 0; i < files.length; i++) {
+	  			if((i+1) === index){
+	  				if(!playing){
+	  					fs.unlinkSync(path + files[i]);
+	  					message.channel.sendMessage("Removed " + files[i].split('.')[0]);
+	  				} else{
+	  					if(files[i] !== queue[0].title + '.mp3'){
+	  						fs.unlinkSync(path + files[i]);
+	  						message.channel.sendMessage("Removed " + files[i].split('.')[0]);
+	  					}
+	  				}
+
+	  			}
+  			}
+  		})
   	}
 
 });
