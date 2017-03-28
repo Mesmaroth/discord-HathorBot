@@ -1,2 +1,2 @@
-node apollobot.js
+node hathorbot.js 
 pause
