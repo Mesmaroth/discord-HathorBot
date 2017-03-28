@@ -411,6 +411,8 @@ bot.on('message', message => {
 	  	if(message.content.indexOf(' ') !== -1){
 	  		var url = message.content.split(' ')[1];
 	  		yt.getInfo(url, (error, rawData, id, title, length_seconds) =>{
+	  			var title = title.replace(/[&\/\\#,+()$~%.'":*?<>{}|]/g,'');
+	  			console.log(title);
 	  			yt.getFile(url, './local/' + title + '.mp3', () =>{
 	  				message.channel.sendMessage("**Saved:** *" + title + "*");
 	  			});
@@ -419,7 +421,7 @@ bot.on('message', message => {
 	  	}
 	  	else{
 	  		var song = queue[0];
-	  		var title = song.title.replace(/[&\/\\#,+()$~%.'":*?<>{}]/g,'_');
+	  		var title = song.title.replace(/[&\/\\#,+()$~%.'":*?<>{}|]/g,'');
 		  	var output = './local/' + title + '.mp3';
 	  		if(playing){
 	  			if(!song.local){  			
