@@ -105,7 +105,7 @@ function play(connection, message) {
 		.on('end', ()=>{
 			playing = false;
 
-			if(!stopped){				
+			if(!stopped){
 				if(!stayOnQueue){
 					queue.shift();
 				} else
@@ -152,6 +152,7 @@ bot.on('disconnect', (event) =>{
 	console.log("Exited with code: " + event.code);
 	if(event.reason) 
 		console.log("Reason: " + event.reason);
+
 	process.exit(0);
 });
 
@@ -344,6 +345,23 @@ bot.on('message', message => {
   			playing = false;
   			stayOnQueue = true;
   			botPlayback.end();  			
+  		}
+  	}
+
+  	if(isCommand(message.content, 'remove')){
+  		if(message.content.indexOf(' ') !== -1){
+  			var index = message.content.split(' ')[1];
+  			index = Number(index);
+
+  			for(var i = 1; i < queue.length; i++){
+  				if(index === i){
+  					var title = queue[i].title;
+  					queue.splice(i, 1);
+  					message.channel.sendMessage("**Removed:** " + title + " from queue");
+  					return;
+  				}
+  			}
+  			message.channel.sendMessage("No queued song found with that index number found");
   		}
   	}
 

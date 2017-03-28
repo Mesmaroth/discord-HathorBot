@@ -28,7 +28,5 @@ module.exports.getFile = function(url, path, callback){
 			.on('finish', ()=>{
 				callback();
 			});
-	}
-
-	
+	}	
 }
