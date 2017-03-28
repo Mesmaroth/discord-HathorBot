@@ -26,8 +26,7 @@ module.exports.getFile = function(url, path, callback){
 	}else{
 		ytdl(url, options).pipe(fs.createWriteStream(path))
 			.on('finish', ()=>{
-			console.log("File saved to" + path);
-			callback(null);
+				callback();
 			});
 	}
 
