@@ -1,5 +1,5 @@
 @echo off
 :a
-node apollobot.js 
+node hathorbot.js 
 timeout 2
 goto a

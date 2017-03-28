@@ -1,16 +1,12 @@
 {
-  "name": "discord-apollobot",
-  "version": "1.1.6",
+  "name": "discord-hathorbot",
+  "version": "2.0.0",
   "description": "Discord music bot",
   "main": "apollobot.js",
-  "scripts": {
-    "start": "node apollobot.js",
-    "test": "node apollobot.js TestBot"
-  },
   "dependencies": {
-    "discord.io": "^1.8.1",
-    "ytdl-core": "^0.7.14",
-    "uptimer": "^0.1.2"    
+    "discord.js": "^11.0.0",
+    "node-opus": "^0.2.4",
+    "ytdl-core": "^0.10.3"
   },
   "author": "Robert (Mesmaroth)",
   "license": "MIT"
