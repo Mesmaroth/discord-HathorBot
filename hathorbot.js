@@ -5,7 +5,7 @@ const token = require('./config/botLogin.js').token;
 const yt = require('./modules/youtube.js');
 
 // command initializer
-const CMDINIT = '-';
+const CMDINIT = '.';
 const localPath = './local/';
 const adminRole = "admin";		// This can be changed to what ever 
 
@@ -196,6 +196,22 @@ bot.on('disconnect', (event) =>{
 
 bot.on('message', message => {
 	// Admin commands
+	if(isCommand(message.content, 'setusername')){
+		if(message.content.indexOf(' ') !== -1){
+			var username = message.content.split(' ')[1];
+			bot.user.setUsername(username);
+			console.log("DISCORD: Username set to " + username);
+		}
+	}
+
+	if(isCommand(message.content, 'setavatar')){
+		if(message.content.indexOf(' ') !== -1){
+			var url = message.content.split(' ')[1];
+			bot.user.setAvatar(url);
+			console.log("DISCORD: Avatar changed");
+		}
+	}
+
   	if(isCommand(message.content, 'exit')){
   		if(!isDev(message)) return;
   		if(voiceConnection)

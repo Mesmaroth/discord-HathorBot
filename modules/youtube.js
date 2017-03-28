@@ -21,7 +21,6 @@ module.exports.getStream = function(url,callback){
 
 module.exports.getFile = function(url, path, callback){
 	if(fs.existsSync(path)){
-		console.log("File exist, not downloading\n");
 		callback();
 	}else{
 		ytdl(url, options).pipe(fs.createWriteStream(path))
