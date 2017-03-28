@@ -132,7 +132,7 @@ function play(connection, message) {
 
 
 bot.on('ready', () => {
-	console.log("ApolloBot V" + botVersion)
+	console.log("HathorBot V" + botVersion)
 	console.log(bot.user.username + " (" + bot.user.id + ")");
 
 	// display servers
@@ -146,6 +146,8 @@ bot.on('ready', () => {
 
 	checkDefaultChannel();
 	joinDefaultChannel();
+
+	setGame('HathorBot v' + botVersion);
 });
 
 bot.on('disconnect', (event) =>{
@@ -206,6 +208,9 @@ bot.on('message', message => {
   	if(isCommand(message.content, 'join')){
   		var userVoiceChannel = message.member.voiceChannel;
   		if(userVoiceChannel){ 
+  			if(currentVoiceChannel){
+  			  	currentVoiceChannel.leave();
+  			  }
   			userVoiceChannel.join();
   			currentVoiceChannel = userVoiceChannel;
   		}
