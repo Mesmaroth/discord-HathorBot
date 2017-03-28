@@ -115,7 +115,6 @@ function removeTempFiles(){
 			});
 		}
 	});
-	console.log("Removed temp files");
 }
 
 function play(connection, message) {	
@@ -132,7 +131,7 @@ function play(connection, message) {
 				if(queue.length > 0){
 					play(connection, message);
 				} else{
-					setGame('');
+					setGame();
 					removeTempFiles()
 				}
 			} else{
@@ -460,7 +459,15 @@ bot.on('message', message => {
 
 	  			}
   			}
-  		})
+  		});
+  	}
+
+  	if(isCommand(message.content, 'readd')){
+  		if(playing){
+  			var newSong = queue[0];
+  			queue.push(newSong);
+  			message.channel.sendMessage("**Readded to Queue** " + newSong.title);
+  		}
   	}
 
 });
