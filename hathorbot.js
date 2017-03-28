@@ -50,16 +50,20 @@ function checkDefaultChannel(){
 
 function joinDefaultChannel(){
 	var botGuilds = bot.guilds.array();
-	for(var i = 0; i < botGuilds.length; i++){
-		if(defaultChannel.guildID === botGuilds[i].id){
-			var channel = botGuilds[i].channels.filterArray( channel =>{
-				return channel.id === defaultChannel.voiceID;
-			})[0];
+	if(botGuilds.length > 0){
+		for(var i = 0; i < botGuilds.length; i++){
+			if(defaultChannel.guildID === botGuilds[i].id){
+				var channel = botGuilds[i].channels.filterArray( channel =>{
+					return channel.id === defaultChannel.voiceID;
+				})[0];
 
-			channel.join();
-			console.log("DISCORD: Joined voice channel " + channel.name + "\n");
-			currentVoiceChannel = channel;
-		}
+				channel.join();
+				console.log("DISCORD: Joined voice channel " + channel.name + "\n");
+				currentVoiceChannel = channel;
+			}
+		} 
+	} else{
+		console.log("NO SERVERS FOUND\n");
 	}
 }
 
@@ -130,6 +134,18 @@ function play(connection, message) {
 	message.channel.sendMessage("**Playing:**\n" + queue[0].title);
 }
 
+// If this bot isn't connected to any servers, then display a invite link in console
+function outputInviteLink(){
+	if(bot.guilds.array().length === 0){
+		bot.generateInvite([ 
+  			"CONNECT", "SPEAK", "READ_MESSAGES", "SEND_MESSAGES", "SEND_TTS_MESSAGES",
+  			"ATTACH_FILES", "USE_VAD"
+  		]).then( link => {
+  			console.log("Invite this bot to your server using this link:\n"  + link);
+  		});
+	}
+}
+
 
 bot.on('ready', () => {
 	console.log("HathorBot V" + botVersion)
@@ -140,14 +156,20 @@ bot.on('ready', () => {
 	bot.guilds.array().forEach( (guild) =>{
 		guilds.push(guild.name);
 	});
-	console.log("Servers:");
-	console.log(guilds.join("\n"));	
-	console.log();
+
+	if(guilds.length > 0){
+		console.log("Servers:");
+		console.log(guilds.join("\n"));	
+		console.log();
+	}
+	
+	setGame("HathorBot v" + botVersion);
 
 	checkDefaultChannel();
 	joinDefaultChannel();
+	outputInviteLink()
 
-	setGame('HathorBot v' + botVersion);
+	
 });
 
 bot.on('disconnect', (event) =>{
