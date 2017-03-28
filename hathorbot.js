@@ -358,7 +358,7 @@ bot.on('message', message => {
   		}
   	}
 
-  	if(isCommand(message.content, 'skip') || isCommand(message.content, 'next')){
+  	if(isCommand(message.content, 'skip')){
   		if (playing){
   			playing = false;  
   			botPlayback.end();						
