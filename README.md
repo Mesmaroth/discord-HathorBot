@@ -19,6 +19,8 @@ Library: [Discord.js](https://discord.js.org)
 ## Commands:
 
 ### Admin Commands
+  - `setusername [NAME]`: Sets the username of bot
+  - `setavatar [URL]`: Sets the avatar of the bot
   - `exit`: disconnects bot from discord
 
 ### General
@@ -39,4 +41,4 @@ Library: [Discord.js](https://discord.js.org)
   - `save [YT_URL]`: Saves a song from youtube and stores it
   - `save`: Saves current song that's playing
   - `remlocal [index_number]`: Removes a song that has been saved locally
-
+  - `readd`: Re-adds the currently playing song at the bottom of the queue
