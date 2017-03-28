@@ -12,7 +12,7 @@ Library: [Discord.js](https://discord.js.org)
   - Install [node-gyp](https://github.com/nodejs/node-gyp) (Open command prompt and enter `npm install -g node-gyp`)
   - Install [FFMPEG static build](https://ffmpeg.zeranoe.com/builds/) to PATH. [Tutorial to install FFMPEG on Windows](http://www.wikihow.com/Install-FFmpeg-on-Windows)
   - Enter bot token in `botLogin.js`
-  - Run `npm install` to install required modules for this bot
+  - Open up a command prompt and install the modules required `npm install discord.js node-opus ytdl-core`
   - Run `Start_Bot.bat` or `Start_Bot_Loop.bat` if you aren't using another program to handle the bot restarting itself.
 
 
