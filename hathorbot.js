@@ -7,8 +7,8 @@ const yt = require('./modules/youtube.js');
 // command initializer
 const CMDINIT = '-';
 const localPath = './local/';
+const adminRole = "admin";		// This can be changed to what ever 
 
-var adminRole = "admin";		// This can be changed to what ever 
 var defaultChannel = {};	// The object guild details of the defualt server
 var currentVoiceChannel;	// The object voice channel the bot is in
 var defaultChannelPath = './config/default_channel.json';
@@ -104,6 +104,20 @@ function setGame(game){
 		console.log("DISCORD: GAME SET: " + game)
 }
 
+function removeTempFiles(){
+	var tempPath = './tempFiles/';
+	fs.readdir(tempPath, (error, files) =>{
+		if(error) return console.error(error);
+
+		for(var i = 0; i < files.length; i++){
+			fs.unlink(tempPath+files[i], error =>{ 
+				if(error) return console.error(error);
+			});
+		}
+	});
+	console.log("Removed temp files");
+}
+
 function play(connection, message) {	
 	botPlayback = connection.playFile(queue[0].file)
 		.on('end', ()=>{
@@ -118,7 +132,8 @@ function play(connection, message) {
 				if(queue.length > 0){
 					play(connection, message);
 				} else{
-					setGame();
+					setGame('');
+					removeTempFiles()
 				}
 			} else{
 				stopped = false;
@@ -145,7 +160,6 @@ function outputInviteLink(){
   		});
 	}
 }
-
 
 bot.on('ready', () => {
 	console.log("HathorBot V" + botVersion)
@@ -177,6 +191,7 @@ bot.on('disconnect', (event) =>{
 	if(event.reason) 
 		console.log("Reason: " + event.reason);
 
+	removeTempFiles();
 	process.exit(0);
 });
 
