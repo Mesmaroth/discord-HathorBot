@@ -110,9 +110,7 @@ function removeTempFiles(){
 		if(error) return console.error(error);
 
 		for(var i = 0; i < files.length; i++){
-			fs.unlink(tempPath+files[i], error =>{ 
-				if(error) return console.error(error);
-			});
+			fs.unlinkSync(tempPath+files[i]);
 		}
 	});
 }
