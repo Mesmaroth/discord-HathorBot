@@ -1,11 +1,12 @@
 const ytdl = require('ytdl-core');
 const fs = require('fs');
 const search = require('youtube-search')
+const youtubeAPI = require('../config/botLogin').youtubeAPI;
 
 module.exports.search = function(message, callback) {
 	var opts = {
 	  maxResults: 5,
-	  key: 'AIzaSyC1fiH2ND47K3z4_sbYeogvPgM_gI2PaoU'
+	  key: youtubeAPI
 	};
 	 
 	search(message, opts, function(err, results) {
