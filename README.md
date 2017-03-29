@@ -24,6 +24,8 @@ Library: [Discord.js](https://discord.js.org)
   - `exit`: disconnects bot from discord
 
 ### General
+  - `about`: About this bot
+  - `source`: Source link
   - `invite`: Get invite link for your bot
   - `setvc`: set the default voice channel this bot joins when ever the bot connects
   - `join`: Bot joins your voice channel
@@ -33,11 +35,11 @@ Library: [Discord.js](https://discord.js.org)
   - `play [YT_URL]`: Plays a song from a youtube link
   - `play [index_number]` : Plays a song from a file that has been saved to the bot
   - `play [search key term]`: Plays the first result of youtube search
-  - `play`: Plays song in queue if it has been stopped
-  - `local`: Displays all the songs saved by the bot
+  - `play`: Plays song in queue if it has been stopped  
   - `stop`: Stops the song from playing
   - `skip`: To skip the currently playing song
   - `replay`: Stops and replays song from the start
+  - `local`: Displays all the songs saved by the bot
   - `remove [index_number]`: Removes a specific song from queue
   - `save [YT_URL]`: Saves a song from youtube and stores it
   - `save`: Saves current song that's playing
