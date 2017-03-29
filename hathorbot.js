@@ -340,8 +340,14 @@ bot.on('message', message => {
 	  							}
 	  						});
 	  					});
-	  				} else{
-	  					if(!isNaN(song)){	  						
+	  				} else{	
+	  					var song = message.content.split(' ')[1];
+
+	  					function isNumber(obj) {	//	Credit: https://stackoverflow.com/questions/1303646/check-whether-variable-is-number-or-string-in-javascript#1303650
+	  						return !isNaN(parseFloat(obj))
+	  					}
+	  					
+	  					if(isNumber(song)){
 	  						fs.readdir(localPath, (error, files) =>{
 		  						if(error) return console.error(error);
 		  						for(var i = 0; i < files.length; i++){
@@ -363,9 +369,29 @@ bot.on('message', message => {
 			  							}
 		  							}
 		  						}
-
 		  						message.channel.sendMessage("No local song found with that index.");
 		  					});
+	  					} 
+	  					else{
+	  						var song = message.content.slice(message.content.indexOf(' ')+1);
+	  						yt.search(song, (error, id, title, URL) =>{
+	  							yt.getFile(URL, tempPath + id + '.mp3', error =>{
+	  								if(error) return console.error(error);
+	  								queue.push({
+		  								title: title,
+		  								id: id,
+		  								file: tempPath + id + '.mp3',
+		  								local: false,
+		  								url: URL
+	  								});
+
+	  								if(!playing && !stopped) 
+		  								play(voiceConnection, message);
+		  							else {
+		  								message.channel.sendMessage("**Added to Queue:**\n" + title);
+		  							}
+	  							});
+	  						});
 	  					}
 	  				}
   				});
