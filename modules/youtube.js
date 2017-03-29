@@ -11,8 +11,11 @@ module.exports.search = function(message, callback) {
 	 
 	search(message, opts, function(err, results) {
 	 	if(err) callback(err);
-		var firstResult = results[0];
-		callback(null, firstResult.id, firstResult.title, firstResult.link);
+	 		 	
+	 	if(results){
+			var firstResult = results[0];
+			callback(null, firstResult.id, firstResult.title, firstResult.link);
+	 	}
 	});
 	
 }
