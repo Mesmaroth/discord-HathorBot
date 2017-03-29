@@ -130,7 +130,9 @@ function play(connection, message) {
 					play(connection, message);
 				} else{
 					setGame();
-					removeTempFiles()
+					setTimeout(()=>{
+						removeTempFiles();
+					}, 1000);
 				}
 			} else{
 				stopped = false;
@@ -373,6 +375,7 @@ bot.on('message', message => {
 	  					else{
 	  						var song = message.content.slice(message.content.indexOf(' ')+1);
 	  						yt.search(song, (error, id, title, URL) =>{
+	  							if(error) return console.error(error);
 	  							yt.getFile(URL, tempPath + id + '.mp3', error =>{
 	  								if(error) return console.error(error);
 	  								queue.push({
