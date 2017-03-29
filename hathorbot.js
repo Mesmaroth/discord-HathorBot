@@ -220,6 +220,49 @@ bot.on('message', message => {
   	}
   	// ----
 
+  	if(isCommand(message.content, 'source')){
+  		message.channel.sendMessage("**Source:** https://github.com/Mesmaroth/discord-HathorBot");
+  	}
+
+  	if(isCommand(message.content, 'about')){
+  		var content = "**About**\n" + "**Bot Version:** HathorBot v" + botVersion +
+  			"\n**Bot Username:** " + bot.user.username +
+  			"\n**Author:** Mesmaroth" +
+  			"\n**Library:** Discord.js" +  			
+  			"\n**Source:** <https://github.com/Mesmaroth/discord-HathorBot>" 
+
+  		message.channel.sendFile( bot.user.displayAvatarURL, 'botAvatar.jpg', content);
+  	}
+
+  	if(isCommand(message.content, 'help')){
+  		message.channel.sendMessage("**Bot Commands**\n" +
+			"\n__**Admin Commands**__\n" + 
+			"`" + CMDINIT+ "setUsername [name]`: Sets the username of bot\n" +
+			"`" + CMDINIT+ "setAvatar [URL]`: Sets the avatar of the bot\n" + 
+			"`" + CMDINIT+ "exit`: Disconnects the bot\n" + 
+			"\n__**General**__\n" +
+			"`" + CMDINIT+ "about`: About this bot\n" +
+			"`" + CMDINIT+ "source`: Source link\n" +
+			"`" + CMDINIT+ "invite`: Get invite link to your bot\n" + 
+			"`" + CMDINIT+ "setVC`: Set the defualt channel your bot joins when ever the bot connects\n" + 
+			"`" + CMDINIT+ "join`: Bot will attempt to join your channel\n" +
+			"\n__**Music**__\n" + 
+			"`" + CMDINIT+ "queue or playing`: To view all songs in queue\n" +
+			"`" + CMDINIT+ "play [YT_URL]`: Plays a song from a youtube link\n" +
+			"`" + CMDINIT+ "play [index_number]`: Plays a song from a file that has been saved to the bot\n" +
+			"`" + CMDINIT+ "play [search key term]`: Plays the first result of youtube search\n" +
+			"`" + CMDINIT+ "play`: Plays song in queue if it has been stopped\n" +
+			"`" + CMDINIT+ "stop`: Stops the song from playing\n" +
+			"`" + CMDINIT+ "skip`: To skip the currently playing song\n" +
+			"`" + CMDINIT+ "replay`: Stops and replays song from the start\n" +
+			"`" + CMDINIT+ "local`: Displays all the songs saved by the bot\n" +
+			"`" + CMDINIT+ "remove [index_number]`: Removes a specific song from queue\n" +
+			"`" + CMDINIT+ "save [YT_URL]`: Saves a song from youtube and stores it\n" +
+			"`" + CMDINIT+ "save`: Saves current song that's playing\n" +
+			"`" + CMDINIT+ "remlocal [index_number]`: Removes a song that has been saved locally\n" +
+			"`" + CMDINIT+ "readd`: Re-adds the currently playing song at the bottom of the queue\n")
+  	}
+
   	if(isCommand(message.content, 'invite')){
   		bot.generateInvite([ 
   			"CONNECT", "SPEAK", "READ_MESSAGES", "SEND_MESSAGES", "SEND_TTS_MESSAGES",
@@ -307,8 +350,8 @@ bot.on('message', message => {
   			var localPath = './local/';
 
   			/* YT REGEX : https://stackoverflow.com/questions/3717115/regular-expression-for-youtube-links
-				*	by Adrei Zisu
-				*/
+			*	by Adrei Zisu
+			*/
 			var isLink = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/
 
   			if( currentVoiceChannel === message.member.voiceChannel){
@@ -343,7 +386,8 @@ bot.on('message', message => {
 	  				} else{	
 	  					var song = message.content.split(' ')[1];
 
-	  					function isNumber(obj) {	//	Credit: https://stackoverflow.com/questions/1303646/check-whether-variable-is-number-or-string-in-javascript#1303650
+	  					//	Credit: https://stackoverflow.com/questions/1303646/check-whether-variable-is-number-or-string-in-javascript#1303650
+	  					function isNumber(obj) {	
 	  						return !isNaN(parseFloat(obj))
 	  					}
 	  					
@@ -375,7 +419,7 @@ bot.on('message', message => {
 	  					else{
 	  						var song = message.content.slice(message.content.indexOf(' ')+1);
 	  						yt.search(song, (error, id, title, URL) =>{
-	  							if(error) return console.error(error);
+	  							if(error) return message.channel.sendMessage("**Youtube Search Error**:```" + error.message + "```");
 	  							yt.getFile(URL, tempPath + id + '.mp3', error =>{
 	  								if(error) return console.error(error);
 	  								queue.push({
