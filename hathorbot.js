@@ -7,7 +7,7 @@ const yt = require('./modules/youtube.js');
 // command initializer
 const CMDINIT = '.';
 const localPath = './local/';
-const adminRole = "admin";		// This can be changed to what ever 
+const adminRole = "admin";		// The role the bot depends on for using dev commands
 
 var defaultChannel = {};	// The object guild details of the defualt server
 var currentVoiceChannel;	// The object voice channel the bot is in
@@ -229,7 +229,7 @@ bot.on('message', message => {
   			"\n**Bot Username:** " + bot.user.username +
   			"\n**Author:** Mesmaroth" +
   			"\n**Library:** Discord.js" +  			
-  			"\n**Source:** <https://github.com/Mesmaroth/discord-HathorBot>" 
+  			"\n**Source:** <https://github.com/Mesmaroth/discord-HathorBot>"
 
   		message.channel.sendFile( bot.user.displayAvatarURL, 'botAvatar.jpg', content);
   	}
@@ -359,6 +359,8 @@ bot.on('message', message => {
   					voiceConnection = connection;
 	  				if(isLink.test(song)){
 	  					var url = song;
+
+	  					// Play youtube by URL
 	  					yt.getInfo(url, (error, rawData, id, title, length_seconds) => {
 	  						if(error) {
 	  							message.channel.sendMessage("An Error has a occured and has been reported");
@@ -391,6 +393,7 @@ bot.on('message', message => {
 	  						return !isNaN(parseFloat(obj))
 	  					}
 	  					
+	  					// Play audio file by index number
 	  					if(isNumber(song)){
 	  						fs.readdir(localPath, (error, files) =>{
 		  						if(error) return console.error(error);
@@ -417,9 +420,10 @@ bot.on('message', message => {
 		  					});
 	  					} 
 	  					else{
+	  						//	Play Youtube by search
 	  						var song = message.content.slice(message.content.indexOf(' ')+1);
 	  						yt.search(song, (error, id, title, URL) =>{
-	  							if(error) return message.channel.sendMessage("**Youtube Search Error**:```" + error.message + "```");
+	  							if(error) return message.channel.sendMessage("**Youtube Search Error**:```\n" + error + "```");
 	  							yt.getFile(URL, tempPath + id + '.mp3', error =>{
 	  								if(error) return console.error(error);
 	  								queue.push({
