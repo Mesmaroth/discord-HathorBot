@@ -273,7 +273,21 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'uptime')){
-  		message.channel.sendMessage("**Uptime:** " + bot.uptime);
+  		var uptimeSeconds = 0, uptimeMinutes = 0, uptimeHours = 0;
+
+  		uptimeSeconds = Math.floor(bot.uptime/1000);
+		
+		if(uptimeSeconds > 60){
+			uptimeMinutes = Math.floor(uptimeSeconds/60);
+			uptimeSeconds = Math.floor(uptimeSeconds % 60);
+		}
+
+		if(uptimeMinutes > 60){
+			uptimeHours = Math.floor(uptimeMinutes / 60);
+			uptimeMinutes = Math.floor(uptimeMinutes % 60);
+		}
+
+  		message.channel.sendMessage("**Uptime:** " + uptimeHours + ":" + uptimeMinutes + ":" + uptimeSeconds);
   	}
 
   	if(isCommand(message.content, 'setvc')){
