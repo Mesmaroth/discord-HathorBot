@@ -525,6 +525,8 @@ bot.on('message', message => {
 		  		} else{
 		  			message.channel.sendMessage("You already saved this song");
 		  		}
+	  		} else{
+	  			message.channel.sendMessage("Not playing anything to save");
 	  		}
 	  	}
   	}
