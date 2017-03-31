@@ -523,11 +523,11 @@ bot.on('message', message => {
 	  		});
 
 	  	}
-	  	else{
-	  		var song = queue[0];
-	  		var title = song.title.replace(/[&\/\\#,+()$~%.'":*?<>{}|]/g,'');
-		  	var output = './local/' + title + '.mp3';
+	  	else{	  		
 	  		if(playing){
+	  			var song = queue[0];
+		  		var title = song.title.replace(/[&\/\\#,+()$~%.'":*?<>{}|]/g,'');
+			  	var output = './local/' + title + '.mp3';
 	  			if(!song.local){  			
 		  		
 	  			if(!fs.existsSync(output)){
