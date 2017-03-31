@@ -11,8 +11,8 @@ Library: [Discord.js](https://discord.js.org)
   - Install [Visual C++ Build Tools](http://landinghub.visualstudio.com/visual-cpp-build-tools) using **Default Install**
   - Install [node-gyp](https://github.com/nodejs/node-gyp) (Open command prompt and enter `npm install -g node-gyp`)
   - Install [FFMPEG static build](https://ffmpeg.zeranoe.com/builds/) to PATH. [Tutorial to install FFMPEG on Windows](http://www.wikihow.com/Install-FFmpeg-on-Windows)
-   - Open up a command prompt and install the modules required `npm install discord.js node-opus ytdl-core youtube-search`
-  - Enter bot token in `botLogin.js` 
+  - Open up a command prompt and install the modules required `npm install discord.js node-opus ytdl-core youtube-search`
+  - Enter bot token in `botLogin.js`
   - Run `Start_Bot.bat` or `Start_Bot_Loop.bat` if you aren't using another program to handle the bot restarting itself.
 
 
@@ -25,6 +25,7 @@ Library: [Discord.js](https://discord.js.org)
 
 ### General
   - `about`: About this bot
+  - `uptime`: Uptime of the bot
   - `source`: Source link
   - `invite`: Get invite link for your bot
   - `setvc`: set the default voice channel this bot joins when ever the bot connects
