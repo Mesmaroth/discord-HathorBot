@@ -4,14 +4,22 @@ const bot = new Discord.Client();
 const token = require('./config/botLogin.js').token;
 const yt = require('./modules/youtube.js');
 
-// command initializer
-const CMDINIT = '.';
+try{
+	botVersion = require('./package.json').version;
+}catch(error) {
+	if(error) console.error(error);
+	var botVersion = "#?";
+}
+
+const CMDINIT = '.';	// command initializer
 const localPath = './local/';
 const adminRole = "admin";		// The role the bot depends on for using dev commands
+
 
 var defaultChannel = {};	// The object guild details of the defualt server
 var currentVoiceChannel;	// The object voice channel the bot is in
 var defaultChannelPath = './config/default_channel.json';
+var defualtGame = "HathorBot v" + botVersion;	// The game title to set to when the bot isn't playing music
 
 var queue = [];
 var botPlayback;	// stream dispatcher
@@ -20,12 +28,7 @@ var playing = false;
 var stopped = false;
 var stayOnQueue = false;
 
-try{
-	var botVersion = require('./package.json').version;
-}catch(error) {
-	if(error) console.error(error);
-	var botVersion = "#?";
-}
+
 
 function checkDefaultChannel(){
 	if(fs.existsSync(defaultChannelPath)){
@@ -129,14 +132,14 @@ function play(connection, message) {
 				if(queue.length > 0){
 					play(connection, message);
 				} else{
-					setGame();
+					setGame(defualtGame);
 					setTimeout(()=>{
 						removeTempFiles();
 					}, 1000);
 				}
 			} else{
 				stopped = false;
-				setGame();
+				setGame(defualtGame);
 			}
 		})
 		.on('error', ()=>{
@@ -176,7 +179,7 @@ bot.on('ready', () => {
 		console.log();
 	}
 	
-	setGame("HathorBot v" + botVersion);
+	setGame(defualtGame);
 
 	checkDefaultChannel();
 	joinDefaultChannel();
