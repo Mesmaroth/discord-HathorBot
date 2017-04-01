@@ -362,37 +362,37 @@ bot.on('message', message => {
 
   	if(isCommand(message.content, 'play')){
   		if(message.content.indexOf(' ') !== -1){
-  			var song = message.content.split(' ')[1];
   			var tempPath = './tempFiles/';
   			var localPath = './local/';
-
   			/* YT REGEX : https://stackoverflow.com/questions/3717115/regular-expression-for-youtube-links
 			*	by Adrei Zisu
 			*/
-			var isLink = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/
+			var YT_REG = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/
+			var input = message.content.split(' ')[1];
+			var isLink = YT_REG.test(input);
 
   			if( currentVoiceChannel === message.member.voiceChannel){
   				currentVoiceChannel.join().then( connection =>{
   					voiceConnection = connection;
-	  				if(isLink.test(song)){
-	  					var url = song;
+	  				if(isLink){
+	  					var URL = message.content.split(' ')[1];
 
 	  					// Play youtube by URL
-	  					yt.getInfo(url, (error, rawData, id, title, length_seconds) => {
+	  					yt.getInfo(URL, (error, rawData, id, title, length_seconds) => {
 	  						if(error) {
 	  							message.channel.sendMessage("An Error has a occured and has been reported");
 	  							console.error(error);
 	  							return;
 	  						}
 
-	  						yt.getFile(url, tempPath + id + '.mp3', (error) =>{
+	  						yt.getFile(URL, tempPath + id + '.mp3', (error) =>{
 	  							if(error) return console.error(error);
 	  							queue.push({
 	  								title: title,
 	  								id: id,
 	  								file: tempPath + id + '.mp3',
 	  								local: false,
-	  								url: url
+	  								url: URL
 	  							});
 
 	  							if(!playing && !stopped) 
@@ -402,8 +402,8 @@ bot.on('message', message => {
 	  							}
 	  						});
 	  					});
-	  				} else{	
-	  					var song = message.content.split(' ')[1];
+	  				} else{
+	  					var indexFile = message.content.split(' ')[1];
 
 	  					//	Credit: https://stackoverflow.com/questions/1303646/check-whether-variable-is-number-or-string-in-javascript#1303650
 	  					function isNumber(obj) {	
@@ -411,11 +411,11 @@ bot.on('message', message => {
 	  					}
 	  					
 	  					// Play audio file by index number
-	  					if(isNumber(song)){
+	  					if(isNumber(indexFile)){
 	  						fs.readdir(localPath, (error, files) =>{
 		  						if(error) return console.error(error);
 		  						for(var i = 0; i < files.length; i++){
-		  							if( Number(song) === (i+1)){
+		  							if( Number(indexFile) === (i+1)){
 		  								var title = files[i].split('.')[0];
 		  								var file = localPath + files[i];
 		  								queue.push({
@@ -435,11 +435,10 @@ bot.on('message', message => {
 		  						}
 		  						message.channel.sendMessage("No local song found with that index.");
 		  					});
-	  					} 
-	  					else{
+	  					} else{
 	  						//	Play Youtube by search
-	  						var song = message.content.slice(message.content.indexOf(' ')+1);
-	  						yt.search(song, (error, id, title, URL) =>{
+	  						var ytSong = message.content.slice(message.content.indexOf(' ')+1);
+	  						yt.search(ytSong, (error, id, title, URL) =>{
 	  							if(error) return message.channel.sendMessage("**Youtube Search Error**:```\n" + error + "```");
 	  							yt.getFile(URL, tempPath + id + '.mp3', error =>{
 	  								if(error) return console.error(error);
