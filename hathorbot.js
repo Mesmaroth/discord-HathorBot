@@ -29,7 +29,12 @@ var stopped = false;
 var stayOnQueue = false;
 var looping = false;
 
-
+function sendError(title, error, channel){
+	console.log("-----"  + "ERROR"+ "------");
+	console.log(error);
+	console.log("----------");
+	channel.sendMessage("**" + title + " Error**\n```" + error.message +"```");
+}
 
 function checkDefaultChannel(){
 	if(fs.existsSync(defaultChannelPath)){
@@ -111,7 +116,7 @@ function setGame(game){
 function removeTempFiles(){
 	var tempPath = './tempFiles/';
 	fs.readdir(tempPath, (error, files) =>{
-		if(error) return console.error(error);
+		if(error) return sendError("Reading tempPath", error, message.channel);
 
 		for(var i = 0; i < files.length; i++){
 			fs.unlinkSync(tempPath+files[i]);
@@ -148,7 +153,7 @@ function play(connection, message) {
 			}
 		})
 		.on('error', ()=>{
-			console.error(error);
+			sendError("Playback", error, message.channel);
 		});
 
 	playing = true;
@@ -361,6 +366,7 @@ bot.on('message', message => {
 
   	if(isCommand(message.content, 'local')){
   		fs.readdir('./local/', (error, files) =>{
+  			if(error) return sendError("Reading Local directory", error, message.channel);
   			for(var i = 0; i < files.length; i++){
   				files[i] = "**" + (i+1) + ".** " + files[i].split(".")[0];
   			}
@@ -388,14 +394,10 @@ bot.on('message', message => {
 
 	  					// Play youtube by URL
 	  					yt.getInfo(URL, (error, rawData, id, title, length_seconds) => {
-	  						if(error) {
-	  							message.channel.sendMessage("An Error has a occured and has been reported");
-	  							console.error(error);
-	  							return;
-	  						}
+	  						if(error) return sendError("Youtube Info", error, message.channel);
 
 	  						yt.getFile(URL, tempPath + id + '.mp3', (error) =>{
-	  							if(error) return console.error(error);
+	  							if(error) return sendError("Youtube Download", error, message.channel);
 	  							queue.push({
 	  								title: title,
 	  								id: id,
@@ -422,7 +424,7 @@ bot.on('message', message => {
 	  					// Play audio file by index number
 	  					if(isNumber(indexFile)){
 	  						fs.readdir(localPath, (error, files) =>{
-		  						if(error) return console.error(error);
+		  						if(error) return sendError("Reading local", error, message.channel);
 		  						for(var i = 0; i < files.length; i++){
 		  							if( Number(indexFile) === (i+1)){
 		  								var title = files[i].split('.')[0];
@@ -448,9 +450,9 @@ bot.on('message', message => {
 	  						//	Play Youtube by search
 	  						var ytSong = message.content.slice(message.content.indexOf(' ')+1);
 	  						yt.search(ytSong, (error, id, title, URL) =>{
-	  							if(error) return message.channel.sendMessage("**Youtube Search Error**:```\n" + error + "```");
+	  							if(error) return sendError("Youtube Search", error, message.channel);
 	  							yt.getFile(URL, tempPath + id + '.mp3', error =>{
-	  								if(error) return console.error(error);
+	  								if(error) return sendError("Youtube Download", error, message.channel);
 	  								queue.push({
 		  								title: title,
 		  								id: id,
@@ -529,6 +531,7 @@ bot.on('message', message => {
 	  	if(message.content.indexOf(' ') !== -1){
 	  		var url = message.content.split(' ')[1];
 	  		yt.getInfo(url, (error, rawData, id, title, length_seconds) =>{
+	  			if(error) return sendError("Youtube Info", error, message.channel);
 	  			var title = title.replace(/[&\/\\#,+()$~%.'":*?<>{}|]/g,'');
 	  			console.log(title);
 	  			yt.getFile(url, './local/' + title + '.mp3', () =>{
@@ -563,7 +566,7 @@ bot.on('message', message => {
   		var index = Number(message.content.split(' ')[1]);
 
   		fs.readdir(path, (error, files) =>{
-  			if(error) return console.error(error);
+  			if(error) return sendError("Remove Local", error, message.channel);
   			
   			for (var i = 0; i < files.length; i++) {
 	  			if((i+1) === index){
@@ -603,7 +606,6 @@ bot.on('message', message => {
 	  		message.channel.sendMessage("Looping stopped");
 	  	}
   	}
-
 });
 
 bot.login(token);
