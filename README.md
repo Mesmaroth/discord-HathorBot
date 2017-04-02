@@ -39,7 +39,8 @@ Library: [Discord.js](https://discord.js.org)
   - `play`: Plays song in queue if it has been stopped  
   - `stop`: Stops the song from playing
   - `skip`: To skip the currently playing song
-  - `replay`: Stops and replays song from the start
+  - `replay`: [ON/OFF] Stops and replays song from the start
+  - `loop`: Loops the entire queue, putting the current song back into queue
   - `local`: Displays all the songs saved by the bot
   - `remove [index_number]`: Removes a specific song from queue
   - `save [YT_URL]`: Saves a song from youtube and stores it
