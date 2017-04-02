@@ -27,6 +27,7 @@ var voiceConnection;	// voice Connection object
 var playing = false;
 var stopped = false;
 var stayOnQueue = false;
+var looping = false;
 
 
 
@@ -124,10 +125,14 @@ function play(connection, message) {
 			playing = false;
 
 			if(!stopped){
-				if(!stayOnQueue){
-					queue.shift();
-				} else
-					stayOnQueue = false;
+				if(looping){
+					queue.push(queue.shift());
+				} else{
+					if(!stayOnQueue){
+						queue.shift();
+					} else
+						stayOnQueue = false;
+				}				
 
 				if(queue.length > 0){
 					play(connection, message);
@@ -135,7 +140,7 @@ function play(connection, message) {
 					setGame(defualtGame);
 					setTimeout(()=>{
 						removeTempFiles();
-					}, 1000);
+					}, 1500);
 				}
 			} else{
 				stopped = false;
@@ -183,9 +188,7 @@ bot.on('ready', () => {
 
 	checkDefaultChannel();
 	joinDefaultChannel();
-	outputInviteLink()
-
-	
+	outputInviteLink()	
 });
 
 bot.on('disconnect', (event) =>{
@@ -338,13 +341,19 @@ bot.on('message', message => {
 
   		if(songs.length > 0){
   			if(songs.length === 1){
-  				message.channel.sendMessage("**Queue - Playlist**\n**Playing:** " + songs[0]);
+  				if(looping){
+  					message.channel.sendMessage("**Queue - Playlist\t[LOOPING]**\n**Playing:** " + songs[0]);
+  				} else
+  					message.channel.sendMessage("**Queue - Playlist**\n**Playing:** " + songs[0]);
   			} else{
   				var firstSong = songs.shift();
   				for (var i = 0; i < songs.length; i++) {
   					songs[i] = "**" + (i+1) + ". **"+ songs[i];
   				}
-  				message.channel.sendMessage("**Queue - Playlist**\n**Playing:** " + firstSong + "\n\n" + songs.join("\n"));
+  				if(looping){
+  					message.channel.sendMessage("**Queue - Playlist\t[LOOPING]**\n**Playing:** " + firstSong + "\n\n" + songs.join("\n"));
+  				} else
+  					message.channel.sendMessage("**Queue - Playlist**\n**Playing:** " + firstSong + "\n\n" + songs.join("\n"));
   			}
   		} else
   			message.channel.sendMessage("No songs queued");
@@ -530,14 +539,13 @@ bot.on('message', message => {
 	  			var song = queue[0];
 		  		var title = song.title.replace(/[&\/\\#,+()$~%.'":*?<>{}|]/g,'');
 			  	var output = './local/' + title + '.mp3';
-	  			if(!song.local){  			
-		  		
-	  			if(!fs.existsSync(output)){
-	  				fs.createReadStream(song.file).pipe(fs.createWriteStream(output));
-	  				message.channel.sendMessage("**Saved:** *" + title + "*");
-	  			} else{
-	  				message.channel.sendMessage("You already saved this song")
-	  			}
+	  			if(!song.local){		  		
+		  			if(!fs.existsSync(output)){
+		  				fs.createReadStream(song.file).pipe(fs.createWriteStream(output));
+		  				message.channel.sendMessage("**Saved:** *" + title + "*");
+		  			} else{
+		  				message.channel.sendMessage("You already saved this song")
+		  			}
 		  		} else{
 		  			message.channel.sendMessage("You already saved this song");
 		  		}
@@ -577,6 +585,16 @@ bot.on('message', message => {
   			queue.push(newSong);
   			message.channel.sendMessage("**Readded to Queue** " + newSong.title);
   		}
+  	}
+
+  	if(isCommand(message.content, 'loop')){
+	  	if(!looping){
+	  		looping = true;
+	  		message.channel.sendMessage("Looping entire queue");
+	  	} else{
+	  		looping = false;
+	  		message.channel.sendMessage("Looping stopped");
+	  	}
   	}
 
 });
