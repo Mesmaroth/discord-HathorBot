@@ -485,7 +485,8 @@ bot.on('message', message => {
   			stayOnQueue = true;
   			stopped = true;
   			botPlayback.end();  			  			
-  		}
+  		} else
+  			message.channel.sendMessage("Nothing to stop");
   	}
 
   	if(isCommand(message.content, 'skip')){
@@ -493,6 +494,7 @@ bot.on('message', message => {
   			playing = false;  
   			botPlayback.end();						
   		} else{
+  			message.channel.sendMessage("**Skipped:** " + queue[0].title);
   			queue.shift();
   		}
   	}
@@ -502,7 +504,8 @@ bot.on('message', message => {
   			playing = false;
   			stayOnQueue = true;
   			botPlayback.end();  			
-  		}
+  		} else
+  			message.channel.sendMessage("Need to be playing something to replay");
   	}
 
   	if(isCommand(message.content, 'remove')){
@@ -518,7 +521,7 @@ bot.on('message', message => {
   					return;
   				}
   			}
-  			message.channel.sendMessage("No queued song found with that index number found");
+  			message.channel.sendMessage("No queued song found with that index number.");
   		}
   	}
 
@@ -567,24 +570,28 @@ bot.on('message', message => {
 	  				if(!playing){
 	  					fs.unlinkSync(path + files[i]);
 	  					message.channel.sendMessage("Removed " + files[i].split('.')[0]);
+	  					return;
 	  				} else{
 	  					if(files[i] !== queue[0].title + '.mp3'){
 	  						fs.unlinkSync(path + files[i]);
 	  						message.channel.sendMessage("Removed " + files[i].split('.')[0]);
+	  						return;
 	  					}
 	  				}
 
 	  			}
   			}
+  			message.channel.sendMessage("No local file found with that index.");
   		});
   	}
 
   	if(isCommand(message.content, 'readd')){
-  		if(playing){
+  		if(queue.length > 0){
   			var newSong = queue[0];
-  			queue.push(newSong);
-  			message.channel.sendMessage("**Readded to Queue** " + newSong.title);
-  		}
+			queue.push(newSong);
+			message.channel.sendMessage("**Readded to Queue** " + newSong.title);
+  		} else
+  			message.channel.sendMessage("No song queued to re-add.");
   	}
 
   	if(isCommand(message.content, 'loop')){
