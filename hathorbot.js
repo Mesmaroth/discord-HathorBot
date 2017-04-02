@@ -600,10 +600,10 @@ bot.on('message', message => {
   	if(isCommand(message.content, 'loop')){
 	  	if(!looping){
 	  		looping = true;
-	  		message.channel.sendMessage("Looping entire queue");
+	  		message.channel.sendMessage("Started looping queue");
 	  	} else{
 	  		looping = false;
-	  		message.channel.sendMessage("Looping stopped");
+	  		message.channel.sendMessage("Stopped looping queue");
 	  	}
   	}
 });
