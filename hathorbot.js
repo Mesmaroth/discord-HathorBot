@@ -276,7 +276,12 @@ bot.on('message', message => {
 			"`" + CMDINIT+ "save [YT_URL]`: Saves a song from youtube and stores it\n" +
 			"`" + CMDINIT+ "save`: Saves current song that's playing\n" +
 			"`" + CMDINIT+ "remlocal [index_number]`: Removes a song that has been saved locally\n" +
-			"`" + CMDINIT+ "readd`: Re-adds the currently playing song at the bottom of the queue\n")
+			"`" + CMDINIT+ "readd`: Re-adds the currently playing song at the bottom of the queue\n" +
+			"`" + CMDINIT+ "playlist`: List all playlist\n" + 
+			"`" + CMDINIT+ "playlist [index_number]`: List all songs of the playlist\n" + 
+			"`" + CMDINIT+ "playlist save [PLAYLIST_NAME]`: Saves playlist\n" + 
+			"`" + CMDINIT+ "playlist play [index_number]`: Loads the playlist in queue and plays if nothing is playing\n" + 
+			"`" + CMDINIT+ "playlist remove [index_number]`: Removes the playlist\n")
   	}
 
   	if(isCommand(message.content, 'invite')){
