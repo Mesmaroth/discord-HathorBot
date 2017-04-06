@@ -419,12 +419,7 @@ bot.on('message', message => {
 	  						});
 	  					});
 	  				} else{
-	  					var indexFile = message.content.split(' ')[1];
-
-	  					//	Credit: https://stackoverflow.com/questions/1303646/check-whether-variable-is-number-or-string-in-javascript#1303650
-	  					function isNumber(obj) {	
-	  						return !isNaN(parseFloat(obj))
-	  					}
+	  					var indexFile = message.content.split(' ')[1];	  					
 	  					
 	  					// Play audio file by index number
 	  					if(isNumber(indexFile)){
@@ -610,6 +605,159 @@ bot.on('message', message => {
 	  		looping = false;
 	  		message.channel.sendMessage("Stopped looping queue");
 	  	}
+  	}
+
+  	if(isCommand(message.content, 'Playlist') || isCommand(message.content, 'p')){
+  		const playlistPath = './playlist/';
+  		const tempPath = './tempFiles/';
+  		if(message.content.indexOf(' ') !== -1){
+  			var param = message.content.split(' ')[1];
+
+  			if(isNumber(param)){
+  				param = Number(param);
+  				fs.readdir(playlistPath, (error, files) => {
+  					if(error) return sendError("Reading Playlist Directory", error, message.channel);
+
+  					for(var i = 0; i < files.length; i++){
+  						if((i+1) === param){
+  							var playlist = require(playlistPath+files[i]);
+  							var playlistTitle = files[i].split('.')[0];							
+							var songs = [];
+
+							for(var i = 0; i < playlist.length; i++){
+								songs.push("**" + (i+1) + ".** " + playlist[i].title);
+							}
+
+							message.channel.sendMessage("**Playlist - " + playlistTitle + "**\n" + songs.join("\n"));
+  						}
+  					}
+  				});
+  			} else{
+  				if(param.toLowerCase() === "play"){
+  					if(message.content.indexOf(' ', message.content.indexOf('play')) !== -1){
+  						var playlistIndex = message.content.split(' ')[2];
+	  					if(isNumber(playlistIndex)){
+	  						playlistIndex = Number(playlistIndex);
+	  						
+	  						fs.readdir(playlistPath, (error, files) => {
+	  							for(var i = 0; i < files.length; i++){
+	  								if((i+1) === playlistIndex){
+	  									try{
+	  										var playlist = fs.readFileSync(playlistPath+files[i]);
+	  										playlist = JSON.parse(playlist);	  										
+	  									} catch(error){
+	  										if(error) return sendError('Reading Playlist File', error, message.channel);
+	  									}
+	  									
+	  									for(var song = 0; song < playlist.length; song++){
+	  										if(playlist[song].local){
+	  											queue.push({
+	  												title: playlist[song].title,
+	  												file: playlist[song].file,
+	  												local: playlist[song].local	  												
+	  											});
+
+	  										} else{
+	  											var URL = playlist[song].url
+	  											yt.getInfo(URL, (error, rawData, id, title, length_seconds) =>{
+	  												if(error) sendError("Getting Youtube Info", error, message.channel);	
+	  												yt.getFile(URL, tempPath+id+'.mp3', error =>{
+	  													if(error) return sendError("Getting Youtube File", error, message.channel);
+	  													queue.push({
+		  													title: title,
+							  								id: id,
+							  								file: tempPath + id + '.mp3',
+							  								local: false,
+							  								url: URL	  													
+		  												});
+
+		  												if(!playing && queue.length > 0){
+					  										currentVoiceChannel.join().then( connection =>{
+																play(connection, message);
+															});	
+					  									}
+		  											});
+	  											});
+	  										}	  										
+	  									}
+
+	  									if(!playing && queue.length > 0){
+	  										currentVoiceChannel.join().then( connection =>{
+												play(connection, message);
+											});	
+	  									}
+
+	  									message.channel.sendMessage("Playlist `"  + files[i].split('.')[0]  + "` loaded");												
+	  								}
+	  							}
+	  						});
+	  					}
+  					}
+  				}
+
+  				if(param.toLowerCase() === 'save'){
+  					if(message.content.indexOf(' ', message.content.indexOf('save')) !== -1){
+  						var playlistName = message.content.split(' ');
+  						playlistName.splice(0,2);
+  						playlistName = playlistName.join(' ');
+  						var playlist = [];
+  						for(var i = 0; i < queue.length; i++){
+  							if(queue[i].local){
+  								playlist.push({
+  									title: queue[i].title,
+  									file: queue[i].file,
+  									local: queue[i].local
+  								});
+  							} else{
+  								playlist.push({
+  									title: queue[i].title,
+  									url: queue[i].url,
+  									local: false
+  								});
+  							}
+  						}
+  						
+  						fs.writeFile(playlistPath + playlistName + '.json', JSON.stringify(playlist, null, '\t'), error =>{
+  							if(error) return sendError("Writing Playlist File", error, message.channel);
+  							message.channel.sendMessage("Playlist `" + playlistName + '` saved');
+  						});
+  					}
+
+  				}
+
+  				if(param.toLowerCase() === 'remove'){
+  					if(message.content.indexOf(' ', message.content.indexOf('remove')) !== -1){
+  						var playlistIndex = message.content.split(' ')[2];
+  						playlistIndex = Number(playlistIndex);
+
+  						fs.readdir(playlistPath, (error, files) => {
+  							if(error) return sendError("Reading Playlist Path", error, message.channel);
+  							for(var i = 0; i < files.length; i++){
+  								if((i+1) === playlistIndex){
+  									var title = files[i].split('.')[0];
+  									fs.unlink(playlistPath + files[i], error =>{
+  										if(error) return sendError("Unlinking Playlist File", error, message.channel);
+  										message.channel.sendMessage("Playlist `" + title + "` removed");
+  									});
+  								}
+  							}
+  						});
+  					}
+  				}
+
+
+  			}
+  		} else {
+  			fs.readdir(playlistPath, (error, files) =>{
+  				if(error) return sendError("Reading Playlist Directory", error, message.channel);
+  				for(var i = 0; i < files.length; i++){
+  					files[i] = "**" + (i+1) + ".** " + files[i].split('.')[0];
+  				}
+  				
+  				if(files.length > 0)
+  					message.channel.sendMessage("**Playlist**\n" + files.join("\n"));
+  			});
+  		}
   	}
 });
 
