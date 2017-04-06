@@ -480,7 +480,9 @@ bot.on('message', message => {
   				message.channel.sendMessage("You're not in the voice channel.");
   		} else{
   			if(queue.length > 0)
-  				play(voiceConnection, message);
+  				currentVoiceChannel.join( connection => {
+  					play(connection, message);
+  				});
   			else
   				message.channel.sendMessage("No songs queued");
   		}
@@ -571,8 +573,7 @@ bot.on('message', message => {
   		var index = Number(message.content.split(' ')[1]);
 
   		fs.readdir(path, (error, files) =>{
-  			if(error) return sendError("Remove Local", error, message.channel);
-  			
+  			if(error) return sendError("Remove Local", error, message.channel);  			
   			for (var i = 0; i < files.length; i++) {
 	  			if((i+1) === index){
 	  				if(!playing){
@@ -645,6 +646,7 @@ bot.on('message', message => {
 	  						playlistIndex = Number(playlistIndex);
 	  						
 	  						fs.readdir(playlistPath, (error, files) => {
+	  							if(error) return sendError("Reading Playlsit Directory", error, message.channel);
 	  							for(var i = 0; i < files.length; i++){
 	  								if((i+1) === playlistIndex){
 	  									try{
@@ -662,6 +664,11 @@ bot.on('message', message => {
 	  												local: playlist[song].local	  												
 	  											});
 
+	  											if(!playing && queue.length > 0){
+			  										currentVoiceChannel.join().then( connection =>{
+			  											play(connection, message);
+			  										});
+			  									}
 	  										} else{
 	  											var URL = playlist[song].url
 	  											yt.getInfo(URL, (error, rawData, id, title, length_seconds) =>{
@@ -675,21 +682,14 @@ bot.on('message', message => {
 							  								local: false,
 							  								url: URL	  													
 		  												});
-
 		  												if(!playing && queue.length > 0){
 					  										currentVoiceChannel.join().then( connection =>{
-																play(connection, message);
-															});	
-					  									}
+					  											play(connection, message);
+					  										});
+					  									} 									
 		  											});
 	  											});
-	  										}	  										
-	  									}
-
-	  									if(!playing && queue.length > 0){
-	  										currentVoiceChannel.join().then( connection =>{
-												play(connection, message);
-											});	
+	  										} 										
 	  									}
 
 	  									message.channel.sendMessage("Playlist `"  + files[i].split('.')[0]  + "` loaded");												
