@@ -36,6 +36,11 @@ function sendError(title, error, channel){
 	channel.sendMessage("**" + title + " Error**\n```" + error.message +"```");
 }
 
+//	Credit: https://stackoverflow.com/questions/1303646/check-whether-variable-is-number-or-string-in-javascript#1303650
+function isNumber(obj) {	
+	return !isNaN(parseFloat(obj))
+}
+
 function checkDefaultChannel(){
 	if(fs.existsSync(defaultChannelPath)){
 		try {
