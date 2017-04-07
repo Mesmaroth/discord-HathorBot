@@ -132,6 +132,11 @@ function removeTempFiles(){
 }
 
 function play(connection, message) {
+	if(!fs.existsSync(queue[0].file)){
+		message.channel.sendMessage("**ERROR:** `" + queue[0].title + "` file not found. Skipping...");
+		queue.shift();
+	}
+
 	botPlayback = connection.playFile(queue[0].file)
 		.on('end', ()=>{
 			playing = false;
