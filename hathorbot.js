@@ -83,7 +83,9 @@ function joinDefaultChannel(){
 
 
 function isCommand(message, command){
-	if(message[0] === CMDINIT && (message.toLowerCase().slice(1) === command.toLowerCase() || message.toLowerCase().slice(1, message.indexOf(" ")) === command.toLowerCase()) ){
+	var init = message.slice(0,1);
+	var cmd = (message.indexOf(' ') !== -1) ? message.slice(1, message.indexOf(' ')) : message.slice(1);
+	if(init === CMDINIT && cmd === command ){
 		return true;
 	}
 	return false;
