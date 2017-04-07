@@ -357,7 +357,7 @@ bot.on('message', message => {
   			message.channel.sendMessage("You are not in a voice channel.");
   	}
 
-  	if(isCommand(message.content, 'queue' || isCommand(message.content, 'playing') || isCommand(message.content, 'q'))){
+  	if(isCommand(message.content, 'queue') || isCommand(message.content, 'playing') || isCommand(message.content, 'q')){
   		var songs = [];
   		for (var i = 0; i < queue.length; i++) {
   			songs.push(queue[i].title);
@@ -633,7 +633,7 @@ bot.on('message', message => {
 	  	}
   	}
 
-  	if(isCommand(message.content, 'Playlist') || isCommand(message.content, 'pl')){
+  	if(isCommand(message.content, 'playlist') || isCommand(message.content, 'pl')){
   		const playlistPath = './playlist/';
   		const tempPath = './tempFiles/';
   		if(message.content.indexOf(' ') !== -1){
