@@ -524,6 +524,16 @@ bot.on('message', message => {
   	if(isCommand(message.content, 'remove')){
   		if(message.content.indexOf(' ') !== -1){
   			var index = message.content.split(' ')[1];
+  			if(index === "all"){
+  				if(!playing){
+  					queue = [];
+  					removeTempFiles();
+  				} else{
+  					queue.splice(1, queue.length - 1);
+  				}
+  				message.channel.sendMessage("All songs have been removed from queue");
+  				return;
+  			}
   			index = Number(index);
 
   			for(var i = 1; i < queue.length; i++){
