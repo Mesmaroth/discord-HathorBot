@@ -350,7 +350,7 @@ bot.on('message', message => {
   			message.channel.sendMessage("You are not in a voice channel.");
   	}
 
-  	if(isCommand(message.content, 'queue' || isCommand(message.content, 'playing'))){
+  	if(isCommand(message.content, 'queue' || isCommand(message.content, 'playing') || isCommand(message.content, 'q'))){
   		var songs = [];
   		for (var i = 0; i < queue.length; i++) {
   			songs.push(queue[i].title);
@@ -376,7 +376,7 @@ bot.on('message', message => {
   			message.channel.sendMessage("No songs queued");
   	}
 
-  	if(isCommand(message.content, 'local')){
+  	if(isCommand(message.content, 'local') || isCommand(message.content, 'l')){
   		fs.readdir('./local/', (error, files) =>{
   			if(error) return sendError("Reading Local directory", error, message.channel);
   			for(var i = 0; i < files.length; i++){
@@ -387,7 +387,7 @@ bot.on('message', message => {
   		});
   	}
 
-  	if(isCommand(message.content, 'play')){
+  	if(isCommand(message.content, 'play') || isCommand(message.content, 'p')){
   		if(message.content.indexOf(' ') !== -1){
   			var tempPath = './tempFiles/';
   			var localPath = './local/';
@@ -612,7 +612,7 @@ bot.on('message', message => {
 	  	}
   	}
 
-  	if(isCommand(message.content, 'Playlist') || isCommand(message.content, 'p')){
+  	if(isCommand(message.content, 'Playlist') || isCommand(message.content, 'pl')){
   		const playlistPath = './playlist/';
   		const tempPath = './tempFiles/';
   		if(message.content.indexOf(' ') !== -1){
