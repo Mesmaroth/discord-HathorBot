@@ -479,10 +479,14 @@ bot.on('message', message => {
   			} else
   				message.channel.sendMessage("You're not in the voice channel.");
   		} else{
-  			if(queue.length > 0)
-  				currentVoiceChannel.join( connection => {
-  					play(connection, message);
-  				});
+  			if(queue.length > 0){
+  				if(!playing){
+  					currentVoiceChannel.join().then( connection => {
+  						play(connection, message);
+  					});
+  				} else
+  					message.channel.sendMessage("Already playing something");
+  			}
   			else
   				message.channel.sendMessage("No songs queued");
   		}
