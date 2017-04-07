@@ -720,6 +720,8 @@ bot.on('message', message => {
 		  					}
 	  					}
   					}
+  				} else{
+  					message.channel.sendMessage("You're not in the voice channel.");
   				}
 
   				if(param.toLowerCase() === 'save'){
