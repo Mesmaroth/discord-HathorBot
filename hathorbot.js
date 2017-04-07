@@ -123,13 +123,15 @@ function removeTempFiles(){
 	fs.readdir(tempPath, (error, files) =>{
 		if(error) return sendError("Reading tempPath", error, message.channel);
 
-		for(var i = 0; i < files.length; i++){
-			fs.unlinkSync(tempPath+files[i]);
+		for(var i = 0 ; i < files.length; i++){
+			fs.unlink(tempPath+files[i], error =>{
+				if(error) return console.error(error.message);
+			});
 		}
 	});
 }
 
-function play(connection, message) {	
+function play(connection, message) {
 	botPlayback = connection.playFile(queue[0].file)
 		.on('end', ()=>{
 			playing = false;
@@ -406,8 +408,7 @@ bot.on('message', message => {
 	  					yt.getInfo(URL, (error, rawData, id, title, length_seconds) => {
 	  						if(error) return sendError("Youtube Info", error, message.channel);
 
-	  						yt.getFile(URL, tempPath + id + '.mp3', (error) =>{
-	  							if(error) return sendError("Youtube Download", error, message.channel);
+	  						yt.getFile(URL, tempPath + id + '.mp3', () =>{
 	  							queue.push({
 	  								title: title,
 	  								id: id,
@@ -456,8 +457,7 @@ bot.on('message', message => {
 	  						var ytSong = message.content.slice(message.content.indexOf(' ')+1);
 	  						yt.search(ytSong, (error, id, title, URL) =>{
 	  							if(error) return sendError("Youtube Search", error, message.channel);
-	  							yt.getFile(URL, tempPath + id + '.mp3', error =>{
-	  								if(error) return sendError("Youtube Download", error, message.channel);
+	  							yt.getFile(URL, tempPath + id + '.mp3', () =>{
 	  								queue.push({
 		  								title: title,
 		  								id: id,
@@ -540,7 +540,6 @@ bot.on('message', message => {
 	  		yt.getInfo(url, (error, rawData, id, title, length_seconds) =>{
 	  			if(error) return sendError("Youtube Info", error, message.channel);
 	  			var title = title.replace(/[&\/\\#,+()$~%.'":*?<>{}|]/g,'');
-	  			console.log(title);
 	  			yt.getFile(url, './local/' + title + '.mp3', () =>{
 	  				message.channel.sendMessage("**Saved:** *" + title + "*");
 	  			});
@@ -640,62 +639,64 @@ bot.on('message', message => {
   				});
   			} else{
   				if(param.toLowerCase() === "play"){
-  					if(message.content.indexOf(' ', message.content.indexOf('play')) !== -1){
-  						var playlistIndex = message.content.split(' ')[2];
-	  					if(isNumber(playlistIndex)){
-	  						playlistIndex = Number(playlistIndex);
-	  						
-	  						fs.readdir(playlistPath, (error, files) => {
-	  							if(error) return sendError("Reading Playlsit Directory", error, message.channel);
-	  							for(var i = 0; i < files.length; i++){
-	  								if((i+1) === playlistIndex){
-	  									try{
-	  										var playlist = fs.readFileSync(playlistPath+files[i]);
-	  										playlist = JSON.parse(playlist);	  										
-	  									} catch(error){
-	  										if(error) return sendError('Reading Playlist File', error, message.channel);
-	  									}
-	  									
-	  									for(var song = 0; song < playlist.length; song++){
-	  										if(playlist[song].local){
-	  											queue.push({
-	  												title: playlist[song].title,
-	  												file: playlist[song].file,
-	  												local: playlist[song].local	  												
-	  											});
+  					if(currentVoiceChannel === message.member.voiceChannel){
+  						if(message.content.indexOf(' ', message.content.indexOf('play')) !== -1){
+	  						var playlistIndex = message.content.split(' ')[2];
+		  					if(isNumber(playlistIndex)){
+		  						playlistIndex = Number(playlistIndex);
 
-	  											if(!playing && queue.length > 0){
-			  										currentVoiceChannel.join().then( connection =>{
-			  											play(connection, message);
-			  										});
-			  									}
-	  										} else{
-	  											var URL = playlist[song].url
-	  											yt.getInfo(URL, (error, rawData, id, title, length_seconds) =>{
-	  												if(error) sendError("Getting Youtube Info", error, message.channel);	
-	  												yt.getFile(URL, tempPath+id+'.mp3', error =>{
-	  													if(error) return sendError("Getting Youtube File", error, message.channel);
-	  													queue.push({
-		  													title: title,
-							  								id: id,
-							  								file: tempPath + id + '.mp3',
-							  								local: false,
-							  								url: URL	  													
-		  												});
-		  												if(!playing && queue.length > 0){
-					  										currentVoiceChannel.join().then( connection =>{
-					  											play(connection, message);
-					  										});
-					  									} 									
-		  											});
-	  											});
-	  										} 										
-	  									}
+		  						try{
+		  							var files = fs.readdirSync(playlistPath);
+		  						} catch(error){
+		  							if(error) return sendError("Reading playlist directory", error, message.channel);
+		  						}
 
-	  									message.channel.sendMessage("Playlist `"  + files[i].split('.')[0]  + "` loaded");												
-	  								}
-	  							}
-	  						});
+		  						for(var i = 0; i < files.length; i++){
+		  							if((i+1) === playlistIndex){
+		  								try{
+		  									var playlist = fs.readFileSync(playlistPath + files[i]);
+		  									playlist = JSON.parse(playlist);
+		  								} catch(error){
+		  									if(error) return sendError("Reading Playlist File", error, message.channel);
+		  								}
+
+		  								for(var songIndex = 0; songIndex < playlist.length; songIndex++){
+		  									if(playlist[songIndex].local){
+		  										queue.push({
+		  											title: playlist[songIndex].title,
+		  											file: playlist[songIndex].file,
+		  											local: true
+		  										});
+		  									} else{
+												var songURL = playlist[songIndex].url;
+												var title = playlist[songIndex].title;
+												var id = playlist[songIndex].id;
+												var file = tempPath + id + '.mp3';
+
+												queue.push({
+													title: title,
+													url: songURL,
+													id: id,
+													file: file,
+													local: false
+												});
+
+												yt.getFile(songURL, file, ()=>{});
+		  									}
+		  								}
+
+		  								if(!playing && queue.length > 0){
+		  									currentVoiceChannel.join().then( connection =>{
+		  										setTimeout(()=>{
+		  											play(connection, message);
+		  										},1500);
+		  									});
+		  								} else if(playing){
+		  									message.channel.sendMessage("Loaded `" + files[i].split('.')[0] + '` to queue');
+		  								}
+		  							}
+		  						}
+		  					}
 	  					}
   					}
   				}
@@ -717,6 +718,7 @@ bot.on('message', message => {
   								playlist.push({
   									title: queue[i].title,
   									url: queue[i].url,
+  									id: queue[i].id,
   									local: false
   								});
   							}
