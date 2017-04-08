@@ -172,7 +172,6 @@ function play(connection, message) {
 
 	playing = true;
 	setGame(queue[0].title);
-	message.channel.sendMessage("**Playing:**\n" + queue[0].title);
 }
 
 // If this bot isn't connected to any servers, then display a invite link in console
@@ -424,8 +423,10 @@ bot.on('message', message => {
 	  								url: URL
 	  							});
 
-	  							if(!playing && !stopped) 
+	  							if(!playing && !stopped){
+	  								message.channel.sendMessage("**Playing:** " + title);
 	  								play(voiceConnection, message);
+	  							}
 	  							else {
 	  								message.channel.sendMessage("**Added to Queue:**\n" + title);
 	  							}
@@ -448,7 +449,8 @@ bot.on('message', message => {
 		  									local: true
 		  								});
 
-		  								if(!playing && !stopped){ 
+		  								if(!playing && !stopped){
+		  									message.channel.sendMessage("**Playing:** " + title);
 			  								play(voiceConnection, message);
 			  								return;
 			  							} else {
@@ -473,8 +475,10 @@ bot.on('message', message => {
 		  								url: URL
 	  								});
 
-	  								if(!playing && !stopped) 
+	  								if(!playing && !stopped){
+	  									message.channel.sendMessage("**Playing:** " + title);
 		  								play(voiceConnection, message);
+		  							}
 		  							else {
 		  								message.channel.sendMessage("**Added to Queue:**\n" + title);
 		  							}
@@ -510,12 +514,17 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'skip')){
-  		if (playing){
+  		if(playing){
   			playing = false;  
-  			botPlayback.end();						
+  			botPlayback.end();
+  			message.channel.sendMessage("**Playing:** " + queue[0].title);					
   		} else{
-  			message.channel.sendMessage("**Skipped:** " + queue[0].title);
-  			queue.shift();
+  			if(queue.length > 0){
+  				message.channel.sendMessage("**Skipped:** " + queue[0].title);
+  				queue.shift();
+  			} else{
+  				message.channel.sendMessage("Nothing to skip");
+  			}
   		}
   	}
 
@@ -702,7 +711,11 @@ bot.on('message', message => {
 													local: false
 												});
 
-												yt.getFile(songURL, file, ()=>{});
+												yt.getFile(songURL, file, ()=>{
+													if(songIndex === 0){
+				  										message.channel.sendMessage("**Playing:** " + playlist[songIndex].title)
+				  									}
+												});
 		  									}
 		  								}
 
