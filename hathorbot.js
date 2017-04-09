@@ -15,12 +15,13 @@ const CMDINIT = '.';	// command initializer
 const localPath = './local/';
 const adminRole = "admin";		// The role the bot depends on for using dev commands
 
-
+// Bot Info
 var defaultChannel = {};	// The object guild details of the defualt server
 var currentVoiceChannel;	// The object voice channel the bot is in
 var defaultChannelPath = './config/default_channel.json';
-var defualtGame = "HathorBot v" + botVersion;	// The game title to set to when the bot isn't playing music
+var defualtGame = botVersion + " | " + CMDINIT + "help";	// The game title to set to when the bot isn't playing music
 
+// Playback
 var queue = [];
 var botPlayback;	// stream dispatcher
 var voiceConnection;	// voice Connection object
@@ -29,6 +30,7 @@ var stopped = false;
 var stayOnQueue = false;
 var looping = false;
 
+// Prints errors to console and also reports error to user
 function sendError(title, error, channel){
 	console.log("-----"  + "ERROR"+ "------");
 	console.log(error);
@@ -41,6 +43,7 @@ function isNumber(obj) {
 	return !isNaN(parseFloat(obj))
 }
 
+// Check if there is a defualt channel file
 function checkDefaultChannel(){
 	if(fs.existsSync(defaultChannelPath)){
 		try {
@@ -62,6 +65,7 @@ function checkDefaultChannel(){
 	}
 }
 
+// Joins the defualt channel if there is one
 function joinDefaultChannel(){
 	var botGuilds = bot.guilds.array();
 	if(botGuilds.length > 0){
@@ -81,7 +85,7 @@ function joinDefaultChannel(){
 	}
 }
 
-
+// Command validations
 function isCommand(message, command){
 	var init = message.slice(0,1);
 	var cmd = (message.indexOf(' ') !== -1) ? message.slice(1, message.indexOf(' ')) : message.slice(1);
@@ -91,6 +95,7 @@ function isCommand(message, command){
 	return false;
 }
 
+// Checks for a specific role the user is in to run admin commands
 function isDev(message){
 	var roles = message.member.roles.array();
 	for(var role = 0; role < roles.length; role++){
@@ -100,7 +105,6 @@ function isDev(message){
 	message.channel.sendMessage("You aren't admin for this command.");
 	return false;
 }
-
 
 function getGuildByString(guildName){
 	return bot.guilds.filterArray( (guild) =>{
@@ -120,6 +124,7 @@ function setGame(game){
 		console.log("DISCORD: GAME SET: " + game)
 }
 
+// Removes all temporary files downloaded from youtube
 function removeTempFiles(){
 	var tempPath = './tempFiles/';
 	fs.readdir(tempPath, (error, files) =>{
@@ -133,6 +138,11 @@ function removeTempFiles(){
 	});
 }
 
+/*	Starts playing the first song(index) of the queue
+*	After it has passed it checks to see if there is another in queue
+*	If there are more songs in queue, the first song is removed after it has been played unless
+*	it is set to loop, replay, or stopped
+*/	
 function play(connection, message) {
 	if(!fs.existsSync(queue[0].file)){
 		message.channel.sendMessage("**ERROR:** `" + queue[0].title + "` file not found. Skipping...");
@@ -242,7 +252,7 @@ bot.on('message', message => {
   			voiceConnection.disconnect();
   		bot.destroy();
   	}
-  	// ----
+  	// ----------------------
 
   	if(isCommand(message.content, 'source')){
   		message.channel.sendMessage("**Source:** https://github.com/Mesmaroth/discord-HathorBot");
