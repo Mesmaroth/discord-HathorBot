@@ -19,7 +19,7 @@ const adminRole = "admin";		// The role the bot depends on for using dev command
 var defaultChannel = {};	// The object guild details of the defualt server
 var currentVoiceChannel;	// The object voice channel the bot is in
 var defaultChannelPath = './config/default_channel.json';
-var defualtGame = botVersion + " | " + CMDINIT + "help";	// The game title to set to when the bot isn't playing music
+var defualtGame = "v" + botVersion + " | " + CMDINIT + "help";	// The game title to set to when the bot isn't playing music
 
 // Playback
 var queue = [];
