@@ -180,6 +180,8 @@ function play(connection, message) {
 			sendError("Playback", error, message.channel);
 		});
 
+	botPlayback.setVolume(0.5);
+
 	playing = true;
 	setGame(queue[0].title);
 }
