@@ -270,17 +270,17 @@ bot.on('message', message => {
 
   	if(isCommand(message.content, 'help')){
   		message.channel.sendMessage("**Bot Commands**\n" +
-			"\n__**Admin Commands**__\n" + 
+			"\n**Admin Commands**\n" + 
 			"`" + CMDINIT+ "setUsername [name]`: Sets the username of bot\n" +
 			"`" + CMDINIT+ "setAvatar [URL]`: Sets the avatar of the bot\n" + 
 			"`" + CMDINIT+ "exit`: Disconnects the bot\n" + 
-			"\n__**General**__\n" +
+			"\n**General**\n" +
 			"`" + CMDINIT+ "about`: About this bot\n" +
 			"`" + CMDINIT+ "source`: Source link\n" +
 			"`" + CMDINIT+ "invite`: Get invite link to your bot\n" + 
 			"`" + CMDINIT+ "setVC`: Set the defualt channel your bot joins when ever the bot connects\n" + 
 			"`" + CMDINIT+ "join`: Bot will attempt to join your channel\n" +
-			"\n__**Music**__\n" + 
+			"\n**Music**\n" + 
 			"`" + CMDINIT+ "queue or playing`: To view all songs in queue\n" +
 			"`" + CMDINIT+ "play [YT_URL]`: Plays a song from a youtube link\n" +
 			"`" + CMDINIT+ "play [index_number]`: Plays a song from a file that has been saved to the bot\n" +
