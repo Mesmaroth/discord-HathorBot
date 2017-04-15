@@ -89,7 +89,7 @@ function joinDefaultChannel(){
 function isCommand(message, command){
 	var init = message.slice(0,1);
 	var cmd = (message.indexOf(' ') !== -1) ? message.slice(1, message.indexOf(' ')) : message.slice(1);
-	if(init === CMDINIT && cmd === command ){
+	if(init === CMDINIT && cmd.toLowerCase() === command.toLowerCase() ){
 		return true;
 	}
 	return false;
