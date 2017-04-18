@@ -527,9 +527,10 @@ bot.on('message', message => {
 
   	if(isCommand(message.content, 'skip')){
   		if(playing){
-  			playing = false;
-  			message.channel.sendMessage("**Playing:** " + queue[0].title);
-  			botPlayback.end();  			
+  			playing = false;  			
+  			botPlayback.end();
+  			if(queue.length > 0)
+  				message.channel.sendMessage("**Playing:** " + queue[0].title);
   		} else{
   			if(queue.length > 0){
   				message.channel.sendMessage("**Skipped:** " + queue[0].title);
