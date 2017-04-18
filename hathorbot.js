@@ -328,7 +328,7 @@ bot.on('message', message => {
 			uptimeMinutes = Math.floor(uptimeMinutes % 60);
 		}
 
-  		message.channel.sendMessage("**Uptime:** " + uptimeHours + ":" + uptimeMinutes + ":" + uptimeSeconds);
+  		message.channel.sendMessage("**Uptime:** " + uptimeHours + " hour(s) : " + uptimeMinutes + " minute(s) : " + uptimeSeconds +" second(s)");
   	}
 
   	if(isCommand(message.content, 'setvc')){
