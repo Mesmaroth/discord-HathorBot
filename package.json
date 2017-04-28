@@ -6,8 +6,8 @@
   "dependencies": {
     "discord.js": "^11.0.0",
     "node-opus": "^0.2.4",
-    "ytdl-core": "^0.10.3",
-    "youtube-search": "^1.0.9"
+    "youtube-search": "^1.0.9",
+    "ytdl-core": "^0.10.3"
   },
   "author": "Robert (Mesmaroth)",
   "license": "MIT"
