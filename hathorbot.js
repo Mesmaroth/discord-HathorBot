@@ -96,7 +96,7 @@ function isCommand(message, command){
 }
 
 // Checks for a specific role the user is in to run admin commands
-function isDev(message){
+function isAdmin(message){
 	var roles = message.member.roles.array();
 	for(var role = 0; role < roles.length; role++){
 		if(roles[role].name.toLowerCase() === adminRole)			
@@ -232,7 +232,7 @@ bot.on('disconnect', (event) =>{
 
 bot.on('message', message => {
 	// Admin commands
-	if(isCommand(message.content, 'setusername')){
+	if(isCommand(message.content, 'setusername') && isAdmin(message)){
 		if(message.content.indexOf(' ') !== -1){
 			var username = message.content.split(' ')[1];
 			bot.user.setUsername(username);
@@ -240,7 +240,7 @@ bot.on('message', message => {
 		}
 	}
 
-	if(isCommand(message.content, 'setavatar')){
+	if(isCommand(message.content, 'setavatar') && isAdmin(message)){
 		if(message.content.indexOf(' ') !== -1){
 			var url = message.content.split(' ')[1];
 			bot.user.setAvatar(url);
@@ -248,8 +248,7 @@ bot.on('message', message => {
 		}
 	}
 
-  	if(isCommand(message.content, 'exit')){
-  		if(!isDev(message)) return;
+  	if(isCommand(message.content, 'exit') && isAdmin(message)){
   		if(voiceConnection)
   			voiceConnection.disconnect();
   		bot.destroy();
