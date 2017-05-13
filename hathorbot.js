@@ -166,14 +166,14 @@ function play(connection, message) {
 				if(queue.length > 0){
 					play(connection, message);
 				} else{
-					setGame(defualtGame);
+					// setGame(defualtGame);
 					setTimeout(()=>{
 						removeTempFiles();
 					}, 1500);
 				}
 			} else{
 				stopped = false;
-				setGame(defualtGame);
+				// setGame(defualtGame);
 			}
 		})
 		.on('error', ()=>{
@@ -415,7 +415,20 @@ bot.on('message', message => {
 			var input = message.content.split(' ')[1];
 			var isLink = YT_REG.test(input);
 
-  			if( currentVoiceChannel === message.member.voiceChannel){
+			if(message.member.voiceChannel === "undefined"){
+				message.channel.sendMessage("You're not in the voice channel.");
+				return;
+			}
+
+			if(currentVoiceChannel !== message.member.voiceChannel){
+				currentVoiceChannel = message.member.voiceChannel;
+				if(playing){
+					message.channel.send("Bot is playing something.");
+					return;
+				}
+			}
+
+  			if(currentVoiceChannel === message.member.voiceChannel){
   				currentVoiceChannel.join().then( connection =>{
   					voiceConnection = connection;
 	  				if(isLink){
@@ -498,8 +511,7 @@ bot.on('message', message => {
 	  					}
 	  				}
   				});
-  			} else
-  				message.channel.sendMessage("You're not in the voice channel.");
+  			}
   		} else{
   			if(queue.length > 0){
   				if(!playing){
