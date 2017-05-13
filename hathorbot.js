@@ -568,8 +568,24 @@ bot.on('message', message => {
 
   	if(isCommand(message.content, 'remove')){
   		if(message.content.indexOf(' ') !== -1){
-  			var index = message.content.split(' ')[1];
-  			if(index === "all"){
+  			var param = message.content.split(' ')[1];
+  			if(param.indexOf(',') !== -1){
+  				param = param.split(',');
+  			}else{
+  				param = [param];
+  			}
+  			for(var i = 0; i < param.length; i++){
+  				if(isNumber(param[i])){
+  					param[i] = Number(param[i]);
+  				}else{
+  					message.channel.send("Once of your parameters is not a number. Please try again");
+  					return;
+  				}
+  			}
+
+  			console.log(param);
+
+  			if(param === "all"){
   				if(!playing){
   					queue = [];
   					removeTempFiles();
@@ -579,17 +595,25 @@ bot.on('message', message => {
   				message.channel.send("All songs have been removed from queue");
   				return;
   			}
-  			index = Number(index);
 
-  			for(var i = 1; i < queue.length; i++){
-  				if(index === i){
-  					var title = queue[i].title;
-  					queue.splice(i, 1);
-  					message.channel.send("**Removed:** " + title + " from queue");
-  					return;
+  			var list = [];
+  			for(var x = 0; x < param.length; x++){
+  				for(var y = 1; y < queue.length; y++){
+  					if(param[x] === y){
+  						list.push(queue[y]);
+  					}
   				}
   			}
-  			message.channel.send("No queued song found with that index number.");
+
+  			for(var i = 0; i < list.length; i++){
+  				for(var x = 0; x < queue.length; x++){
+  					if(list[i].title === queue[x].title){
+  						var title = queue[x].title;
+						queue.splice(x, 1);
+						message.channel.send("**Removed:** `" + title + "` from queue");
+  					}
+  				}			
+  			}
   		}
   	}
 
