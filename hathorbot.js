@@ -35,7 +35,7 @@ function sendError(title, error, channel){
 	console.log("-----"  + "ERROR"+ "------");
 	console.log(error);
 	console.log("----------");
-	channel.sendMessage("**" + title + " Error**\n```" + error.message +"```");
+	channel.send("**" + title + " Error**\n```" + error.message +"```");
 }
 
 //	Credit: https://stackoverflow.com/questions/1303646/check-whether-variable-is-number-or-string-in-javascript#1303650
@@ -102,7 +102,7 @@ function isAdmin(message){
 		if(roles[role].name.toLowerCase() === adminRole)			
 			return true;
 	}
-	message.channel.sendMessage("You aren't admin for this command.");
+	message.channel.send("You aren't admin for this command.");
 	return false;
 }
 
@@ -145,7 +145,7 @@ function removeTempFiles(){
 */	
 function play(connection, message) {
 	if(!fs.existsSync(queue[0].file)){
-		message.channel.sendMessage("**ERROR:** `" + queue[0].title + "` file not found. Skipping...");
+		message.channel.send("**ERROR:** `" + queue[0].title + "` file not found. Skipping...");
 		queue.shift();
 	}
 
@@ -256,7 +256,7 @@ bot.on('message', message => {
   	// ----------------------
 
   	if(isCommand(message.content, 'source')){
-  		message.channel.sendMessage("**Source:** https://github.com/Mesmaroth/discord-HathorBot");
+  		message.channel.send("**Source:** https://github.com/Mesmaroth/discord-HathorBot");
   	}
 
   	if(isCommand(message.content, 'about')){
@@ -270,7 +270,7 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'help')){
-  		message.channel.sendMessage("**Bot Commands**\n" +
+  		message.channel.send("**Bot Commands**\n" +
 			"\n**Admin Commands**\n" + 
 			"`" + CMDINIT+ "setUsername [name]`: Sets the username of bot\n" +
 			"`" + CMDINIT+ "setAvatar [URL]`: Sets the avatar of the bot\n" + 
@@ -308,7 +308,7 @@ bot.on('message', message => {
   			"CONNECT", "SPEAK", "READ_MESSAGES", "SEND_MESSAGES", "SEND_TTS_MESSAGES",
   			"ATTACH_FILES", "USE_VAD"
   		]).then( link => {
-  			message.channel.sendMessage("**Invite:** "  + link);
+  			message.channel.send("**Invite:** "  + link);
   		});
   	}
 
@@ -327,7 +327,7 @@ bot.on('message', message => {
 			uptimeMinutes = Math.floor(uptimeMinutes % 60);
 		}
 
-  		message.channel.sendMessage("**Uptime:** " + uptimeHours + " hour(s) : " + uptimeMinutes + " minute(s) : " + uptimeSeconds +" second(s)");
+  		message.channel.send("**Uptime:** " + uptimeHours + " hour(s) : " + uptimeMinutes + " minute(s) : " + uptimeSeconds +" second(s)");
   	}
 
   	if(isCommand(message.content, 'setvc')){
@@ -339,7 +339,7 @@ bot.on('message', message => {
 
   			function writeOutChannels(){
   				fs.writeFile(defaultChannelPath, JSON.stringify(defaultChannel, null, '\t'), () =>{
-		  			message.channel.sendMessage("Server default voice channel set to " + voiceChannelName);
+		  			message.channel.send("Server default voice channel set to " + voiceChannelName);
 		  		});
   			}
 
@@ -350,7 +350,7 @@ bot.on('message', message => {
 				defaultChannel.guildID = guild.id;
 				writeOutChannels();
   			} else
-  			  	message.channel.sendMessage("No voice channel found");
+  			  	message.channel.send("No voice channel found");
   		}
   	}
 
@@ -364,7 +364,7 @@ bot.on('message', message => {
   			currentVoiceChannel = userVoiceChannel;
   		}
   		else
-  			message.channel.sendMessage("You are not in a voice channel.");
+  			message.channel.send("You are not in a voice channel.");
   	}
 
   	if(isCommand(message.content, 'queue') || isCommand(message.content, 'playing') || isCommand(message.content, 'q')){
@@ -376,21 +376,21 @@ bot.on('message', message => {
   		if(songs.length > 0){
   			if(songs.length === 1){
   				if(looping){
-  					message.channel.sendMessage("**Queue - Playlist\t[LOOPING]**\n**Playing:** " + songs[0]);
+  					message.channel.send("**Queue - Playlist\t[LOOPING]**\n**Playing:** " + songs[0]);
   				} else
-  					message.channel.sendMessage("**Queue - Playlist**\n**Playing:** " + songs[0]);
+  					message.channel.send("**Queue - Playlist**\n**Playing:** " + songs[0]);
   			} else{
   				var firstSong = songs.shift();
   				for (var i = 0; i < songs.length; i++) {
   					songs[i] = "**" + (i+1) + ". **"+ songs[i];
   				}
   				if(looping){
-  					message.channel.sendMessage("**Queue - Playlist\t[LOOPING]**\n**Playing:** " + firstSong + "\n\n" + songs.join("\n"));
+  					message.channel.send("**Queue - Playlist\t[LOOPING]**\n**Playing:** " + firstSong + "\n\n" + songs.join("\n"));
   				} else
-  					message.channel.sendMessage("**Queue - Playlist**\n**Playing:** " + firstSong + "\n\n" + songs.join("\n"));
+  					message.channel.send("**Queue - Playlist**\n**Playing:** " + firstSong + "\n\n" + songs.join("\n"));
   			}
   		} else
-  			message.channel.sendMessage("No songs queued");
+  			message.channel.send("No songs queued");
   	}
 
   	if(isCommand(message.content, 'local') || isCommand(message.content, 'l')){
@@ -400,7 +400,7 @@ bot.on('message', message => {
   				files[i] = "**" + (i+1) + ".** " + files[i].split(".")[0];
   			}
 
-  			message.channel.sendMessage("**Local Songs**\n" + files.join("\n"));
+  			message.channel.send("**Local Songs**\n" + files.join("\n"));
   		});
   	}
 
@@ -416,7 +416,7 @@ bot.on('message', message => {
 			var isLink = YT_REG.test(input);
 
 			if(message.member.voiceChannel === "undefined"){
-				message.channel.sendMessage("You're not in the voice channel.");
+				message.channel.send("You're not in the voice channel.");
 				return;
 			}
 
@@ -448,11 +448,11 @@ bot.on('message', message => {
 	  							});
 
 	  							if(!playing && !stopped){
-	  								message.channel.sendMessage("**Playing:** " + title);
+	  								message.channel.send("**Playing:** " + title);
 	  								play(voiceConnection, message);
 	  							}
 	  							else {
-	  								message.channel.sendMessage("**Added to Queue:**\n" + title);
+	  								message.channel.send("**Added to Queue:**\n" + title);
 	  							}
 	  						});
 	  					});
@@ -474,16 +474,16 @@ bot.on('message', message => {
 		  								});
 
 		  								if(!playing && !stopped){
-		  									message.channel.sendMessage("**Playing:** " + title);
+		  									message.channel.send("**Playing:** " + title);
 			  								play(voiceConnection, message);
 			  								return;
 			  							} else {
-			  								message.channel.sendMessage("**Added to Queue:**\n" + title);
+			  								message.channel.send("**Added to Queue:**\n" + title);
 			  								return;
 			  							}
 		  							}
 		  						}
-		  						message.channel.sendMessage("No local song found with that index.");
+		  						message.channel.send("No local song found with that index.");
 		  					});
 	  					} else{
 	  						//	Play Youtube by search
@@ -500,11 +500,11 @@ bot.on('message', message => {
 	  								});
 
 	  								if(!playing && !stopped){
-	  									message.channel.sendMessage("**Playing:** " + title);
+	  									message.channel.send("**Playing:** " + title);
 		  								play(voiceConnection, message);
 		  							}
 		  							else {
-		  								message.channel.sendMessage("**Added to Queue:**\n" + title);
+		  								message.channel.send("**Added to Queue:**\n" + title);
 		  							}
 	  							});
 	  						});
@@ -519,10 +519,10 @@ bot.on('message', message => {
   						play(connection, message);
   					});
   				} else
-  					message.channel.sendMessage("Already playing something");
+  					message.channel.send("Already playing something");
   			}
   			else
-  				message.channel.sendMessage("No songs queued");
+  				message.channel.send("No songs queued");
   		}
   	}
 
@@ -533,7 +533,7 @@ bot.on('message', message => {
   			stopped = true;
   			botPlayback.end();  			  			
   		} else
-  			message.channel.sendMessage("Nothing to stop");
+  			message.channel.send("Nothing to stop");
   	}
 
   	if(isCommand(message.content, 'skip')){
@@ -541,13 +541,13 @@ bot.on('message', message => {
   			playing = false;  			
   			botPlayback.end();
   			if(queue.length > 0)
-  				message.channel.sendMessage("**Playing:** " + queue[0].title);
+  				message.channel.send("**Playing:** " + queue[0].title);
   		} else{
   			if(queue.length > 0){
-  				message.channel.sendMessage("**Skipped:** " + queue[0].title);
+  				message.channel.send("**Skipped:** " + queue[0].title);
   				queue.shift();
   			} else{
-  				message.channel.sendMessage("Nothing to skip");
+  				message.channel.send("Nothing to skip");
   			}
   		}
   	}
@@ -558,7 +558,7 @@ bot.on('message', message => {
   			stayOnQueue = true;
   			botPlayback.end();  			
   		} else
-  			message.channel.sendMessage("Need to be playing something to replay");
+  			message.channel.send("Need to be playing something to replay");
   	}
 
   	if(isCommand(message.content, 'remove')){
@@ -571,7 +571,7 @@ bot.on('message', message => {
   				} else{
   					queue.splice(1, queue.length - 1);
   				}
-  				message.channel.sendMessage("All songs have been removed from queue");
+  				message.channel.send("All songs have been removed from queue");
   				return;
   			}
   			index = Number(index);
@@ -580,11 +580,11 @@ bot.on('message', message => {
   				if(index === i){
   					var title = queue[i].title;
   					queue.splice(i, 1);
-  					message.channel.sendMessage("**Removed:** " + title + " from queue");
+  					message.channel.send("**Removed:** " + title + " from queue");
   					return;
   				}
   			}
-  			message.channel.sendMessage("No queued song found with that index number.");
+  			message.channel.send("No queued song found with that index number.");
   		}
   	}
 
@@ -595,7 +595,7 @@ bot.on('message', message => {
 	  			if(error) return sendError("Youtube Info", error, message.channel);
 	  			var title = title.replace(/[&\/\\#,+()$~%.'":*?<>{}|]/g,'');
 	  			yt.getFile(url, './local/' + title + '.mp3', () =>{
-	  				message.channel.sendMessage("**Saved:** *" + title + "*");
+	  				message.channel.send("**Saved:** *" + title + "*");
 	  			});
 	  		});
 
@@ -608,15 +608,15 @@ bot.on('message', message => {
 	  			if(!song.local){		  		
 		  			if(!fs.existsSync(output)){
 		  				fs.createReadStream(song.file).pipe(fs.createWriteStream(output));
-		  				message.channel.sendMessage("**Saved:** *" + title + "*");
+		  				message.channel.send("**Saved:** *" + title + "*");
 		  			} else{
-		  				message.channel.sendMessage("You already saved this song")
+		  				message.channel.send("You already saved this song")
 		  			}
 		  		} else{
-		  			message.channel.sendMessage("You already saved this song");
+		  			message.channel.send("You already saved this song");
 		  		}
 	  		} else{
-	  			message.channel.sendMessage("Not playing anything to save");
+	  			message.channel.send("Not playing anything to save");
 	  		}
 	  	}
   	}
@@ -631,19 +631,19 @@ bot.on('message', message => {
 	  			if((i+1) === index){
 	  				if(!playing){
 	  					fs.unlinkSync(path + files[i]);
-	  					message.channel.sendMessage("Removed " + files[i].split('.')[0]);
+	  					message.channel.send("Removed " + files[i].split('.')[0]);
 	  					return;
 	  				} else{
 	  					if(files[i] !== queue[0].title + '.mp3'){
 	  						fs.unlinkSync(path + files[i]);
-	  						message.channel.sendMessage("Removed " + files[i].split('.')[0]);
+	  						message.channel.send("Removed " + files[i].split('.')[0]);
 	  						return;
 	  					}
 	  				}
 
 	  			}
   			}
-  			message.channel.sendMessage("No local file found with that index.");
+  			message.channel.send("No local file found with that index.");
   		});
   	}
 
@@ -651,18 +651,18 @@ bot.on('message', message => {
   		if(queue.length > 0){
   			var newSong = queue[0];
 			queue.push(newSong);
-			message.channel.sendMessage("**Readded to Queue** " + newSong.title);
+			message.channel.send("**Readded to Queue** " + newSong.title);
   		} else
-  			message.channel.sendMessage("No song queued to re-add.");
+  			message.channel.send("No song queued to re-add.");
   	}
 
   	if(isCommand(message.content, 'loop')){
 	  	if(!looping){
 	  		looping = true;
-	  		message.channel.sendMessage("Started looping queue");
+	  		message.channel.send("Started looping queue");
 	  	} else{
 	  		looping = false;
-	  		message.channel.sendMessage("Stopped looping queue");
+	  		message.channel.send("Stopped looping queue");
 	  	}
   	}
 
@@ -687,7 +687,7 @@ bot.on('message', message => {
 								songs.push("**" + (i+1) + ".** " + playlist[i].title);
 							}
 
-							message.channel.sendMessage("**Playlist - " + playlistTitle + "**\n" + songs.join("\n"));
+							message.channel.send("**Playlist - " + playlistTitle + "**\n" + songs.join("\n"));
   						}
   					}
   				});
@@ -737,7 +737,7 @@ bot.on('message', message => {
 
 												yt.getFile(songURL, file, ()=>{
 													if(songIndex === 0){
-				  										message.channel.sendMessage("**Playing:** " + playlist[songIndex].title)
+				  										message.channel.send("**Playing:** " + playlist[songIndex].title)
 				  									}
 												});
 		  									}
@@ -750,14 +750,14 @@ bot.on('message', message => {
 		  										},1500);
 		  									});
 		  								} else if(playing){
-		  									message.channel.sendMessage("Loaded `" + files[i].split('.')[0] + '` to queue');
+		  									message.channel.send("Loaded `" + files[i].split('.')[0] + '` to queue');
 		  								}
 		  							}
 		  						}
 		  					}
 	  					}
   					} else{
-	  					message.channel.sendMessage("You're not in the voice channel.");
+	  					message.channel.send("You're not in the voice channel.");
 	  				}
   				} 
 
@@ -786,7 +786,7 @@ bot.on('message', message => {
   						
   						fs.writeFile(playlistPath + playlistName + '.json', JSON.stringify(playlist, null, '\t'), error =>{
   							if(error) return sendError("Writing Playlist File", error, message.channel);
-  							message.channel.sendMessage("Playlist `" + playlistName + '` saved');
+  							message.channel.send("Playlist `" + playlistName + '` saved');
   						});
   					}
 
@@ -804,7 +804,7 @@ bot.on('message', message => {
   									var title = files[i].split('.')[0];
   									fs.unlink(playlistPath + files[i], error =>{
   										if(error) return sendError("Unlinking Playlist File", error, message.channel);
-  										message.channel.sendMessage("Playlist `" + title + "` removed");
+  										message.channel.send("Playlist `" + title + "` removed");
   									});
   								}
   							}
@@ -822,7 +822,7 @@ bot.on('message', message => {
   				}
   				
   				if(files.length > 0)
-  					message.channel.sendMessage("**Playlist**\n" + files.join("\n"));
+  					message.channel.send("**Playlist**\n" + files.join("\n"));
   			});
   		}
   	}
