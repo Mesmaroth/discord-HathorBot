@@ -183,7 +183,7 @@ function play(connection, message) {
 	botPlayback.setVolume(0.5);
 
 	playing = true;
-	setGame(queue[0].title);
+	// setGame(queue[0].title);
 }
 
 // If this bot isn't connected to any servers, then display a invite link in console
