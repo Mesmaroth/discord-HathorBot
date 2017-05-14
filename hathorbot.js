@@ -176,7 +176,7 @@ function play(connection, message) {
 				// setGame(defualtGame);
 			}
 		})
-		.on('error', ()=>{
+		.on('error', (error)=>{
 			sendError("Playback", error, message.channel);
 		});
 
