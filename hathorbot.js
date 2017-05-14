@@ -459,7 +459,12 @@ bot.on('message', message => {
 	  							});
 
 	  							if(!playing && !stopped){
-	  								message.channel.send("**Playing:** " + title);
+
+	  								if(queue.length === 1){
+	  									message.channel.send("**Playing:** " + title);
+	  								} else
+		  								message.channel.send("**Added to Queue:**\n" + title);
+	  									
 	  								play(voiceConnection, message);
 	  							}
 	  							else {
@@ -485,7 +490,10 @@ bot.on('message', message => {
 		  								});
 
 		  								if(!playing && !stopped){
-		  									message.channel.send("**Playing:** " + title);
+		  									if(queue.length === 1){
+			  									message.channel.send("**Playing:** " + title);
+			  								} else
+				  								message.channel.send("**Added to Queue:**\n" + title);
 			  								play(voiceConnection, message);
 			  								return;
 			  							} else {
@@ -511,7 +519,10 @@ bot.on('message', message => {
 	  								});
 
 	  								if(!playing && !stopped){
-	  									message.channel.send("**Playing:** " + title);
+	  									if(queue.length === 1){
+		  									message.channel.send("**Playing:** " + title);
+		  								} else
+			  								message.channel.send("**Added to Queue:**\n" + title);
 		  								play(voiceConnection, message);
 		  							}
 		  							else {
