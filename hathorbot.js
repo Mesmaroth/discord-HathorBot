@@ -560,10 +560,12 @@ bot.on('message', message => {
 
   	if(isCommand(message.content, 'skip')){
   		if(playing){
-  			playing = false;  			
+  			var prevSong = queue[0].title;
+  			playing = false;
+  			stayOnQueue = false;  			
   			botPlayback.end();
   			if(queue.length > 0)
-  				message.channel.send("**Playing:** " + queue[0].title);
+  				message.channel.send("**Skipped:** " + prevSong + "\n**Playing:** " + queue[0].title);
   		} else{
   			if(queue.length > 0){
   				message.channel.send("**Skipped:** " + queue[0].title);
