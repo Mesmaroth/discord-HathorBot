@@ -433,11 +433,17 @@ bot.on('message', message => {
 				}
 			}
 
+			if(stopped){
+				stopped = false;
+	  			stayOnQueue = false;
+	  			queue.splice(0,1);
+	  		}
+
   			if(currentVoiceChannel === message.member.voiceChannel){
   				currentVoiceChannel.join().then( connection =>{
   					voiceConnection = connection;
 	  				if(isLink){
-	  					var URL = message.content.split(' ')[1];
+	  					var URL = message.content.split(' ')[1];  					
 
 	  					// Play youtube by URL
 	  					yt.getInfo(URL, (error, rawData, id, title, length_seconds) => {
