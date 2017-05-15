@@ -588,21 +588,6 @@ bot.on('message', message => {
   	if(isCommand(message.content, 'remove')){
   		if(message.content.indexOf(' ') !== -1){
   			var param = message.content.split(' ')[1];
-  			if(param.indexOf(',') !== -1){
-  				param = param.split(',');
-  			}else{
-  				param = [param];
-  			}
-  			for(var i = 0; i < param.length; i++){
-  				if(isNumber(param[i])){
-  					param[i] = Number(param[i]);
-  				}else{
-  					message.channel.send("Once of your parameters is not a number. Please try again");
-  					return;
-  				}
-  			}
-
-  			console.log(param);
 
   			if(param === "all"){
   				if(!playing){
@@ -615,6 +600,20 @@ bot.on('message', message => {
   				return;
   			}
 
+  			if(param.indexOf(',') !== -1){
+  				param = param.split(',');
+  			}else{
+  				param = [param];
+  			}
+  			for(var i = 0; i < param.length; i++){
+  				if(isNumber(param[i])){
+  					param[i] = Number(param[i]);
+  				}else{
+  					message.channel.send("Once of your parameters is not a number. Please try again");
+  					return;
+  				}
+  			}  			
+
   			var list = [];
   			for(var x = 0; x < param.length; x++){
   				for(var y = 1; y < queue.length; y++){
@@ -625,7 +624,7 @@ bot.on('message', message => {
   			}
 
   			for(var i = 0; i < list.length; i++){
-  				for(var x = 0; x < queue.length; x++){
+  				for(var x = 1; x < queue.length; x++){
   					if(list[i].title === queue[x].title){
   						var title = queue[x].title;
 						queue.splice(x, 1);
