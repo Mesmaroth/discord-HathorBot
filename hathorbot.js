@@ -570,8 +570,13 @@ bot.on('message', message => {
   				message.channel.send("**Skipped:** " + prevSong + "\n**Playing:** " + queue[0].title);
   		} else{
   			if(queue.length > 0){
-  				message.channel.send("**Skipped:** " + queue[0].title);
+  				var prevSong = queue[0].title;
+
+  				if(stayOnQueue)
+  					stayOnQueue = false;
   				queue.shift();
+  				message.channel.send("**Skipped:** " + prevSong + "\n**Playing:** " + queue[0].title);
+  				play(voiceConnection, message);
   			} else{
   				message.channel.send("Nothing to skip");
   			}
