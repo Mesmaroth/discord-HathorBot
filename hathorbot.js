@@ -539,6 +539,7 @@ bot.on('message', message => {
   			if(queue.length > 0){
   				if(!playing){
   					currentVoiceChannel.join().then( connection => {
+  						voiceConnection = connection;
   						play(connection, message);
   					});
   				} else
