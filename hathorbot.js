@@ -282,16 +282,17 @@ bot.on('message', message => {
 			"`" + CMDINIT+ "setVC`: Set the defualt channel your bot joins when ever the bot connects\n" + 
 			"`" + CMDINIT+ "join`: Bot will attempt to join your channel\n" +
 			"\n**Music**\n" + 
-			"`" + CMDINIT+ "queue or playing`: To view all songs in queue\n" +
+			"`" + CMDINIT+ "queue`: To view all songs in queue\n" +
 			"`" + CMDINIT+ "play [YT_URL]`: Plays a song from a youtube link\n" +
 			"`" + CMDINIT+ "play [index_number]`: Plays a song from a file that has been saved to the bot\n" +
 			"`" + CMDINIT+ "play [search key term]`: Plays the first result of youtube search\n" +
 			"`" + CMDINIT+ "play`: Plays song in queue if it has been stopped\n" +
-			"`" + CMDINIT+ "stop`: Stops the song from playing\n" +
-			"`" + CMDINIT+ "skip`: To skip the currently playing song\n" +
+			"`" + CMDINIT+ "stop`: Stops the song\n" +
+			"`" + CMDINIT+ "skip`: To skip the curr song\n" +
 			"`" + CMDINIT+ "replay`: Stops and replays song from the start\n" +
 			"`" + CMDINIT+ "local`: Displays all the songs saved by the bot\n" +
 			"`" + CMDINIT+ "remove [index_number]`: Removes a specific song from queue\n" +
+			"`" + CMDINIT+ "remove [#,#,#]`: Removes specific numbers seperated by commans in the queue\n" +
 			"`" + CMDINIT+ "save [YT_URL]`: Saves a song from youtube and stores it\n" +
 			"`" + CMDINIT+ "save`: Saves current song that's playing\n" +
 			"`" + CMDINIT+ "remlocal [index_number]`: Removes a song that has been saved locally\n" +
