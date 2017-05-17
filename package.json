@@ -6,6 +6,7 @@
   "dependencies": {
     "discord.js": "^11.0.0",
     "node-opus": "^0.2.4",
+    "uws": "^0.14.5",
     "youtube-search": "^1.0.9",
     "ytdl-core": "^0.10.3"
   },
