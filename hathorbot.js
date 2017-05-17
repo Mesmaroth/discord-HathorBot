@@ -260,13 +260,36 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'about')){
-  		var content = "**About**\n" + "**Bot Version:** HathorBot v" + botVersion +
-  			"\n**Bot Username:** " + bot.user.username +
-  			"\n**Author:** Mesmaroth" +
-  			"\n**Library:** Discord.js" +  			
-  			"\n**Source:** <https://github.com/Mesmaroth/discord-HathorBot>"
+  		message.channel.send("**About**\n", {  			
+  			embed: {
+  				color: 10181046,
+  				fields: [{
+  					name: "Username",
+  					value: bot.user.username,
+  					inline: true
+  				},{
+  					name: "Version",
+  					value: "HathorBot v" + botVersion,
+  					inline: true
+  				},{
+  					name: "Author",
+  					value: "Robert (Mesmaroth)",
+  					inline: true
+  				},{
+  					name: "Library",
+  					value: "Discord.js",
+  					inline: true
+  				}],
+  				thumbnail: {
+					url: bot.user.displayAvatarURL
+				},  				
+  				footer: {
+  					text: "Source: https://github.com/Mesmaroth/discord-HathorBot",
+  					icon_url: "https://hammerjs.github.io/assets/img/github-icon.png"
 
-  		message.channel.sendFile( bot.user.displayAvatarURL, 'botAvatar.jpg', content);
+  				}
+  			}  			
+  		});
   	}
 
   	if(isCommand(message.content, 'help')){
