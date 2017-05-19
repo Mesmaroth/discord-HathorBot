@@ -9,8 +9,8 @@ module.exports.search = function(message, callback) {
 	  key: youtubeAPI
 	};
 	 
-	search(message, opts, function(err, results) {
-	 	if(err) callback(err);
+	search(message, opts, function(error, results) {
+	 	if(err) return callback(error);
 	 		 	
 	 	if(results){
 			var firstResult = results[0];
@@ -37,13 +37,17 @@ module.exports.getStream = function(url,callback){
 	callback(ytdl(url, ytdl_options));
 }
 
-module.exports.getFile = function(url, path, callback){
-	if(fs.existsSync(path)){
-		callback();
-	}else{
-		ytdl(url, ytdl_options).pipe(fs.createWriteStream(path))
-			.on('finish', ()=>{
-				callback();
-			});
-	}	
+module.exports.getFile = function(error, url, path, callback){
+	try{
+		if(fs.existsSync(path)){
+			callback(null);
+		}else{
+			ytdl(url, ytdl_options).pipe(fs.createWriteStream(path))
+				.on('finish', ()=>{
+					callback(null);
+				});
+		}	
+	} else(error){
+		if(error) return callback(error);
+	}
 }
