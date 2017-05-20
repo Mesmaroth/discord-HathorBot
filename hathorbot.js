@@ -25,7 +25,7 @@ try{
 	var botVersion = "#?";
 }
 
-const adminRoles = botPreference.admingroups;
+var adminRoles = botPreference.admingroups;
 var initCommand = botPreference.initcommand;
 var defualtGame = "v" + botVersion + " | " + initCommand + "help";	
 
@@ -73,6 +73,7 @@ function isAdmin(message){
 				return true;
 		}
 	}
+
 	message.channel.send("You aren't admin for this command.");
 	return false;
 }
@@ -240,6 +241,49 @@ bot.on('message', message => {
   					if(error) return sendError("Writing Preference File");
 
   					message.channel.send("Command initializer set as `" + init + "`");
+  				});
+  			});
+  		}
+  	}
+
+  	if(isCommand(message.content, 'addgroup') && isAdmin(message)){
+  		if(message.content.indexOf(' ') !== -1){
+  			var group = message.content.split(' ');
+  			group.splice(0,1);
+  			group = group.join(" ");
+
+  			group = message.guild.roles.find( role => {
+  				return role.name.toLowerCase() === group.toLowerCase();
+  			});
+
+  			if(!group){
+  				message.channel.send("No group found");
+  				return;
+  			}else
+  				group = group.name.toLowerCase();
+
+  			fs.readFile(botPreferenceFile, (error, file) =>{
+  				if(error) return sendError("Reading Preference File", error, message.channel);
+
+  				try{
+  					file = JSON.parse(file);  					
+  				}catch(error){
+  					if(error) return sendError("Parsing Preference File", error, message.channel);  					
+  				}
+
+  				for(var i = 0; i < file.admingroups.length; i++){
+  					if(file.admingroups[i] === group)
+  						return message.channel.send("This group has already been added");
+  				}
+
+  				file.admingroups.push(group);
+
+  				adminRoles = file.admingroups;
+
+  				fs.writeFile(botPreferenceFile, JSON.stringify(file, null, '\t'), error =>{
+  					if(error) return sendError("Writing to Preference File", error, message.channel);
+
+  					message.channel.send("Group `" + group + '` added');
   				});
   			});
   		}
