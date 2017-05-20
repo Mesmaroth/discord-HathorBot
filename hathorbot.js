@@ -5,27 +5,32 @@ const bot = new Discord.Client();
 const token = require(path.join(__dirname, 'config/botLogin.js')).token;
 const yt = require(path.join(__dirname, 'modules/youtube.js'));
 
-try{
-	var botVersion = require(path.join(__dirname, 'package.json')).version;
-
-	var botPreference = JSON.parse(fs.readFileSync(path.join(__dirname, 'config/preference.json')));
-
-}catch(error) {
-	if(error) return "ERROR\n---------------" + error  + "\n-------------------"
-	var botVersion = "#?";
-}
-
 const localPath = path.join(__dirname, 'local');
 const playlistPath = path.join(__dirname, 'playlist');
 const tempFilesPath = path.join(__dirname, 'tempFiles');
-const adminRoles = botPreference.admingroups;
+const botPreferenceFile = path.join(__dirname, 'config/preference.json');
 
-var initCommand = botPreference.initcmd;
+try{
+	var botVersion = require(path.join(__dirname, 'package.json')).version;
+	
+	var botPreference = JSON.parse(fs.readFileSync(botPreferenceFile));
+
+}catch(error) {
+	if(error) {
+		console.log("-----"  + "ERROR"+ "------");
+		console.log(error);
+		console.log("----------");
+		return;
+	}
+	var botVersion = "#?";
+}
+
+const adminRoles = botPreference.admingroups;
+var initCommand = botPreference.initcommand;
+var defualtGame = "v" + botVersion + " | " + initCommand + "help";	
 
 // The object voice channel the bot is in
 var currentVoiceChannel;
-
-var defualtGame = "v" + botVersion + " | " + initCommand + "help";	
 
 // Playback
 var queue = [];
