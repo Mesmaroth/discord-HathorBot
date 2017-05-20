@@ -332,6 +332,8 @@ bot.on('message', message => {
 			"\n**Admin Commands**\n" + 
 			"`" + initCommand+ "setUsername [name]`: Sets the username of bot\n" +
 			"`" + initCommand+ "setAvatar [URL]`: Sets the avatar of the bot\n" + 
+			"`" + initCommand+ "setinit`: set initializer command to run commands\n" + 
+			"`" + initCommand+ "addgroup`: add a group to enable admin commands for that group\n" + 
 			"`" + initCommand+ "exit`: Disconnects the bot\n" + 
 			"\n**General**\n" +
 			"`" + initCommand+ "about`: About this bot\n" +
