@@ -213,6 +213,33 @@ bot.on('message', message => {
   			voiceConnection.disconnect();
   		bot.destroy();
   	}
+
+  	if(isCommand(message.content, 'setinit') && isAdmin(message)){
+  		if(message.content.indexOf(' ') !== -1){
+  			var init = message.content.split(' ')[1];
+
+  			initCommand = init;
+
+  			fs.readFile(botPreferenceFile, (error, file) => {
+  				if(error) return sendError("Reading Preference File", error, message.channel);
+
+  				try{
+  					file = JSON.parse(file);
+  				}catch(error){
+  					if(error) return sendError("Parsing Preference File", error, message.channel);
+  				}
+
+  				file.initcommand = init;
+
+  				fs.writeFile(botPreferenceFile, JSON.stringify(file, null, '\t'), error =>{
+  					if(error) return sendError("Writing Preference File");
+
+  					message.channel.send("Command initializer set as `" + init + "`");
+  				});
+  			});
+  		}
+  	}
+
   	// ----------------------
 
   	if(isCommand(message.content, 'source')){
