@@ -315,15 +315,14 @@ bot.on('message', message => {
   					name: "Library",
   					value: "Discord.js",
   					inline: true
+  				},{
+  					name: "Source",
+  					value: "https://github.com/Mesmaroth/discord-HathorBot",
+  					inline: false
   				}],
   				thumbnail: {
 					url: bot.user.displayAvatarURL
-				},  				
-  				footer: {
-  					text: "Source: https://github.com/Mesmaroth/discord-HathorBot",
-  					icon_url: "https://hammerjs.github.io/assets/img/github-icon.png"
-
-  				}
+				}
   			}  			
   		});
   	}
