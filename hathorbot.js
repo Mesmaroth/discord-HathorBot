@@ -1,25 +1,31 @@
 const Discord = require('discord.js');
 const fs = require('fs');
+const path = require('path');
 const bot = new Discord.Client();
-const token = require('./config/botLogin.js').token;
-const yt = require('./modules/youtube.js');
+const token = require(path.join(__dirname, 'config/botLogin.js')).token;
+const yt = require(path.join(__dirname, 'modules/youtube.js'));
 
 try{
-	botVersion = require('./package.json').version;
+	var botVersion = require(path.join(__dirname, 'package.json')).version;
+
+	var botPreference = JSON.parse(fs.readFileSync(path.join(__dirname, 'config/preference.json')));
+
 }catch(error) {
-	if(error) console.error(error);
+	if(error) return "ERROR\n---------------" + error  + "\n-------------------"
 	var botVersion = "#?";
 }
 
-const CMDINIT = '.';	// command initializer
-const localPath = './local/';
-const adminRole = "admin";		// The role the bot depends on for using dev commands
+const localPath = path.join(__dirname, 'local');
+const playlistPath = path.join(__dirname, 'playlist');
+const tempFilesPath = path.join(__dirname, 'tempFiles');
+const adminRoles = botPreference.admingroups;
 
-// Bot Info
-var defaultChannel = {};	// The object guild details of the defualt server
-var currentVoiceChannel;	// The object voice channel the bot is in
-var defaultChannelPath = './config/default_channel.json';
-var defualtGame = "v" + botVersion + " | " + CMDINIT + "help";	// The game title to set to when the bot isn't playing music
+var initCommand = botPreference.initcmd;
+
+// The object voice channel the bot is in
+var currentVoiceChannel;
+
+var defualtGame = "v" + botVersion + " | " + initCommand + "help";	
 
 // Playback
 var queue = [];
@@ -43,53 +49,11 @@ function isNumber(obj) {
 	return !isNaN(parseFloat(obj))
 }
 
-// Check if there is a defualt channel file
-function checkDefaultChannel(){
-	if(fs.existsSync(defaultChannelPath)){
-		try {
-			defaultChannel = require(defaultChannelPath);
-		} catch(error){
-			console.log("ERROR: reading file:\n" +  error.message);
-			fs.rename(defaultChannelPath, './config/default_channel_ERROR.json', () =>{
-				fs.writeFile(defaultChannelPath, JSON.stringify(defaultChannel, null, '\t'), error =>{
-					if(error) return console.error(error);
-					console.log("\nRESPONSE: Renamed config file with error and created new config file. Please revise and replace!\n");
-				});
-			});
-		}
-	} else{
-		fs.writeFile(defaultChannelPath, JSON.stringify(defaultChannel, null, '\t'), error =>{
-			if(error) return console.error(error);
-			console.log("Default channel config file created");
-		});
-	}
-}
-
-// Joins the defualt channel if there is one
-function joinDefaultChannel(){
-	var botGuilds = bot.guilds.array();
-	if(botGuilds.length > 0){
-		for(var i = 0; i < botGuilds.length; i++){
-			if(defaultChannel.guildID === botGuilds[i].id){
-				var channel = botGuilds[i].channels.filterArray( channel =>{
-					return channel.id === defaultChannel.voiceID;
-				})[0];
-
-				channel.join();
-				console.log("DISCORD: Joined voice channel " + channel.name + "\n");
-				currentVoiceChannel = channel;
-			}
-		} 
-	} else{
-		console.log("NO SERVERS FOUND\n");
-	}
-}
-
 // Command validations
 function isCommand(message, command){
 	var init = message.slice(0,1);
-	var cmd = (message.indexOf(' ') !== -1) ? message.slice(1, message.indexOf(' ')) : message.slice(1);
-	if(init === CMDINIT && cmd.toLowerCase() === command.toLowerCase() ){
+	var keyword = (message.indexOf(' ') !== -1) ? message.slice(1, message.indexOf(' ')) : message.slice(1);
+	if(init === initCommand && keyword.toLowerCase() === command.toLowerCase() ){
 		return true;
 	}
 	return false;
@@ -99,8 +63,10 @@ function isCommand(message, command){
 function isAdmin(message){
 	var roles = message.member.roles.array();
 	for(var role = 0; role < roles.length; role++){
-		if(roles[role].name.toLowerCase() === adminRole)			
-			return true;
+		for( var i = 0; i < adminRoles.length; i++){
+			if(roles[role].name.toLowerCase() === adminRoles[i])			
+				return true;
+		}
 	}
 	message.channel.send("You aren't admin for this command.");
 	return false;
@@ -126,12 +92,11 @@ function setGame(game){
 
 // Removes all temporary files downloaded from youtube
 function removeTempFiles(){
-	var tempPath = './tempFiles/';
-	fs.readdir(tempPath, (error, files) =>{
-		if(error) return sendError("Reading tempPath", error, message.channel);
+	fs.readdir(tempFilesPath, (error, files) =>{
+		if(error) return sendError("Reading Temp Path", error, message.channel);
 
 		for(var i = 0 ; i < files.length; i++){
-			fs.unlink(tempPath+files[i], error =>{
+			fs.unlink(tempFilesPath + '/' + files[i], error =>{
 				if(error) return console.error(error.message);
 			});
 		}
@@ -171,9 +136,6 @@ function play(connection, message) {
 						removeTempFiles();
 					}, 1500);
 				}
-			} else{
-				stopped = false;
-				// setGame(defualtGame);
 			}
 		})
 		.on('error', (error)=>{
@@ -216,8 +178,6 @@ bot.on('ready', () => {
 	
 	setGame(defualtGame);
 
-	checkDefaultChannel();
-	joinDefaultChannel();
 	outputInviteLink()	
 });
 
@@ -293,38 +253,38 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'help')){
-  		message.channel.send("**Bot Commands**\n" +
+  		message.channel.send("**Commands**\n" +
 			"\n**Admin Commands**\n" + 
-			"`" + CMDINIT+ "setUsername [name]`: Sets the username of bot\n" +
-			"`" + CMDINIT+ "setAvatar [URL]`: Sets the avatar of the bot\n" + 
-			"`" + CMDINIT+ "exit`: Disconnects the bot\n" + 
+			"`" + initCommand+ "setUsername [name]`: Sets the username of bot\n" +
+			"`" + initCommand+ "setAvatar [URL]`: Sets the avatar of the bot\n" + 
+			"`" + initCommand+ "exit`: Disconnects the bot\n" + 
 			"\n**General**\n" +
-			"`" + CMDINIT+ "about`: About this bot\n" +
-			"`" + CMDINIT+ "source`: Source link\n" +
-			"`" + CMDINIT+ "invite`: Get invite link to your bot\n" + 
-			"`" + CMDINIT+ "setVC`: Set the defualt channel your bot joins when ever the bot connects\n" + 
-			"`" + CMDINIT+ "join`: Bot will attempt to join your channel\n" +
+			"`" + initCommand+ "about`: About this bot\n" +
+			"`" + initCommand+ "source`: Source link\n" +
+			"`" + initCommand+ "invite`: Get invite link to your bot\n" + 
+			"`" + initCommand+ "setVC`: Set the defualt channel your bot joins when ever the bot connects\n" + 
+			"`" + initCommand+ "join`: Bot will attempt to join your channel\n" +
 			"\n**Music**\n" + 
-			"`" + CMDINIT+ "queue`: To view all songs in queue\n" +
-			"`" + CMDINIT+ "play [YT_URL]`: Plays a song from a youtube link\n" +
-			"`" + CMDINIT+ "play [index_number]`: Plays a song from a file that has been saved to the bot\n" +
-			"`" + CMDINIT+ "play [search key term]`: Plays the first result of youtube search\n" +
-			"`" + CMDINIT+ "play`: Plays song in queue if it has been stopped\n" +
-			"`" + CMDINIT+ "stop`: Stops the song\n" +
-			"`" + CMDINIT+ "skip`: To skip the curr song\n" +
-			"`" + CMDINIT+ "replay`: Stops and replays song from the start\n" +
-			"`" + CMDINIT+ "local`: Displays all the songs saved by the bot\n" +
-			"`" + CMDINIT+ "remove [index_number]`: Removes a specific song from queue\n" +
-			"`" + CMDINIT+ "remove [#,#,#]`: Removes specific numbers seperated by commans in the queue\n" +
-			"`" + CMDINIT+ "save [YT_URL]`: Saves a song from youtube and stores it\n" +
-			"`" + CMDINIT+ "save`: Saves current song that's playing\n" +
-			"`" + CMDINIT+ "remlocal [index_number]`: Removes a song that has been saved locally\n" +
-			"`" + CMDINIT+ "readd`: Re-adds the currently playing song at the bottom of the queue\n" +
-			"`" + CMDINIT+ "playlist`: List all playlist\n" + 
-			"`" + CMDINIT+ "playlist [index_number]`: List all songs of the playlist\n" + 
-			"`" + CMDINIT+ "playlist save [PLAYLIST_NAME]`: Saves playlist\n" + 
-			"`" + CMDINIT+ "playlist play [index_number]`: Loads the playlist in queue and plays if nothing is playing\n" + 
-			"`" + CMDINIT+ "playlist remove [index_number]`: Removes the playlist\n")
+			"`" + initCommand+ "queue`: To view all songs in queue\n" +
+			"`" + initCommand+ "play [YT_URL]`: Plays a song from a youtube link\n" +
+			"`" + initCommand+ "play [index_number]`: Plays a song from a file that has been saved to the bot\n" +
+			"`" + initCommand+ "play [search key term]`: Plays the first result of youtube search\n" +
+			"`" + initCommand+ "play`: Plays song in queue if it has been stopped\n" +
+			"`" + initCommand+ "stop`: Stops the song\n" +
+			"`" + initCommand+ "skip`: To skip the curr song\n" +
+			"`" + initCommand+ "replay`: Stops and replays song from the start\n" +
+			"`" + initCommand+ "local`: Displays all the songs saved by the bot\n" +
+			"`" + initCommand+ "remove [index_number]`: Removes a specific song from queue\n" +
+			"`" + initCommand+ "remove [#,#,#]`: Removes specific numbers seperated by commans in the queue\n" +
+			"`" + initCommand+ "save [YT_URL]`: Saves a song from youtube and stores it\n" +
+			"`" + initCommand+ "save`: Saves current song that's playing\n" +
+			"`" + initCommand+ "remlocal [index_number]`: Removes a song that has been saved locally\n" +
+			"`" + initCommand+ "readd`: Re-adds the currently playing song at the bottom of the queue\n" +
+			"`" + initCommand+ "playlist`: List all playlist\n" + 
+			"`" + initCommand+ "playlist [index_number]`: List all songs of the playlist\n" + 
+			"`" + initCommand+ "playlist save [PLAYLIST_NAME]`: Saves playlist\n" + 
+			"`" + initCommand+ "playlist play [index_number]`: Loads the playlist in queue and plays if nothing is playing\n" + 
+			"`" + initCommand+ "playlist remove [index_number]`: Removes the playlist\n")
   	}
 
   	if(isCommand(message.content, 'invite')){
@@ -435,8 +395,6 @@ bot.on('message', message => {
 
   	if(isCommand(message.content, 'play') || isCommand(message.content, 'p')){
   		if(message.content.indexOf(' ') !== -1){
-  			var tempPath = './tempFiles/';
-  			var localPath = './local/';
   			/* YT REGEX : https://stackoverflow.com/questions/3717115/regular-expression-for-youtube-links
 			*	by Adrei Zisu
 			*/
@@ -472,12 +430,13 @@ bot.on('message', message => {
 	  					// Play youtube by URL
 	  					yt.getInfo(URL, (error, rawData, id, title, length_seconds) => {
 	  						if(error) return sendError("Youtube Info", error, message.channel);
+	  						var song = tempFilesPath + '/' + id + '.mp3';
 
-	  						yt.getFile(URL, tempPath + id + '.mp3', () =>{
+	  						yt.getFile(URL, song, () =>{
 	  							queue.push({
 	  								title: title,
 	  								id: id,
-	  								file: tempPath + id + '.mp3',
+	  								file: song,
 	  								local: false,
 	  								url: URL
 	  							});
@@ -506,7 +465,7 @@ bot.on('message', message => {
 		  						for(var i = 0; i < files.length; i++){
 		  							if( Number(indexFile) === (i+1)){
 		  								var title = files[i].split('.')[0];
-		  								var file = localPath + files[i];
+		  								var file = localPath + '/' + files[i];
 		  								queue.push({
 		  									title: title,
 		  									file: file,
@@ -530,14 +489,17 @@ bot.on('message', message => {
 		  					});
 	  					} else{
 	  						//	Play Youtube by search
-	  						var ytSong = message.content.slice(message.content.indexOf(' ')+1);
+	  						var ytSong = message.content.slice(message.content.indexOf(' ') + 1);
 	  						yt.search(ytSong, (error, id, title, URL) =>{
 	  							if(error) return sendError("Youtube Search", error, message.channel);
-	  							yt.getFile(URL, tempPath + id + '.mp3', () =>{
+
+	  							var song = tempFilesPath + '/' + id + '.mp3';
+
+	  							yt.getFile(URL, song, () =>{
 	  								queue.push({
 		  								title: title,
 		  								id: id,
-		  								file: tempPath + id + '.mp3',
+		  								file: song,
 		  								local: false,
 		  								url: URL
 	  								});
@@ -591,6 +553,8 @@ bot.on('message', message => {
   			botPlayback.end();
   			if(queue.length > 0)
   				message.channel.send("**Skipped:** " + prevSong + "\n**Playing:** " + queue[0].title);
+  			else
+  				message.channel.send("**Skipped:** " + prevSong);
   		} else{
   			if(queue.length > 0){
   				var prevSong = queue[0].title;
@@ -699,20 +663,19 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'remlocal')){
-  		var path = './local/';
   		var index = Number(message.content.split(' ')[1]);
 
-  		fs.readdir(path, (error, files) =>{
+  		fs.readdir(localPath, (error, files) =>{
   			if(error) return sendError("Remove Local", error, message.channel);  			
   			for (var i = 0; i < files.length; i++) {
 	  			if((i+1) === index){
 	  				if(!playing){
-	  					fs.unlinkSync(path + files[i]);
+	  					fs.unlinkSync(localPath + files[i]);
 	  					message.channel.send("Removed " + files[i].split('.')[0]);
 	  					return;
 	  				} else{
 	  					if(files[i] !== queue[0].title + '.mp3'){
-	  						fs.unlinkSync(path + files[i]);
+	  						fs.unlinkSync(localPath + files[i]);
 	  						message.channel.send("Removed " + files[i].split('.')[0]);
 	  						return;
 	  					}
@@ -744,8 +707,6 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'playlist') || isCommand(message.content, 'pl')){
-  		const playlistPath = './playlist/';
-  		const tempPath = './tempFiles/';
   		if(message.content.indexOf(' ') !== -1){
   			var param = message.content.split(' ')[1];
 
@@ -802,7 +763,7 @@ bot.on('message', message => {
 												var songURL = playlist[songIndex].url;
 												var title = playlist[songIndex].title;
 												var id = playlist[songIndex].id;
-												var file = tempPath + id + '.mp3';
+												var file = tempFilesPath + id + '.mp3';
 
 												queue.push({
 													title: title,
