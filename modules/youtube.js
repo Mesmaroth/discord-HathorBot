@@ -43,11 +43,11 @@ module.exports.getFile = function(error, url, path, callback){
 			callback(null);
 		}else{
 			ytdl(url, ytdl_options).pipe(fs.createWriteStream(path))
-				.on('finish', ()=>{
-					callback(null);
-				});
+			 .on('finish', ()=>{
+				callback(null);
+			 });
 		}	
-	} else(error){
+	} catch(error){
 		if(error) return callback(error);
 	}
 }
