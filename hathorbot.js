@@ -589,8 +589,19 @@ bot.on('message', message => {
 					} else{
 						//	Play Youtube by search
 						var ytSong = message.content.slice(message.content.indexOf(' ') + 1);
-						yt.search(ytSong, (error, id, title, URL) =>{
+						yt.search(ytSong, (error, searchResults) =>{
 							if(error) return sendError("Youtube Search", error, message.channel);
+							var id, title, URL;
+
+							if(searchResults.length > 0){
+								id = searchResults[0].id;
+								title = searchResults[0].title;
+								URL = searchResults[0].url;
+							} else{
+								message.channel.send("Couldn't find what you were looking for");
+								return;
+							}
+
 
 							var song = tempFilesPath + '/' + id + '.mp3';
 
