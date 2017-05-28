@@ -246,6 +246,13 @@ bot.on('message', message => {
   		}
   	}
 
+  	if(isCommand(message.content, 'setgame') && isAdmin(message)){
+  		if(message.content.indexOf(' ') !== -1){
+  			var init = message.content.split(' ')[1];
+  			setGame(init);  			
+  		}
+  	}
+
   	if(isCommand(message.content, 'addgroup') && isAdmin(message)){
   		if(message.content.indexOf(' ') !== -1){
   			var group = message.content.split(' ');
