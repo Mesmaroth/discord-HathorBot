@@ -215,8 +215,8 @@ bot.on('message', message => {
 	}
 
   	if(isCommand(message.content, 'exit') && isAdmin(message)){
-  		if(voiceConnection)
-  			voiceConnection.disconnect();
+  		if(currentVoiceChannel)
+  			currentVoiceChannel.leave();
   		bot.destroy();
   	}
 
