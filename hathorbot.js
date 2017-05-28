@@ -424,10 +424,9 @@ bot.on('message', message => {
 		  			userVoiceChannel.join();
 		  			currentVoiceChannel = userVoiceChannel;
   			  	} else{
-  			  		message.channel.send("Bot is playing something.");
+  			  		message.channel.send("Currently playing something");
   			  	}
-  			  }
-  			
+  			  }  			
   		}
   		else
   			message.channel.send("You are not in a voice channel.");
@@ -619,6 +618,11 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'stop')){
+  		if(currentVoiceChannel !== message.member.voiceChannel){
+			message.channel.send("Not in the bot's voice channel");
+  			return;
+  		}
+
   		if(playing){
   			playing = false;
   			stayOnQueue = true;
@@ -629,6 +633,11 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'skip')){
+  		if(currentVoiceChannel !== message.member.voiceChannel){
+			message.channel.send("Not in the bot's voice channel");
+  			return;
+  		}
+
   		if(playing){
   			var prevSong = queue[0].title;
   			playing = false;
@@ -654,6 +663,11 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'replay')){
+  		if(currentVoiceChannel !== message.member.voiceChannel){
+			message.channel.send("Not in the bot's voice channel");
+  			return;
+  		}
+
   		if(playing){
   			playing = false;
   			stayOnQueue = true;
@@ -663,6 +677,11 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'remove')){
+  		if(currentVoiceChannel !== message.member.voiceChannel){
+			message.channel.send("Not in the bot's voice channel");
+  			return;
+  		}
+
   		if(message.content.indexOf(' ') !== -1){
   			var param = message.content.split(' ')[1];
 
@@ -713,6 +732,11 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'save')){
+  		if(currentVoiceChannel !== message.member.voiceChannel){
+			message.channel.send("Not in the bot's voice channel");
+  			return;
+  		}
+
 	  	if(message.content.indexOf(' ') !== -1){
 	  		var url = message.content.split(' ')[1];
 	  		yt.getInfo(url, (error, rawData, id, title, length_seconds) =>{
@@ -745,7 +769,7 @@ bot.on('message', message => {
 	  	}
   	}
 
-  	if(isCommand(message.content, 'remlocal')){
+  	if(isCommand(message.content, 'remlocal')){  		
   		var index = Number(message.content.split(' ')[1]);
 
   		fs.readdir(localPath, (error, files) =>{
@@ -771,6 +795,11 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'readd')){
+  		if(currentVoiceChannel !== message.member.voiceChannel){
+			message.channel.send("Not in the bot's voice channel");
+  			return;
+  		}
+
   		if(queue.length > 0){
   			var newSong = queue[0];
 			queue.push(newSong);
@@ -780,6 +809,11 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'loop')){
+  		if(currentVoiceChannel !== message.member.voiceChannel){
+			message.channel.send("Not in the bot's voice channel");
+  			return;
+  		}
+
 	  	if(!looping){
 	  		looping = true;
 	  		message.channel.send("Started looping queue");
@@ -813,74 +847,75 @@ bot.on('message', message => {
   					}
   				});
   			} else{
+  				if(currentVoiceChannel !== message.member.voiceChannel){
+		  			message.channel.send("Not in the bot's voice channel");
+		  			return;
+		  		}
+
   				if(param.toLowerCase() === "play"){
-  					if(currentVoiceChannel === message.member.voiceChannel){
-  						if(message.content.indexOf(' ', message.content.indexOf('play')) !== -1){
-	  						var playlistIndex = message.content.split(' ')[2];
-		  					if(isNumber(playlistIndex)){
-		  						playlistIndex = Number(playlistIndex);
+  					if(message.content.indexOf(' ', message.content.indexOf('play')) !== -1){
+  						var playlistIndex = message.content.split(' ')[2];
+	  					if(isNumber(playlistIndex)){
+	  						playlistIndex = Number(playlistIndex);
 
-		  						try{
-		  							var files = fs.readdirSync(playlistPath);
-		  						} catch(error){
-		  							if(error) return sendError("Reading playlist directory", error, message.channel);
-		  						}
+	  						try{
+	  							var files = fs.readdirSync(playlistPath);
+	  						} catch(error){
+	  							if(error) return sendError("Reading playlist directory", error, message.channel);
+	  						}
 
-		  						for(var i = 0; i < files.length; i++){
-		  							if((i+1) === playlistIndex){
-		  								try{
-		  									var playlist = fs.readFileSync(playlistPath + files[i]);
-		  									playlist = JSON.parse(playlist);
-		  								} catch(error){
-		  									if(error) return sendError("Reading Playlist File", error, message.channel);
-		  								}
+	  						for(var i = 0; i < files.length; i++){
+	  							if((i+1) === playlistIndex){
+	  								try{
+	  									var playlist = fs.readFileSync(playlistPath + files[i]);
+	  									playlist = JSON.parse(playlist);
+	  								} catch(error){
+	  									if(error) return sendError("Reading Playlist File", error, message.channel);
+	  								}
 
-		  								for(var songIndex = 0; songIndex < playlist.length; songIndex++){
-		  									if(playlist[songIndex].local){
-		  										queue.push({
-		  											title: playlist[songIndex].title,
-		  											file: playlist[songIndex].file,
-		  											local: true
-		  										});
-		  									} else{
-												var songURL = playlist[songIndex].url;
-												var title = playlist[songIndex].title;
-												var id = playlist[songIndex].id;
-												var file = tempFilesPath + id + '.mp3';
+	  								for(var songIndex = 0; songIndex < playlist.length; songIndex++){
+	  									if(playlist[songIndex].local){
+	  										queue.push({
+	  											title: playlist[songIndex].title,
+	  											file: playlist[songIndex].file,
+	  											local: true
+	  										});
+	  									} else{
+											var songURL = playlist[songIndex].url;
+											var title = playlist[songIndex].title;
+											var id = playlist[songIndex].id;
+											var file = tempFilesPath + id + '.mp3';
 
-												queue.push({
-													title: title,
-													url: songURL,
-													id: id,
-													file: file,
-													local: false
-												});
+											queue.push({
+												title: title,
+												url: songURL,
+												id: id,
+												file: file,
+												local: false
+											});
 
-												yt.getFile(songURL, file, ()=>{
-													if(songIndex === 0){
-				  										message.channel.send("**Playing:** " + playlist[songIndex].title)
-				  									}
-												});
-		  									}
-		  								}
+											yt.getFile(songURL, file, ()=>{
+												if(songIndex === 0){
+			  										message.channel.send("**Playing:** " + playlist[songIndex].title)
+			  									}
+											});
+	  									}
+	  								}
 
-		  								if(!playing && queue.length > 0){
-		  									currentVoiceChannel.join().then( connection =>{
-		  										setTimeout(()=>{
-		  											play(connection, message);
-		  										},1500);
-		  									});
-		  								} else if(playing){
-		  									message.channel.send("Loaded `" + files[i].split('.')[0] + '` to queue');
-		  								}
-		  							}
-		  						}
-		  					}
+	  								if(!playing && queue.length > 0){
+	  									currentVoiceChannel.join().then( connection =>{
+	  										setTimeout(()=>{
+	  											play(connection, message);
+	  										},1500);
+	  									});
+	  								} else if(playing){
+	  									message.channel.send("Loaded `" + files[i].split('.')[0] + '` to queue');
+	  								}
+	  							}
+	  						}
 	  					}
-  					} else{
-	  					message.channel.send("You're not in the voice channel.");
-	  				}
-  				} 
+  					}
+  				}
 
   				if(param.toLowerCase() === 'save'){
   					if(message.content.indexOf(' ', message.content.indexOf('save')) !== -1){
