@@ -335,40 +335,44 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'help')){
-  		message.channel.send("**Commands**\n" +
-			"\n**Admin Commands**\n" + 
-			"`" + initCommand+ "setUsername [name]`: Sets the username of bot\n" +
-			"`" + initCommand+ "setAvatar [URL]`: Sets the avatar of the bot\n" + 
-			"`" + initCommand+ "setinit`: set initializer command to run commands\n" + 
-			"`" + initCommand+ "addgroup`: add a group to enable admin commands for that group\n" + 
-			"`" + initCommand+ "exit`: Disconnects the bot\n" + 
-			"\n**General**\n" +
-			"`" + initCommand+ "about`: About this bot\n" +
-			"`" + initCommand+ "source`: Source link\n" +
-			"`" + initCommand+ "invite`: Get invite link to your bot\n" + 
-			"`" + initCommand+ "setVC`: Set the defualt channel your bot joins when ever the bot connects\n" + 
-			"`" + initCommand+ "join`: Bot will attempt to join your channel\n" +
-			"\n**Music**\n" + 
-			"`" + initCommand+ "queue`: To view all songs in queue\n" +
-			"`" + initCommand+ "play [YT_URL]`: Plays a song from a youtube link\n" +
-			"`" + initCommand+ "play [index_number]`: Plays a song from a file that has been saved to the bot\n" +
-			"`" + initCommand+ "play [search key term]`: Plays the first result of youtube search\n" +
-			"`" + initCommand+ "play`: Plays song in queue if it has been stopped\n" +
-			"`" + initCommand+ "stop`: Stops the song\n" +
-			"`" + initCommand+ "skip`: To skip the curr song\n" +
-			"`" + initCommand+ "replay`: Stops and replays song from the start\n" +
-			"`" + initCommand+ "local`: Displays all the songs saved by the bot\n" +
-			"`" + initCommand+ "remove [index_number]`: Removes a specific song from queue\n" +
-			"`" + initCommand+ "remove [#,#,#]`: Removes specific numbers seperated by commans in the queue\n" +
-			"`" + initCommand+ "save [YT_URL]`: Saves a song from youtube and stores it\n" +
-			"`" + initCommand+ "save`: Saves current song that's playing\n" +
-			"`" + initCommand+ "remlocal [index_number]`: Removes a song that has been saved locally\n" +
-			"`" + initCommand+ "readd`: Re-adds the currently playing song at the bottom of the queue\n" +
-			"`" + initCommand+ "playlist`: List all playlist\n" + 
-			"`" + initCommand+ "playlist [index_number]`: List all songs of the playlist\n" + 
-			"`" + initCommand+ "playlist save [PLAYLIST_NAME]`: Saves playlist\n" + 
-			"`" + initCommand+ "playlist play [index_number]`: Loads the playlist in queue and plays if nothing is playing\n" + 
-			"`" + initCommand+ "playlist remove [index_number]`: Removes the playlist\n")
+  		message.channel.send("**Commands**", {
+  			embed: {
+  				color: 1752220,
+  				description: "**Admin Commands**\n" + 
+					"`" + initCommand+ "setUsername [name]`: Sets the username of bot\n" +
+					"`" + initCommand+ "setAvatar [URL]`: Sets the avatar of the bot\n" + 
+					"`" + initCommand+ "setinit`: set initializer command to run commands\n" + 
+					"`" + initCommand+ "addgroup`: add a group to enable admin commands for that group\n" + 
+					"`" + initCommand+ "exit`: Disconnects the bot\n" + 
+					"\n**General**\n" +
+					"`" + initCommand+ "about`: About this bot\n" +
+					"`" + initCommand+ "source`: Source link\n" +
+					"`" + initCommand+ "invite`: Get invite link to your bot\n" + 
+					"`" + initCommand+ "setVC`: Set the defualt channel your bot joins when ever the bot connects\n" + 
+					"`" + initCommand+ "join`: Bot will attempt to join your channel\n" +
+					"\n**Music**\n" + 
+					"`" + initCommand+ "queue`: To view all songs in queue\n" +
+					"`" + initCommand+ "play [YT_URL]`: Plays a song from a youtube link\n" +
+					"`" + initCommand+ "play [index_number]`: Plays a song from a file that has been saved to the bot\n" +
+					"`" + initCommand+ "play [search key term]`: Plays the first result of youtube search\n" +
+					"`" + initCommand+ "play`: Plays song in queue if it has been stopped\n" +
+					"`" + initCommand+ "stop`: Stops the song\n" +
+					"`" + initCommand+ "skip`: To skip the curr song\n" +
+					"`" + initCommand+ "replay`: Stops and replays song from the start\n" +
+					"`" + initCommand+ "local`: Displays all the songs saved by the bot\n" +
+					"`" + initCommand+ "remove [index_number]`: Removes a specific song from queue\n" +
+					"`" + initCommand+ "remove [#,#,#]`: Removes specific numbers seperated by commans in the queue\n" +
+					"`" + initCommand+ "save [YT_URL]`: Saves a song from youtube and stores it\n" +
+					"`" + initCommand+ "save`: Saves current song that's playing\n" +
+					"`" + initCommand+ "remlocal [index_number]`: Removes a song that has been saved locally\n" +
+					"`" + initCommand+ "readd`: Re-adds the currently playing song at the bottom of the queue\n" +
+					"`" + initCommand+ "playlist`: List all playlist\n" + 
+					"`" + initCommand+ "playlist [index_number]`: List all songs of the playlist\n" + 
+					"`" + initCommand+ "playlist save [PLAYLIST_NAME]`: Saves playlist\n" + 
+					"`" + initCommand+ "playlist play [index_number]`: Loads the playlist in queue and plays if nothing is playing\n" + 
+					"`" + initCommand+ "playlist remove [index_number]`: Removes the playlist\n"
+  			}
+  		});
   	}
 
   	if(isCommand(message.content, 'invite')){
@@ -472,7 +476,12 @@ bot.on('message', message => {
   				files[i] = "**" + (i+1) + ".** " + files[i].split(".")[0];
   			}
 
-  			message.channel.send("**Local Songs**\n" + files.join("\n"));
+  			message.channel.send("**Local Songs**", {
+  				embed: {
+  					color: 10181046,
+  					description: files.join("\n")
+  				}
+  			});
   		});
   	}
 
