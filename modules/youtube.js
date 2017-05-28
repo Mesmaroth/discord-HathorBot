@@ -14,8 +14,17 @@ module.exports.search = function(message, callback) {
 	 	if(error) callback(error);
 	 		 	
 	 	if(results){
-			var firstResult = results[0];
-			callback(null, firstResult.id, firstResult.title, firstResult.link);
+	 		// console.log(results);
+	 		var searchResults = [];
+	 		for(var i = 0 ; i < results.length; i++){
+	 			if(i === 5) break;
+	 			searchResults.push({
+	 				title: results[i].title,
+	 				id: results[i].id,
+	 				url: results[i].link
+	 			});	
+	 		}	 		
+			callback(null, searchResults);
 	 	}
 	});
 	
