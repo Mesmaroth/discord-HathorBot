@@ -479,15 +479,23 @@ bot.on('message', message => {
 			var input = message.content.split(' ')[1];
 			var isLink = YT_REG.test(input);
 
+			if(playing){
+				message.channel.send("Currently playing something");
+				return;
+			}
+
 			if(message.member.voiceChannel === "undefined"){
 				message.channel.send("You're not in the voice channel.");
 				return;
 			}
 
 			if(currentVoiceChannel !== message.member.voiceChannel){
+				if(currentVoiceChannel)
+					currentVoiceChannel.leave();
+
 				currentVoiceChannel = message.member.voiceChannel;
 				if(playing){
-					message.channel.send("Bot is playing something.");
+					message.channel.send("Currently playing something");
 					return;
 				}
 			}
@@ -498,105 +506,103 @@ bot.on('message', message => {
 	  			queue.splice(0,1);
 	  		}
 
-  			if(currentVoiceChannel === message.member.voiceChannel){
-  				currentVoiceChannel.join().then( connection =>{
-  					voiceConnection = connection;
-	  				if(isLink){
-	  					var URL = message.content.split(' ')[1];  					
+  			currentVoiceChannel.join().then( connection =>{
+				voiceConnection = connection;
+				if(isLink){
+					var URL = message.content.split(' ')[1];  					
 
-	  					// Play youtube by URL
-	  					yt.getInfo(URL, (error, rawData, id, title, length_seconds) => {
-	  						if(error) return sendError("Youtube Info", error, message.channel);
-	  						var song = tempFilesPath + '/' + id + '.mp3';
+					// Play youtube by URL
+					yt.getInfo(URL, (error, rawData, id, title, length_seconds) => {
+						if(error) return sendError("Youtube Info", error, message.channel);
+						var song = tempFilesPath + '/' + id + '.mp3';
 
-	  						yt.getFile(URL, song, () =>{
-	  							queue.push({
-	  								title: title,
-	  								id: id,
-	  								file: song,
-	  								local: false,
-	  								url: URL
-	  							});
+						yt.getFile(URL, song, () =>{
+							queue.push({
+								title: title,
+								id: id,
+								file: song,
+								local: false,
+								url: URL
+							});
 
-	  							if(!playing && !stopped){
+							if(!playing && !stopped){
 
-	  								if(queue.length === 1){
+								if(queue.length === 1){
+									message.channel.send("**Playing:** " + title);
+								} else
+  								message.channel.send("**Added to Queue:**\n" + title);
+									
+								play(voiceConnection, message);
+							}
+							else {
+								message.channel.send("**Added to Queue:**\n" + title);
+							}
+						});
+					});
+				} else{
+					var indexFile = message.content.split(' ')[1];	  					
+					
+					// Play audio file by index number
+					if(isNumber(indexFile)){
+						fs.readdir(localPath, (error, files) =>{
+  						if(error) return sendError("Reading local", error, message.channel);
+  						for(var i = 0; i < files.length; i++){
+  							if( Number(indexFile) === (i+1)){
+  								var title = files[i].split('.')[0];
+  								var file = localPath + '/' + files[i];
+  								queue.push({
+  									title: title,
+  									file: file,
+  									local: true
+  								});
+
+  								if(!playing && !stopped){
+  									if(queue.length === 1){
 	  									message.channel.send("**Playing:** " + title);
 	  								} else
 		  								message.channel.send("**Added to Queue:**\n" + title);
-	  									
 	  								play(voiceConnection, message);
-	  							}
-	  							else {
+	  								return;
+	  							} else {
 	  								message.channel.send("**Added to Queue:**\n" + title);
+	  								return;
 	  							}
-	  						});
-	  					});
-	  				} else{
-	  					var indexFile = message.content.split(' ')[1];	  					
-	  					
-	  					// Play audio file by index number
-	  					if(isNumber(indexFile)){
-	  						fs.readdir(localPath, (error, files) =>{
-		  						if(error) return sendError("Reading local", error, message.channel);
-		  						for(var i = 0; i < files.length; i++){
-		  							if( Number(indexFile) === (i+1)){
-		  								var title = files[i].split('.')[0];
-		  								var file = localPath + '/' + files[i];
-		  								queue.push({
-		  									title: title,
-		  									file: file,
-		  									local: true
-		  								});
+  							}
+  						}
+  						message.channel.send("No local song found with that index.");
+  					});
+					} else{
+						//	Play Youtube by search
+						var ytSong = message.content.slice(message.content.indexOf(' ') + 1);
+						yt.search(ytSong, (error, id, title, URL) =>{
+							if(error) return sendError("Youtube Search", error, message.channel);
 
-		  								if(!playing && !stopped){
-		  									if(queue.length === 1){
-			  									message.channel.send("**Playing:** " + title);
-			  								} else
-				  								message.channel.send("**Added to Queue:**\n" + title);
-			  								play(voiceConnection, message);
-			  								return;
-			  							} else {
-			  								message.channel.send("**Added to Queue:**\n" + title);
-			  								return;
-			  							}
-		  							}
-		  						}
-		  						message.channel.send("No local song found with that index.");
-		  					});
-	  					} else{
-	  						//	Play Youtube by search
-	  						var ytSong = message.content.slice(message.content.indexOf(' ') + 1);
-	  						yt.search(ytSong, (error, id, title, URL) =>{
-	  							if(error) return sendError("Youtube Search", error, message.channel);
+							var song = tempFilesPath + '/' + id + '.mp3';
 
-	  							var song = tempFilesPath + '/' + id + '.mp3';
+							yt.getFile(URL, song, () =>{
+								queue.push({
+  								title: title,
+  								id: id,
+  								file: song,
+  								local: false,
+  								url: URL
+								});
 
-	  							yt.getFile(URL, song, () =>{
-	  								queue.push({
-		  								title: title,
-		  								id: id,
-		  								file: song,
-		  								local: false,
-		  								url: URL
-	  								});
-
-	  								if(!playing && !stopped){
-	  									if(queue.length === 1){
-		  									message.channel.send("**Playing:** " + title);
-		  								} else
-			  								message.channel.send("**Added to Queue:**\n" + title);
-		  								play(voiceConnection, message);
-		  							}
-		  							else {
-		  								message.channel.send("**Added to Queue:**\n" + title);
-		  							}
-	  							});
-	  						});
-	  					}
-	  				}
-  				});
-  			}
+								if(!playing && !stopped){
+									if(queue.length === 1){
+  									message.channel.send("**Playing:** " + title);
+  								} else
+	  								message.channel.send("**Added to Queue:**\n" + title);
+  								play(voiceConnection, message);
+  							}
+  							else {
+  								message.channel.send("**Added to Queue:**\n" + title);
+  							}
+							});
+						});
+					}
+				}
+			});
   		} else{
   			if(queue.length > 0){
   				if(!playing){
