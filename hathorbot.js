@@ -494,13 +494,13 @@ bot.on('message', message => {
 			var input = message.content.split(' ')[1];
 			var isLink = YT_REG.test(input);
 
-			if(playing){
-				message.channel.send("Currently playing something");
+			if(playing && currentVoiceChannel !== message.member.voiceChannel){
+				message.channel.send("Currently playing something in another voice channel");
 				return;
 			}
 
-			if(message.member.voiceChannel === "undefined"){
-				message.channel.send("You're not in the voice channel.");
+			if(message.member.voiceChannel === "undefined" || message.member.hasOwnProperty('voiceChannel') ){
+				message.channel.send("You're not in a voice channel.");
 				return;
 			}
 
