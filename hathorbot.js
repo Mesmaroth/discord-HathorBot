@@ -486,30 +486,16 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'invite')){
-  		bot.generateInvite([ 
-  			"CONNECT", "SPEAK", "READ_MESSAGES", "SEND_MESSAGES", "SEND_TTS_MESSAGES",
-  			"ATTACH_FILES", "USE_VAD"
-  		]).then( link => {
+  		getInvite(link => {
   			message.channel.send("**Invite:** "  + link);
   		});
-  	}
+  	}  	
 
   	if(isCommand(message.content, 'uptime')){
-  		var uptimeSeconds = 0, uptimeMinutes = 0, uptimeHours = 0;
+  		var uptime = botUptime();
+  		var d = uptime[0], h = uptime[1], m = uptime[2], s = uptime[3];
 
-  		uptimeSeconds = Math.floor(bot.uptime/1000);
-		
-		if(uptimeSeconds > 60){
-			uptimeMinutes = Math.floor(uptimeSeconds/60);
-			uptimeSeconds = Math.floor(uptimeSeconds % 60);
-		}
-
-		if(uptimeMinutes > 60){
-			uptimeHours = Math.floor(uptimeMinutes / 60);
-			uptimeMinutes = Math.floor(uptimeMinutes % 60);
-		}
-
-  		message.channel.send("**Uptime:** " + uptimeHours + " hour(s) : " + uptimeMinutes + " minute(s) : " + uptimeSeconds +" second(s)");
+  		message.channel.send("**Uptime:** " + d + " day(s) : " + h + " hours(s) : " + m + " minute(s) : " + s + " second(s)");
   	}
 
   	if(isCommand(message.content, 'setvc')){
