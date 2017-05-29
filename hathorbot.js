@@ -177,16 +177,14 @@ function play(connection, message) {
 	// setGame(queue[0].title);
 }
 
-// If this bot isn't connected to any servers, then display a invite link in console
-function outputInviteLink(){
-	if(bot.guilds.array().length === 0){
-		bot.generateInvite([ 
-  			"CONNECT", "SPEAK", "READ_MESSAGES", "SEND_MESSAGES", "SEND_TTS_MESSAGES",
-  			"ATTACH_FILES", "USE_VAD"
-  		]).then( link => {
-  			console.log("Invite this bot to your server using this link:\n"  + link);
-  		});
-	}
+// Generate Invite link
+function getInvite(callback){
+	bot.generateInvite([ 
+		"CONNECT", "SPEAK", "READ_MESSAGES", "SEND_MESSAGES", "SEND_TTS_MESSAGES",
+		"ATTACH_FILES", "USE_VAD"
+	]).then( link => {
+		callback(link);
+	});
 }
 
 bot.on('ready', () => {
