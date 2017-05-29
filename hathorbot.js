@@ -205,7 +205,12 @@ bot.on('ready', () => {
 	
 	setGame(defualtGame);
 
-	outputInviteLink()	
+	// If this bot isn't connected to any servers, then display a invite link in console 
+	if(bot.guilds.array().length === 0){
+		getInvite(link =>{
+			console.log("Invite this bot to your server using this link:\n"  + link);
+		});
+	}
 });
 
 bot.on('disconnect', (event) =>{
