@@ -109,6 +109,29 @@ function removeTempFiles(){
 	});
 }
 
+function botUptime(){
+  		var uptimeSeconds = 0, uptimeMinutes = 0, uptimeHours = 0, uptimeDays = 0;
+
+  		uptimeSeconds = Math.floor(bot.uptime/1000);
+		
+		if(uptimeSeconds > 60){
+			uptimeMinutes = Math.floor(uptimeSeconds/60);
+			uptimeSeconds = Math.floor(uptimeSeconds % 60);
+		}
+
+		if(uptimeMinutes > 60){
+			uptimeHours = Math.floor(uptimeMinutes / 60);
+			uptimeMinutes = Math.floor(uptimeMinutes % 60);
+		}
+
+		if(uptimeHours > 24){
+			uptimeDays = Math.floor(uptimeHours / 24);
+			uptimeHours = Math.floor(uptimeHours % 24);
+		}
+
+		return [uptimeDays, uptimeHours, uptimeMinutes, uptimeSeconds];
+  	}
+
 /*	Starts playing the first song(index) of the queue
 *	After it has passed it checks to see if there is another in queue
 *	If there are more songs in queue, the first song is removed after it has been played unless
