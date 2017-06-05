@@ -1173,7 +1173,7 @@ bot.on('message', message => {
 });
 
 bot.on('voiceStateUpdate', (oldMember, newMember) =>{
-	if(oldMember.voiceChannel === currentVoiceChannel && queue.length > 0){
+	if(oldMember.voiceChannel === currentVoiceChannel && newMember.voiceChannel !== currentVoiceChannel && queue.length > 0){
 		queue.splice(0, queue.length);
 		if(playing){
 			botPlayback.end();
