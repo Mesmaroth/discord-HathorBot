@@ -9,11 +9,19 @@ const localPath = path.join(__dirname, 'local');
 const playlistPath = path.join(__dirname, 'playlist');
 const tempFilesPath = path.join(__dirname, 'tempFiles');
 const botPreferenceFile = path.join(__dirname, 'config/preference.json');
+const logsPath = path.resolve(__dirname, 'logs');
 
 try{
-	var botVersion = require(path.join(__dirname, 'package.json')).version;
-	
+	var botVersion = require(path.join(__dirname, 'package.json')).version;	
 	var botPreference = JSON.parse(fs.readFileSync(botPreferenceFile));
+
+	var paths = [localPath, playlistPath, tempFilesPath, logsPath];
+
+	for(var i = 0; i < paths.length; i++){
+		if(!fs.existsSync(paths[i])){
+			fs.mkdirSync(paths[i])
+		}
+	}
 
 }catch(error) {
 	if(error) {
@@ -107,6 +115,31 @@ function removeTempFiles(){
 			});
 		}
 	});
+}
+
+function getDateTime() {
+
+    var date = new Date();
+
+    var hour = date.getHours();
+    hour = (hour < 10 ? "0" : "") + hour;
+
+    var min  = date.getMinutes();
+    min = (min < 10 ? "0" : "") + min;
+
+    var sec  = date.getSeconds();
+    sec = (sec < 10 ? "0" : "") + sec;
+
+    var year = date.getFullYear();
+
+    var month = date.getMonth() + 1;
+    month = (month < 10 ? "0" : "") + month;
+
+    var day  = date.getDate();
+    day = (day < 10 ? "0" : "") + day;
+
+
+    return month + "/" + day + "/" + year + "," + hour + ":" + min + ":" + sec;
 }
 
 function botUptime(){
@@ -326,6 +359,40 @@ bot.on('message', message => {
 
   	if(isCommand(message.content, 'source')){
   		message.channel.send("**Source:** https://github.com/Mesmaroth/discord-HathorBot");
+  	}
+
+  	if(isCommand(message.content, 'report')){
+  		if(message.content.indexOf(' ') !== -1){
+  			var user = message.member.user.username;
+  			var msg = message.content.split(' ');
+  			var report;
+  			var reportFile = path.join(logsPath, message.guild.name + '_reports.txt');
+
+  			msg.splice(0,1);
+  			msg = msg.join(' ');
+  			report = getDateTime() + " " + user + "@"+ message.guild.name + ": " + msg;
+
+  			if(fs.existsSync(reportFile)){
+  				fs.readFile(reportFile, 'utf-8', (error, file)=>{
+  					if(error) return sendError("Reading Report File", error, message.channel);
+  					file = file.split('\n');
+  					file.push(report);
+  					fs.writeFile(reportFile, file.join('\n'), error=>{
+  						if(error) return sendError("Writing Report File", error, message.channel);
+  						message.channel.send("You're report has been filed. Thank you");				  						
+  					});
+  				});
+  			}else{
+  				fs.writeFile(reportFile, report, error =>{
+  					if(error) return sendError("Writing Report File", error, message.channel);
+  					message.channel.send("You're report has been filed. Thank you");
+  				});
+  			}
+  			console.log("REPORT: " + user + " from " + message.guild.name + " submitted a report.");
+  		} else{
+  			message.channel.send("o_O ??");
+  		}
+  		return;
   	}
 
   	if(isCommand(message.content, 'stats')){
@@ -696,7 +763,6 @@ bot.on('message', message => {
 								message.channel.send("Couldn't find what you were looking for");
 								return;
 							}
-
 
 							var song = tempFilesPath + '/' + id + '.mp3';
 
