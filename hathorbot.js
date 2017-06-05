@@ -54,7 +54,7 @@ function isNumber(obj) {
 	return !isNaN(parseFloat(obj))
 }
 
-// Command validations
+// Command validation
 function isCommand(message, command){
 	var init = message.slice(0,1);
 	var keyword = (message.indexOf(' ') !== -1) ? message.slice(1, message.indexOf(' ')) : message.slice(1);
@@ -938,10 +938,10 @@ bot.on('message', message => {
 
 	  	if(!looping){
 	  		looping = true;
-	  		message.channel.send("Started looping queue");
+	  		message.channel.send("Looping `ON`");
 	  	} else{
 	  		looping = false;
-	  		message.channel.send("Stopped looping queue");
+	  		message.channel.send("Looping `OFF`");
 	  	}
   	}
 
@@ -1104,6 +1104,19 @@ bot.on('message', message => {
   			});
   		}
   	}
+});
+
+bot.on('voiceStateUpdate', (oldMember, newMember) =>{
+	if(oldMember.voiceChannel === currentVoiceChannel && queue.length > 0){
+		queue.splice(0, queue.length);
+		if(playing){
+			botPlayback.end();
+			playing = false;
+			stopped = false;
+			looping = false;
+			stayOnQueue = false;
+		}
+	}
 });
 
 bot.login(token);
