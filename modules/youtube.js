@@ -14,15 +14,16 @@ module.exports.search = function(message, callback) {
 	 	if(error) callback(error);
 	 		 	
 	 	if(results){
-	 		// console.log(results);
 	 		var searchResults = [];
 	 		for(var i = 0 ; i < results.length; i++){
 	 			if(i === 5) break;
-	 			searchResults.push({
-	 				title: results[i].title,
-	 				id: results[i].id,
-	 				url: results[i].link
-	 			});	
+	 			if(results[i].kind === 'youtube#video'){
+	 				searchResults.push({
+		 				title: results[i].title,
+		 				id: results[i].id,
+		 				url: results[i].link
+		 			});
+	 			}	
 	 		}	 		
 			callback(null, searchResults);
 	 	}
