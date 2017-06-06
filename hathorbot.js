@@ -1222,7 +1222,7 @@ bot.on('voiceStateUpdate', (oldMember, newMember) =>{
 	}	
 
 	if(currentVoiceChannel && oldMember.voiceChannel){
-		if(oldMember.voiceChannel === currentVoiceChannel && newMember.voiceChannel !== currentVoiceChannel){
+		if(oldMember.voiceChannel === currentVoiceChannel && newMember.voiceChannel !== currentVoiceChannel  && currentVoiceChannel.members.size === 1){
 			if(queue.length > 0){
 				queue.splice(0, queue.length);
 			}
