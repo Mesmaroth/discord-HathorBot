@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const request = require('request');
 const bot = new Discord.Client();
 const token = require(path.join(__dirname, 'config/botLogin.js')).token;
 const yt = require(path.join(__dirname, 'modules/youtube.js'));
@@ -647,34 +648,78 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'play') || isCommand(message.content, 'p')){
-  		if(message.content.indexOf(' ') !== -1){
+  		var file = message.attachments.first();
+
+  		if(playing && currentVoiceChannel !== message.member.voiceChannel){
+			message.channel.send("Currently playing something in another voice channel");
+			return;
+		}		
+
+		if(!message.member.voiceChannel){
+			message.channel.send("You are not in a voice channel");
+			return;
+		}
+
+		if(currentVoiceChannel !== message.member.voiceChannel){
+			if(currentVoiceChannel)
+				currentVoiceChannel.leave();
+
+			currentVoiceChannel = message.member.voiceChannel;
+			if(playing){
+				message.channel.send("Currently playing something");
+				return;
+			}
+		}
+
+		if(file){
+			if(file.filename.split('.')[1] !== 'mp3'){
+				message.channel.send("Mp3 files accepted only");
+			} else{
+				var fileName = file.filename.split('.')[0].replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g,'') + '.' + file.filename.split('.')[1];
+				var filePath = path.resolve(tempFilesPath, fileName);
+				var title = fileName.split('.')[0];
+
+				function response(){
+					queue.push({
+				 		title: title,
+				 		file: filePath,
+				 		local: false
+				 	});
+
+				 	if(!playing){
+				 		message.channel.send("**Playing:** " + title);
+				 		currentVoiceChannel.join().then( connection => {
+								voiceConnection = connection;
+								play(connection, message);
+							});
+				 	} else{
+				 		message.channel.send("**Added to Queue:**\n" + title);
+				 	}
+				}
+
+				if(fs.existsSync(filePath)){
+					response();
+				 } else{
+				 	var stream = request.get(file.url);
+
+					stream.on('error', error => {
+						if(error) return sendError("Getting Sound File", error, message.channel);
+					});
+
+					stream.pipe(fs.createWriteStream(filePath));
+
+					stream.on('complete', () =>{
+						response();
+					});	
+				}											
+			}
+		} else if(message.content.indexOf(' ') !== -1){
   			/* YT REGEX : https://stackoverflow.com/questions/3717115/regular-expression-for-youtube-links
 			*	by Adrei Zisu
 			*/
 			var YT_REG = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/
 			var input = message.content.split(' ')[1];
-			var isLink = YT_REG.test(input);
-
-			if(playing && currentVoiceChannel !== message.member.voiceChannel){
-				message.channel.send("Currently playing something in another voice channel");
-				return;
-			}
-
-			if(message.member.voiceChannel === "undefined" || message.member.hasOwnProperty('voiceChannel') ){
-				message.channel.send("You're not in a voice channel.");
-				return;
-			}
-
-			if(currentVoiceChannel !== message.member.voiceChannel){
-				if(currentVoiceChannel)
-					currentVoiceChannel.leave();
-
-				currentVoiceChannel = message.member.voiceChannel;
-				if(playing){
-					message.channel.send("Currently playing something");
-					return;
-				}
-			}
+			var isLink = YT_REG.test(input);			
 
 			if(stopped){
 				stopped = false;
