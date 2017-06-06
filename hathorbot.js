@@ -592,14 +592,13 @@ bot.on('message', message => {
   		var userVoiceChannel = message.member.voiceChannel;
   		if(userVoiceChannel){ 
   			if(currentVoiceChannel){
-  			  	if(!playing){
-  			  		currentVoiceChannel.leave();
-		  			userVoiceChannel.join();
-		  			currentVoiceChannel = userVoiceChannel;
-  			  	} else{
-  			  		message.channel.send("Currently playing something");
-  			  	}
-  			  }  			
+  				currentVoiceChannel.leave();  			  	
+  			 }
+  			if(!playing){  			  		
+  				userVoiceChannel.join();
+  				currentVoiceChannel = userVoiceChannel;
+		  	} else
+		  		message.channel.send("Currently playing something");
   		}
   		else
   			message.channel.send("You are not in a voice channel.");
