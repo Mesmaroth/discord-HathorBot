@@ -1217,16 +1217,27 @@ bot.on('message', message => {
 });
 
 bot.on('voiceStateUpdate', (oldMember, newMember) =>{
-	if(oldMember.voiceChannel === currentVoiceChannel && newMember.voiceChannel !== currentVoiceChannel && queue.length > 0){
-		queue.splice(0, queue.length);
-		if(playing){
-			botPlayback.end();
-			playing = false;
-			stopped = false;
-			looping = false;
-			stayOnQueue = false;
+	if(newMember.id === bot.user.id){
+		newMember.voiceChannel = currentVoiceChannel;
+	}	
+
+	if(currentVoiceChannel && oldMember.voiceChannel){
+		if(oldMember.voiceChannel === currentVoiceChannel && newMember.voiceChannel !== currentVoiceChannel){
+			if(queue.length > 0){
+				queue.splice(0, queue.length);
+			}
+
+			if(playing){
+				botPlayback.end();
+				playing = false;
+				stopped = false;
+				looping = false;
+				stayOnQueue = false;
+			}
+
+			currentVoiceChannel.leave();
 		}
-	}
+	}		
 });
 
 bot.login(token);
