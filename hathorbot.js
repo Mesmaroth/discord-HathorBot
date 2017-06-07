@@ -673,19 +673,19 @@ bot.on('message', message => {
 			}
 		}
 
-		function pushPlay(title, filePath, local, id, url){
-			if(id && url){
+		function pushPlay(title, fPath, local, id, URL){
+			if(id && URL){				
 				queue.push({
 			 		title: title,
 			 		id: id,
-			 		file: filePath,
+			 		file: fPath,
 			 		local: local,			 		
-			 		url: url
+			 		url: URL
 			 	});
-			} else{
+			} else if(!id && !URL){
 				queue.push({
 			 		title: title,
-			 		file: filePath,
+			 		file: fPath,
 			 		local: local
 			 	});
 			}
@@ -720,7 +720,7 @@ bot.on('message', message => {
 			var fileName = file.filename.replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g,'_');
 			var filePath = path.resolve(tempFilesPath, fileName);
 			var title = fileName.slice(0, fileName.lastIndexOf('.'));
-
+			
 			if(fs.existsSync(filePath)){
 				pushPlay(title, filePath, false);
 			 } else{
@@ -757,16 +757,15 @@ bot.on('message', message => {
 			if( qUrl.hostname !== null && qUrl.hostname !== "www.youtube.com" && qUrl.hostname !== "youtu.be"){
 				if(input.endsWith('.mp3')){
 					var file = input.slice(input.lastIndexOf('/') + 1).replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g,'_');
-					var filePath = path.resolve(tempFilesPath, file);
+					var filePath = path.join(tempFilesPath, file);
 					var title = file.slice(0, file.lastIndexOf('.'));
 
 					if(fs.existsSync(filePath)){
-						pushPlay(title, file, false);
+						pushPlay(title, filePath, false);
 					 } else{
 					 	var stream = request.get(input);
 
 					 	stream.on('response', response =>{
-					 		fs.writeFileSync('out.txt', JSON.stringify(response, null, '\t'));
 					 		if(response.statusCode === 404){
 					 			message.channel.send("No file found with that address make sure it's a direct link to the file");
 					 		}else{
@@ -794,15 +793,8 @@ bot.on('message', message => {
 					var file = path.join(tempFilesPath, id + '.mp3');
 
 					yt.getFile(input, file, () =>{
-						queue.push({
-							title: title,
-							id: id,
-							file: file,
-							local: false,
-							url: songURL
-						});
 
-						pushPlay(title, file, false, id, songURL);
+						pushPlay(title, file, false, id, input);
 					});
 				});
 			} else{				
@@ -818,6 +810,7 @@ bot.on('message', message => {
 								var file = path.join(localPath, files[i]);
 								
 								pushPlay(title, file, true);
+								return;
 							}
 						}
 						message.channel.send("No local song found with that index.");
@@ -840,14 +833,6 @@ bot.on('message', message => {
 						var file = path.join(tempFilesPath, id + '.mp3' );
 						
 						yt.getFile(songURL, file, () =>{
-							queue.push({
-								title: title,
-								id: id,
-								file: file,
-								local: false,
-								url: songURL
-							});
-
 							pushPlay(title, file, false, id, songURL);
 						});
 					});
