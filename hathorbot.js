@@ -5,6 +5,7 @@ const request = require('request');
 const bot = new Discord.Client();
 const token = require(path.join(__dirname, 'config/botLogin.js')).token;
 const yt = require(path.join(__dirname, 'modules/youtube.js'));
+const URL = require('url');
 
 const localPath = path.join(__dirname, 'local');
 const playlistPath = path.join(__dirname, 'playlist');
@@ -650,11 +651,12 @@ bot.on('message', message => {
   	if(isCommand(message.content, 'play') || isCommand(message.content, 'p')){
   		var file = message.attachments.first();
 
+  		// Handle playing audio for a single channel
   		if(playing && currentVoiceChannel !== message.member.voiceChannel){
 			message.channel.send("Currently playing something in another voice channel");
 			return;
 		}		
-
+		
 		if(!message.member.voiceChannel){
 			message.channel.send("You are not in a voice channel");
 			return;
@@ -671,55 +673,79 @@ bot.on('message', message => {
 			}
 		}
 
-		if(file){
-			if(file.filename.split('.')[1] !== 'mp3'){
-				message.channel.send("Mp3 files accepted only");
+		function pushPlay(title, filePath, local, id, url){
+			if(id && url){
+				queue.push({
+			 		title: title,
+			 		id: id,
+			 		file: filePath,
+			 		local: local,			 		
+			 		url: url
+			 	});
 			} else{
-				var fileName = file.filename.split('.')[0].replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g,'') + '.' + file.filename.split('.')[1];
-				var filePath = path.resolve(tempFilesPath, fileName);
-				var title = fileName.split('.')[0];
-
-				function response(){
-					queue.push({
-				 		title: title,
-				 		file: filePath,
-				 		local: false
-				 	});
-
-				 	if(!playing){
-				 		message.channel.send("**Playing:** " + title);
-				 		currentVoiceChannel.join().then( connection => {
-								voiceConnection = connection;
-								play(connection, message);
-							});
-				 	} else{
-				 		message.channel.send("**Added to Queue:**\n" + title);
-				 	}
-				}
-
-				if(fs.existsSync(filePath)){
-					response();
-				 } else{
-				 	var stream = request.get(file.url);
-
-					stream.on('error', error => {
-						if(error) return sendError("Getting Sound File", error, message.channel);
-					});
-
-					stream.pipe(fs.createWriteStream(filePath));
-
-					stream.on('complete', () =>{
-						response();
-					});	
-				}											
+				queue.push({
+			 		title: title,
+			 		file: filePath,
+			 		local: local
+			 	});
 			}
-		} else if(message.content.indexOf(' ') !== -1){
+			
+
+		 	if(!playing){
+		 		message.channel.send("**Playing:** " + title);
+		 		currentVoiceChannel.join().then( connection => {
+					voiceConnection = connection;
+					play(connection, message);
+				});
+		 	} else{
+		 		message.channel.send("**Added to Queue:**\n" + title);
+		 	}
+		}
+
+		// Play audio by file
+		if(file){
+			if(stopped){
+				stopped = false;
+	  			stayOnQueue = false;
+	  			queue.splice(0,1);
+	  		}
+
+			var ext = file.filename.split('.');
+			ext = ext[ext.length - 1];
+			if(ext !== 'mp3'){
+				message.channel.send("Mp3 files accepted only");
+				return;
+			}
+
+			var fileName = file.filename.replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g,'_');
+			var filePath = path.resolve(tempFilesPath, fileName);
+			var title = fileName.slice(0, fileName.lastIndexOf('.'));
+
+			if(fs.existsSync(filePath)){
+				pushPlay(title, filePath, false);
+			 } else{
+			 	var stream = request.get(file.url);
+
+				stream.on('error', error => {
+					if(error) return sendError("Getting Sound File", error, message.channel);
+				});
+
+				stream.pipe(fs.createWriteStream(filePath));
+
+				stream.on('complete', () =>{
+					pushPlay(title, filePath, false);
+				});
+			}
+		} else if(message.content.indexOf(' ') !== -1){			
+			var input = message.content.split(' ')[1];
+			var qUrl = URL.parse(input, true);
+
   			/* YT REGEX : https://stackoverflow.com/questions/3717115/regular-expression-for-youtube-links
 			*	by Adrei Zisu
 			*/
 			var YT_REG = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/
-			var input = message.content.split(' ')[1];
-			var isLink = YT_REG.test(input);			
+
+			var isLink = YT_REG.test(input);
 
 			if(stopped){
 				stopped = false;
@@ -727,119 +753,112 @@ bot.on('message', message => {
 	  			queue.splice(0,1);
 	  		}
 
-  			currentVoiceChannel.join().then( connection =>{
-				voiceConnection = connection;
-				if(isLink){
-					var URL = message.content.split(' ')[1];  					
+			// Play audio by direct url link
+			if( qUrl.hostname !== null && qUrl.hostname !== "www.youtube.com" && qUrl.hostname !== "youtu.be"){
+				if(input.endsWith('.mp3')){
+					var file = input.slice(input.lastIndexOf('/') + 1).replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g,'_');
+					var filePath = path.resolve(tempFilesPath, file);
+					var title = file.slice(0, file.lastIndexOf('.'));
 
-					// Play youtube by URL
-					yt.getInfo(URL, (error, rawData, id, title, length_seconds) => {
-						if(error) return sendError("Youtube Info", error, message.channel);
-						var song = tempFilesPath + '/' + id + '.mp3';
+					if(fs.existsSync(filePath)){
+						pushPlay(title, file, false);
+					 } else{
+					 	var stream = request.get(input);
 
-						yt.getFile(URL, song, () =>{
+					 	stream.on('response', response =>{
+					 		fs.writeFileSync('out.txt', JSON.stringify(response, null, '\t'));
+					 		if(response.statusCode === 404){
+					 			message.channel.send("No file found with that address make sure it's a direct link to the file");
+					 		}else{
+					 			stream.pipe(fs.createWriteStream(filePath));
+					 		}	 			
+					 	});
+
+						stream.on('error', error => {
+							if(error) return sendError("Getting Sound File", error, message.channel);
+						});						
+
+						stream.on('complete', () =>{
+							if(fs.existsSync(filePath)){
+								pushPlay(title, filePath, false);
+							}
+						});	
+					}
+				} else 
+					message.channel.send("No file found. Make sure it's a direct link to the file");				
+			} else if(isLink){
+				// Play audo by YTURL
+				var input = message.content.split(' ')[1];
+				yt.getInfo(input, (error, rawData, id, title, length_seconds) => {
+					if(error) return sendError("Youtube Info", error, message.channel);
+					var file = path.join(tempFilesPath, id + '.mp3');
+
+					yt.getFile(input, file, () =>{
+						queue.push({
+							title: title,
+							id: id,
+							file: file,
+							local: false,
+							url: songURL
+						});
+
+						pushPlay(title, file, false, id, songURL);
+					});
+				});
+			} else{				
+				// Play audio file by index number
+				var indexFile = message.content.split(' ')[1];	
+				if(isNumber(indexFile)){
+					indexFile = Number(indexFile);
+					fs.readdir(localPath, (error, files) =>{
+						if(error) return sendError("Reading local", error, message.channel);
+						for(var i = 0; i < files.length; i++){
+							if( indexFile === (i+1)){
+								var title = files[i].split('.')[0];
+								var file = path.join(localPath, files[i]);
+								
+								pushPlay(title, file, true);
+							}
+						}
+						message.channel.send("No local song found with that index.");
+					});
+				} else{
+					//	Play Youtube by search
+					var ytSong = message.content.slice(message.content.indexOf(' ') + 1);
+					yt.search(ytSong, (error, searchResults) =>{
+						if(error) return sendError("Youtube Search", error, message.channel);
+						var id, title, songURL;
+
+						if(searchResults.length > 0){
+							id = searchResults[0].id;
+							title = searchResults[0].title;
+							songURL = searchResults[0].url;
+						} else{
+							message.channel.send("Couldn't find what you were looking for");
+							return;
+						}
+						var file = path.join(tempFilesPath, id + '.mp3' );
+						
+						yt.getFile(songURL, file, () =>{
 							queue.push({
 								title: title,
 								id: id,
-								file: song,
+								file: file,
 								local: false,
-								url: URL
+								url: songURL
 							});
 
-							if(!playing && !stopped){
-
-								if(queue.length === 1){
-									message.channel.send("**Playing:** " + title);
-								} else
-  								message.channel.send("**Added to Queue:**\n" + title);
-									
-								play(voiceConnection, message);
-							}
-							else {
-								message.channel.send("**Added to Queue:**\n" + title);
-							}
+							pushPlay(title, file, false, id, songURL);
 						});
 					});
-				} else{
-					var indexFile = message.content.split(' ')[1];	  					
-					
-					// Play audio file by index number
-					if(isNumber(indexFile)){
-						fs.readdir(localPath, (error, files) =>{
-  						if(error) return sendError("Reading local", error, message.channel);
-  						for(var i = 0; i < files.length; i++){
-  							if( Number(indexFile) === (i+1)){
-  								var title = files[i].split('.')[0];
-  								var file = localPath + '/' + files[i];
-  								queue.push({
-  									title: title,
-  									file: file,
-  									local: true
-  								});
-
-  								if(!playing && !stopped){
-  									if(queue.length === 1){
-	  									message.channel.send("**Playing:** " + title);
-	  								} else
-		  								message.channel.send("**Added to Queue:**\n" + title);
-	  								play(voiceConnection, message);
-	  								return;
-	  							} else {
-	  								message.channel.send("**Added to Queue:**\n" + title);
-	  								return;
-	  							}
-  							}
-  						}
-  						message.channel.send("No local song found with that index.");
-  					});
-					} else{
-						//	Play Youtube by search
-						var ytSong = message.content.slice(message.content.indexOf(' ') + 1);
-						yt.search(ytSong, (error, searchResults) =>{
-							if(error) return sendError("Youtube Search", error, message.channel);
-							var id, title, URL;
-
-							if(searchResults.length > 0){
-								id = searchResults[0].id;
-								title = searchResults[0].title;
-								URL = searchResults[0].url;
-							} else{
-								message.channel.send("Couldn't find what you were looking for");
-								return;
-							}
-
-							var song = tempFilesPath + '/' + id + '.mp3';
-
-							yt.getFile(URL, song, () =>{
-								queue.push({
-  								title: title,
-  								id: id,
-  								file: song,
-  								local: false,
-  								url: URL
-								});
-
-								if(!playing && !stopped){
-									if(queue.length === 1){
-  									message.channel.send("**Playing:** " + title);
-  								} else
-	  								message.channel.send("**Added to Queue:**\n" + title);
-  								play(voiceConnection, message);
-  							}
-  							else {
-  								message.channel.send("**Added to Queue:**\n" + title);
-  							}
-							});
-						});
-					}
 				}
-			});
+			}
   		} else{
   			if(queue.length > 0){
   				if(!playing){
   					currentVoiceChannel.join().then( connection => {
   						voiceConnection = connection;
-  						play(connection, message);
+  						play(voiceConnection, message);
   					});
   				} else
   					message.channel.send("Already playing something");
