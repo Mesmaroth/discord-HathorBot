@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const request = require('request');
 const bot = new Discord.Client();
-const token = require(path.join(__dirname, 'config/botLogin.js')).token;
+const botLogin = require(path.join(__dirname, 'config/botLogin.js'));
 const yt = require(path.join(__dirname, 'modules/youtube.js'));
 const URL = require('url');
 
@@ -85,6 +85,14 @@ function isAdmin(message){
 	}
 
 	message.channel.send("You aren't admin for this command.");
+	return false;
+}
+
+function isOwner(message){
+	if(message.member.id === botLogin.owner_id)
+		return true
+
+	message.channel.send("You aren't Owner for this command");
 	return false;
 }
 
@@ -256,8 +264,8 @@ bot.on('disconnect', (event) =>{
 });
 
 bot.on('message', message => {
-	// Admin commands
-	if(isCommand(message.content, 'setusername') && isAdmin(message)){
+	// Owner Commands
+	if(isCommand(message.content, 'setusername') && isOwner(message)){
 		if(message.content.indexOf(' ') !== -1){
 			var username = message.content.split(' ')[1];
 			bot.user.setUsername(username);
@@ -265,19 +273,28 @@ bot.on('message', message => {
 		}
 	}
 
-	if(isCommand(message.content, 'setavatar') && isAdmin(message)){
+	if(isCommand(message.content, 'setavatar') && isOwner(message)){
 		if(message.content.indexOf(' ') !== -1){
 			var url = message.content.split(' ')[1];
 			bot.user.setAvatar(url);
 			console.log("DISCORD: Avatar changed");
 		}
-	}
+	}	
 
-  	if(isCommand(message.content, 'exit') && isAdmin(message)){
+  	if(isCommand(message.content, 'setgame') && isOwner(message)){
+  		if(message.content.indexOf(' ') !== -1){
+  			var init = message.content.split(' ')[1];
+  			setGame(init);  			
+  		}
+  	}
+
+  	if(isCommand(message.content, 'exit') && isOwner(message)){
   		if(currentVoiceChannel)
   			currentVoiceChannel.leave();
   		bot.destroy();
   	}
+
+	// Admin commands  	
 
   	if(isCommand(message.content, 'setinit') && isAdmin(message)){
   		if(message.content.indexOf(' ') !== -1){
@@ -305,13 +322,7 @@ bot.on('message', message => {
   		}
   	}
 
-  	if(isCommand(message.content, 'setgame') && isAdmin(message)){
-  		if(message.content.indexOf(' ') !== -1){
-  			var init = message.content.split(' ')[1];
-  			setGame(init);  			
-  		}
-  	}
-
+  	
   	if(isCommand(message.content, 'addgroup') && isAdmin(message)){
   		if(message.content.indexOf(' ') !== -1){
   			var group = message.content.split(' ');
@@ -514,12 +525,9 @@ bot.on('message', message => {
   		message.channel.send("**Commands**", {
   			embed: {
   				color: 1752220,
-  				description: "**Admin Commands**\n" + 
-					"`" + initCommand+ "setUsername [name]`: Sets the username of bot\n" +
-					"`" + initCommand+ "setAvatar [URL]`: Sets the avatar of the bot\n" + 
+  				description: "**Admin Commands**\n" +
 					"`" + initCommand+ "setinit`: set initializer command to run commands\n" + 
-					"`" + initCommand+ "addgroup`: add a group to enable admin commands for that group\n" + 
-					"`" + initCommand+ "exit`: Disconnects the bot\n" + 
+					"`" + initCommand+ "addgroup`: add a group to enable admin commands for that group\n" +
 					"\n**General**\n" +
 					"`" + initCommand+ "about`: About this bot\n" +
 					"`" + initCommand+ "source`: Source link\n" +
@@ -1243,4 +1251,4 @@ bot.on('voiceStateUpdate', (oldMember, newMember) =>{
 	}		
 });
 
-bot.login(token);
+bot.login(botLogin.token);
