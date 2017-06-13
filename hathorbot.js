@@ -173,12 +173,13 @@ function botUptime(){
 *	it is set to loop, replay, or stopped
 */	
 function play(connection, message) {
-	if(!fs.existsSync(queue[0].file)){
+	const song = queue[0];
+	if(!fs.existsSync(song.file)){
 		message.channel.send("**ERROR:** `" + queue[0].title + "` file not found. Skipping...");
 		queue.shift();
 	}
 
-	botPlayback = connection.playFile(queue[0].file)
+	botPlayback = connection.playFile(song.file)
 		.on('end', ()=>{
 			playing = false;
 
@@ -205,11 +206,8 @@ function play(connection, message) {
 		.on('error', (error)=>{
 			sendError("Playback", error, message.channel);
 		});
-
 	botPlayback.setVolume(0.5);
-
 	playing = true;
-	// setGame(queue[0].title);
 }
 
 // Generate Invite link
@@ -592,11 +590,12 @@ bot.on('message', message => {
 
   	if(isCommand(message.content, 'join')){
   		var userVoiceChannel = message.member.voiceChannel;
-  		if(userVoiceChannel){ 
-  			if(currentVoiceChannel){
-  				currentVoiceChannel.leave();  			  	
-  			 }
-  			if(!playing){  			  		
+  		if(userVoiceChannel){	  			
+  			if(!playing){
+  				if(currentVoiceChannel){
+	  				currentVoiceChannel.leave();
+	  				currentVoiceChannel = null;
+	  			 }
   				userVoiceChannel.join();
   				currentVoiceChannel = userVoiceChannel;
 		  	} else
