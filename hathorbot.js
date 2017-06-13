@@ -717,10 +717,10 @@ bot.on('message', message => {
 				return;
 			}
 
-			var fileName = file.filename.replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g,'_');
+			var fileName = file.filename.replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g,'');
 			var filePath = path.resolve(tempFilesPath, fileName);
 			var title = fileName.slice(0, fileName.lastIndexOf('.'));
-			
+
 			if(fs.existsSync(filePath)){
 				pushPlay(title, filePath, false);
 			 } else{
@@ -756,7 +756,7 @@ bot.on('message', message => {
 			// Play audio by direct url link
 			if( qUrl.hostname !== null && qUrl.hostname !== "www.youtube.com" && qUrl.hostname !== "youtu.be"){
 				if(input.endsWith('.mp3')){
-					var file = input.slice(input.lastIndexOf('/') + 1).replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g,'_');
+					var file = input.slice(input.lastIndexOf('/') + 1).replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g,'');
 					var filePath = path.join(tempFilesPath, file);
 					var title = file.slice(0, file.lastIndexOf('.'));
 
