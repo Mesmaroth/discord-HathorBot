@@ -552,8 +552,7 @@ bot.on('message', message => {
 					"`" + initCommand+ "readd`: Re-adds the currently playing song at the bottom of the queue\n" +
 					"`" + initCommand+ "playlist`: List all playlist\n" + 
 					"`" + initCommand+ "playlist [index_number]`: List all songs of the playlist\n" + 
-					"`" + initCommand+ "playlist save [PLAYLIST_NAME]`: Saves playlist\n" + 
-					"`" + initCommand+ "playlist play [index_number]`: Loads the playlist in queue and plays if nothing is playing\n" + 
+					"`" + initCommand+ "playlist save [PLAYLIST_NAME]`: Saves playlist\n" +
 					"`" + initCommand+ "playlist remove [index_number]`: Removes the playlist\n"
   			}
   		});
@@ -1100,71 +1099,6 @@ bot.on('message', message => {
 		  			message.channel.send("Not in the bot's voice channel");
 		  			return;
 		  		}
-
-  				if(param.toLowerCase() === "play"){
-  					if(message.content.indexOf(' ', message.content.indexOf('play')) !== -1){
-  						var playlistIndex = message.content.split(' ')[2];
-	  					if(isNumber(playlistIndex)){
-	  						playlistIndex = Number(playlistIndex);
-
-	  						try{
-	  							var files = fs.readdirSync(playlistPath);
-	  						} catch(error){
-	  							if(error) return sendError("Reading playlist directory", error, message.channel);
-	  						}
-
-	  						for(var i = 0; i < files.length; i++){
-	  							if((i+1) === playlistIndex){
-	  								try{
-	  									var playlist = fs.readFileSync(playlistPath + files[i]);
-	  									playlist = JSON.parse(playlist);
-	  								} catch(error){
-	  									if(error) return sendError("Reading Playlist File", error, message.channel);
-	  								}
-
-	  								for(var songIndex = 0; songIndex < playlist.length; songIndex++){
-	  									if(playlist[songIndex].local){
-	  										queue.push({
-	  											title: playlist[songIndex].title,
-	  											file: playlist[songIndex].file,
-	  											local: true
-	  										});
-	  									} else{
-											var songURL = playlist[songIndex].url;
-											var title = playlist[songIndex].title;
-											var id = playlist[songIndex].id;
-											var file = tempFilesPath + id + '.mp3';
-
-											queue.push({
-												title: title,
-												url: songURL,
-												id: id,
-												file: file,
-												local: false
-											});
-
-											yt.getFile(songURL, file, ()=>{
-												if(songIndex === 0){
-			  										message.channel.send("**Playing:** " + playlist[songIndex].title)
-			  									}
-											});
-	  									}
-	  								}
-
-	  								if(!playing && queue.length > 0){
-	  									currentVoiceChannel.join().then( connection =>{
-	  										setTimeout(()=>{
-	  											play(connection, message);
-	  										},1500);
-	  									});
-	  								} else if(playing){
-	  									message.channel.send("Loaded `" + files[i].split('.')[0] + '` to queue');
-	  								}
-	  							}
-	  						}
-	  					}
-  					}
-  				}
 
   				if(param.toLowerCase() === 'save'){
   					if(message.content.indexOf(' ', message.content.indexOf('save')) !== -1){
