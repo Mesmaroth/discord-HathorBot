@@ -1077,8 +1077,14 @@ bot.on('message', message => {
 
   					for(var i = 0; i < files.length; i++){
   						if((i+1) === param){
-  							var playlist = require(playlistPath+files[i]);
-  							var playlistTitle = files[i].split('.')[0];							
+  							try{
+								var playlist = fs.readFileSync(path.join(playlistPath, files[i]));
+								var playlist = JSON.parse(playlist);
+  							}catch(error){
+  								if(error) return sendError("Reading Playlist File", error, message.channel);
+  							}
+  							
+  							var playlistTitle = files[i].split('.')[0];
 							var songs = [];
 
 							for(var i = 0; i < playlist.length; i++){
