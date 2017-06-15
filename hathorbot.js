@@ -1123,7 +1123,7 @@ bot.on('message', message => {
   							}
   						}
   						
-  						fs.writeFile(playlistPath + playlistName + '.json', JSON.stringify(playlist, null, '\t'), error =>{
+  						fs.writeFile(path.join(playlistPath, playlistName + '.json'), JSON.stringify(playlist, null, '\t'), error =>{
   							if(error) return sendError("Writing Playlist File", error, message.channel);
   							message.channel.send("Playlist `" + playlistName + '` saved');
   						});
@@ -1162,6 +1162,9 @@ bot.on('message', message => {
   				
   				if(files.length > 0)
   					message.channel.send("**Playlist**\n" + files.join("\n"));
+  				else {
+  					message.channel.send("No Playlist saved");
+  				}
   			});
   		}
   	}
