@@ -539,6 +539,7 @@ bot.on('message', message => {
 					"`" + initCommand+ "play [YT_URL]`: Plays a song from a youtube link\n" +
 					"`" + initCommand+ "play [index_number]`: Plays a song from a file that has been saved to the bot\n" +
 					"`" + initCommand+ "play [search key term]`: Plays the first result of youtube search\n" +
+					"`" + initCommand+ "play [playlist name or index]`: Queues and plays all songs in a playlist\n" +
 					"`" + initCommand+ "play`: Plays song in queue if it has been stopped\n" +
 					"`" + initCommand+ "stop`: Stops the song\n" +
 					"`" + initCommand+ "skip`: To skip the curr song\n" +
@@ -822,26 +823,75 @@ bot.on('message', message => {
 						message.channel.send("No local song found with that index.");
 					});
 				} else{
-					//	Play Youtube by search
-					var ytSong = message.content.slice(message.content.indexOf(' ') + 1);
-					yt.search(ytSong, (error, searchResults) =>{
-						if(error) return sendError("Youtube Search", error, message.channel);
-						var id, title, songURL;
+					input = message.content.split(' ');
+					input.shift();
 
-						if(searchResults.length > 0){
-							id = searchResults[0].id;
-							title = searchResults[0].title;
-							songURL = searchResults[0].url;
-						} else{
-							message.channel.send("Couldn't find what you were looking for");
-							return;
-						}
-						var file = path.join(tempFilesPath, id + '.mp3' );
-						
-						yt.getFile(songURL, file, () =>{
-							pushPlay(title, file, false, id, songURL);
+					// Playing a playlist
+					if(input[0] === 'playlist'){
+						var pl = input[1];
+						fs.readdir(playlistPath, (error, files) =>{
+							if(error) return sendError("Reading Playlist Path", error, message.channel);
+
+							if(isNumber(pl)){
+								pl = Number(pl);
+							} else
+								pl = pl.toLowerCase();
+
+							for(var i = 0; i < files.length; i++){
+								if((i+1) === pl || files[i].split('.')[0].toLowerCase() === pl){
+									try{
+										var playlist = fs.readFileSync(path.join(playlistPath, files[i]));
+										playlist = JSON.parse(playlist);
+									}catch(error){
+										if(error) return sendError("Parsing Playlist File", error, message.channel);											
+									}
+
+									for(var x = 0 ; x < playlist.length; x++){
+										var title = playlist[x].title;
+										var URL = playlist[x].url;
+										var id = playlist[x].id;
+										var local = playlist[x].local;
+
+										if(playlist[x].local){
+											var file = playlist[x].file;
+											pushPlay(title, file, true);
+										} else{
+											yt.getInfo(URL, (error, rawData, id, title, length_seconds) =>{
+												if(error) return sendError("Getting Youtube Info", error, message.channel);
+												var file = path.join(tempFilesPath, id + '.mp3');
+
+												yt.getFile(URL, file, ()=>{
+													pushPlay(title, file, false, id, URL);
+												});
+											});
+										}
+									}
+									return;
+								}
+							}
 						});
-					});
+					}else{
+						input = input.join();
+						//	Play Youtube by search
+						yt.search(input, (error, searchResults) =>{
+							if(error) return sendError("Youtube Search", error, message.channel);
+							var id, title, songURL;
+
+							if(searchResults.length > 0){
+								id = searchResults[0].id;
+								title = searchResults[0].title;
+								songURL = searchResults[0].url;
+							} else{
+								message.channel.send("Couldn't find what you were looking for");
+								return;
+							}
+							var file = path.join(tempFilesPath, id + '.mp3' );
+							
+							yt.getFile(songURL, file, () =>{
+								pushPlay(title, file, false, id, songURL);
+							});
+						});
+					}						
 				}
 			}
   		} else{
