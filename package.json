@@ -1,6 +1,6 @@
 {
   "name": "discord-hathorbot",
-  "version": "2.2.2",
+  "version": "2.3.0",
   "description": "Discord music bot",
   "main": "apollobot.js",
   "dependencies": {
