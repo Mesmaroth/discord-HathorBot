@@ -2,6 +2,7 @@ const Discord = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const request = require('request');
+const async = require('async');
 const bot = new Discord.Client();
 const botLogin = require(path.join(__dirname, 'config/botLogin.js'));
 const yt = require(path.join(__dirname, 'modules/youtube.js'));
