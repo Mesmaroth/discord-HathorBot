@@ -680,7 +680,7 @@ bot.on('message', message => {
 			}
 		}
 
-		function pushPlay(title, fPath, local, id, URL){
+		function pushPlay(title, fPath, local, id, URL, notify){
 			if(id && URL){				
 				queue.push({
 			 		title: title,
@@ -705,7 +705,8 @@ bot.on('message', message => {
 					play(connection, message);
 				});
 		 	} else{
-		 		message.channel.send("**Added to Queue:**\n" + title);
+		 		if(notify)
+		 			message.channel.send("**Added to Queue:**\n" + title);
 		 	}
 		}
 
