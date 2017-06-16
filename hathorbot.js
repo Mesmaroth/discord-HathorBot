@@ -839,7 +839,9 @@ bot.on('message', message => {
 							} else
 								pl = pl.toLowerCase();
 
-							for(var i = 0; i < files.length; i++){
+							message.channel.send("Loading songs into queue...");
+
+							for(var i = 0; i < files.length;){
 								if((i+1) === pl || files[i].split('.')[0].toLowerCase() === pl){
 									try{
 										var playlist = fs.readFileSync(path.join(playlistPath, files[i]));
@@ -847,15 +849,15 @@ bot.on('message', message => {
 									}catch(error){
 										if(error) return sendError("Parsing Playlist File", error, message.channel);											
 									}
+									
+									async.each(playlist, file =>{
+										var title = file.title;
+										var URL = file.url;
+										var id = file.id;
+										var local = file.local;										
 
-									for(var x = 0 ; x < playlist.length; x++){
-										var title = playlist[x].title;
-										var URL = playlist[x].url;
-										var id = playlist[x].id;
-										var local = playlist[x].local;
-
-										if(playlist[x].local){
-											var file = playlist[x].file;
+										if(file.local){
+											var file = file.file;
 											pushPlay(title, file, true);
 										} else{
 											yt.getInfo(URL, (error, rawData, id, title, length_seconds) =>{
@@ -863,14 +865,20 @@ bot.on('message', message => {
 												var file = path.join(tempFilesPath, id + '.mp3');
 
 												yt.getFile(URL, file, ()=>{
-													pushPlay(title, file, false, id, URL);
+													pushPlay(title, file, false, id, URL, false);
 												});
 											});
 										}
-									}
+									}, err =>{
+										if(err) return sendError("Iterating Playlist Files");
+									})
 									return;
 								}
 							}
+
+
+
+
 						});
 					}else{
 						input = input.join();
