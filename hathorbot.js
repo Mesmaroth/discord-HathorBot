@@ -1155,17 +1155,29 @@ bot.on('message', message => {
   					}
   				});
   			} else{
-  				if(currentVoiceChannel !== message.member.voiceChannel){
-		  			message.channel.send("Not in the bot's voice channel");
-		  			return;
+  				if(currentVoiceChannel !== message.member.voiceChannel || currentVoiceChannel){
+  					if(!playing){
+		  				if(message.member.voiceChannel){
+		  					message.member.voiceChannel.join();
+		  				 	currentVoiceChannel = message.member.voiceChannel;
+		  				} else{
+		  					return message.channel.send("Not in a voice channel.");
+		  				}
+		  			} else{
+		  				return message.channel.send("Bot is currently playing something, please join the channel and retry this command.");
+		  			}
 		  		}
 
   				if(param.toLowerCase() === 'save'){
-  					if(message.content.indexOf(' ', message.content.indexOf('save')) !== -1){
+  					if(message.content.indexOf(' ', message.content.indexOf('save')) !== -1){  						
   						var playlistName = message.content.split(' ');
   						playlistName.splice(0,2);
   						playlistName = playlistName.join(' ');
   						var playlist = [];
+
+  						if(queue.length === 0)
+  							return message.channel.send("No songs in queue to save from");
+
   						for(var i = 0; i < queue.length; i++){
   							if(queue[i].local){
   								playlist.push({
@@ -1188,7 +1200,6 @@ bot.on('message', message => {
   							message.channel.send("Playlist `" + playlistName + '` saved');
   						});
   					}
-
   				}
 
   				if(param.toLowerCase() === 'remove'){
@@ -1205,8 +1216,10 @@ bot.on('message', message => {
   										if(error) return sendError("Unlinking Playlist File", error, message.channel);
   										message.channel.send("Playlist `" + title + "` removed");
   									});
+  									return;
   								}
   							}
+  							message.channel.send("No playlist found");
   						});
   					}
   				}
