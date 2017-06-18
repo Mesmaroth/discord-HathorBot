@@ -229,6 +229,20 @@ function getInvite(callback){
 	});
 }
 
+function clearTemp(){
+	fs.readdir(tempFilesPath, (error, files) =>{
+		if(files.length > 0){
+			async.each(files, (file, callback) =>{
+				fs.unlinkSync(path.join(tempFilesPath, file));
+				callback();
+			}, ()=>{
+				console.log("Temp Folder cleared");
+			});			
+		}
+	});
+	
+}
+
 bot.on('ready', () => {
 	console.log("HathorBot V" + botVersion)
 	console.log(bot.user.username + " (" + bot.user.id + ")");
@@ -248,11 +262,14 @@ bot.on('ready', () => {
 	setGame(defualtGame);
 
 	// If this bot isn't connected to any servers, then display a invite link in console 
-	if(bot.guilds.array().length === 0){
+	if(bot.guilds.size === 0){
 		getInvite(link =>{
 			console.log("Invite this bot to your server using this link:\n"  + link);
 		});
+		console.log();
 	}
+
+	clearTemp();
 });
 
 bot.on('disconnect', (event) =>{
