@@ -41,7 +41,7 @@ var initCommand = botPreference.initcommand;
 var defualtGame = "v" + botVersion + " | " + initCommand + "help";	
 
 // The object voice channel the bot is in
-var currentVoiceChannel;
+var currentVoiceChannel = null;
 
 // Playback
 var queue = [];
@@ -845,7 +845,7 @@ bot.on('message', message => {
 					input.shift();
 
 					// Playing a playlist
-					if(input[0] === 'playlist'){
+					if(input[0] === 'playlist' || input[0] === 'pl'){
 						var pl = input[1];
 						fs.readdir(playlistPath, (error, files) =>{
 							if(error) return sendError("Reading Playlist Path", error, message.channel);
@@ -855,46 +855,80 @@ bot.on('message', message => {
 							} else
 								pl = pl.toLowerCase();
 
-							message.channel.send("Loading songs into queue...");
-
-							for(var i = 0; i < files.length;){
-								if((i+1) === pl || files[i].split('.')[0].toLowerCase() === pl){
+							var count = 1;
+							async.eachOf(files, (file, index, callback)=>{
+								if((index+1) === pl || files[index].split('.')[0].toLowerCase() === pl){
 									try{
-										var playlist = fs.readFileSync(path.join(playlistPath, files[i]));
+										var playlist = fs.readFileSync(path.join(playlistPath, files[index]));
 										playlist = JSON.parse(playlist);
 									}catch(error){
 										if(error) return sendError("Parsing Playlist File", error, message.channel);											
 									}
-									
-									async.each(playlist, file =>{
-										var title = file.title;
-										var URL = file.url;
-										var id = file.id;
-										var local = file.local;										
 
-										if(file.local){
-											var file = file.file;
-											pushPlay(title, file, true);
+									message.channel.send("Loading `" + file.split('.')[0] + "` playlist onto queue.");
+									
+									async.eachSeries(playlist, (song, callback) =>{
+										var title = song.title;
+										var URL = song.url;
+										var id = song.id;
+										var local = song.local;										
+
+										if(song.local){
+											queue.push({
+												title: title,
+												file: song.file,
+												local: true
+											});
+
+											if(queue.length === 1){
+												if(!playing){
+											 		message.channel.send("**Playing:** " + title);
+											 		currentVoiceChannel.join().then( connection => {
+														voiceConnection = connection;
+														play(connection, message);
+													});
+											 	}
+											}
 										} else{
 											yt.getInfo(URL, (error, rawData, id, title, length_seconds) =>{
-												if(error) return sendError("Getting Youtube Info", error, message.channel);
-												var file = path.join(tempFilesPath, id + '.mp3');
+												if(error) return callback(error);
+												var filePath = path.join(tempFilesPath, id + '.mp3');
 
-												yt.getFile(URL, file, ()=>{
-													pushPlay(title, file, false, id, URL, false);
+												yt.getFile(URL, filePath, ()=>{
+													queue.push({
+														title: title, 
+														file: filePath, 
+														id: id,
+														url: URL,
+														local: false
+													});
+
+													if(queue.length === 1){
+														if(!playing){
+													 		message.channel.send("**Playing:** " + title);
+													 		currentVoiceChannel.join().then( connection => {
+																voiceConnection = connection;
+																play(connection, message);
+															});
+													 	}
+													}
+													callback(null);
 												});
 											});
 										}
 									}, err =>{
-										if(err) return sendError("Iterating Playlist Files");
-									})
-									return;
+										if(err) return sendError("Getting Youtube Info", err, message.channel);
+										message.channel.send("`" + file.split('.')[0] + "` playlist finished loading to queue");							
+									});
+								} else
+									count++;
+
+								if(count === files.length){
+									callback("No playlist found");
 								}
-							}
-
-
-
-
+							}, err=>{
+								if(err) message.channel.send(err);
+							});
 						});
 					}else{
 						input = input.join();
