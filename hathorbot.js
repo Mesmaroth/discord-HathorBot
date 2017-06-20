@@ -120,11 +120,12 @@ function removeTempFiles(){
 	fs.readdir(tempFilesPath, (error, files) =>{
 		if(error) return sendError("Reading Temp Path", error, message.channel);
 
-		for(var i = 0 ; i < files.length; i++){
-			fs.unlink(tempFilesPath + '/' + files[i], error =>{
-				if(error) return console.error(error.message);
+		async.each(files, (file, callback) =>{
+			fs.unlink(path.join(tempFilesPath, file), error =>{
+				if(error) return callback(error);
+				callback(null);
 			});
-		}
+		});
 	});
 }
 
@@ -854,8 +855,7 @@ bot.on('message', message => {
 								pl = Number(pl);
 							} else
 								pl = pl.toLowerCase();
-
-							var count = 1;
+								
 							async.eachOf(files, (file, index, callback)=>{
 								if((index+1) === pl || files[index].split('.')[0].toLowerCase() === pl){
 									try{
@@ -912,19 +912,14 @@ bot.on('message', message => {
 															});
 													 	}
 													}
-													callback(null);
 												});
 											});
 										}
+										callback(null);
 									}, err =>{
 										if(err) return sendError("Getting Youtube Info", err, message.channel);
 										message.channel.send("`" + file.split('.')[0] + "` playlist finished loading to queue");							
 									});
-								} else
-									count++;
-
-								if(count === files.length){
-									callback("No playlist found");
 								}
 							}, err=>{
 								if(err) message.channel.send(err);
