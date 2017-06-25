@@ -259,6 +259,15 @@ function clearTemp(){
 	
 }
 
+function isYTLink(input){
+	/* YT REGEX : https://stackoverflow.com/questions/3717115/regular-expression-for-youtube-links
+	*	by Adrei Zisu
+	*/
+	var YT_REG = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/
+
+	return YT_REG.test(input);
+}
+
 bot.on('ready', () => {
 	console.log("HathorBot V" + botVersion)
 	console.log(bot.user.username + " (" + bot.user.id + ")");
@@ -780,13 +789,7 @@ bot.on('message', message => {
 		} else if(message.content.indexOf(' ') !== -1){			
 			var input = message.content.split(' ')[1];
 			var qUrl = URL.parse(input, true);
-
-  			/* YT REGEX : https://stackoverflow.com/questions/3717115/regular-expression-for-youtube-links
-			*	by Adrei Zisu
-			*/
-			var YT_REG = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/
-
-			var isLink = YT_REG.test(input);
+			var isLink = isYTLink(input);
 
 			if(stopped){
 				stopped = false;
