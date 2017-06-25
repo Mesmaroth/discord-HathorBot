@@ -1290,6 +1290,71 @@ bot.on('message', message => {
   					}
   				}
 
+  				if(param.toLowerCase() === 'add'){
+  					if(message.content.indexOf(' ', message.content.indexOf('add')) !== -1){
+  						var playListIndex = message.content.split(' ')[2];
+  						var link = message.content.split(' ')[3];
+
+  						if(isNumber(playListIndex)){
+  							playListIndex = Number(playListIndex);
+  							if(link){
+  								if(!isYTLink(link)){
+  									message.channel.send("You did not enter a valid youtube url");
+  									return;
+  								}
+
+  								fs.readdir(playlistPath, (err, files) =>{
+  									if(err) return sendError("Reading Directory", err, message.channel);
+  									async.eachOf(files, (file, index) =>{
+  										if((index + 1) === playListIndex){
+  											fs.readFile(path.join(playlistPath, file), (err, pl) =>{
+  												if(err) return sendError("Reading File", err, message.channel);
+  												try{
+  													pl = JSON.parse(pl);
+  												} catch(err){
+  													if(err) return sendError("Parsing File", err, message.channel);
+  												}
+
+  												yt.getInfo(link, (error, rawData, id, title) =>{
+
+  													async.each(pl, (song, callback) =>{
+	  													if(song.id === id || song.url === link || song.title === title){
+	  														callback(new Error("Already in playlist"));
+	  													} else {
+	  														callback(null);
+	  													}
+	  												}, err =>{
+	  													if(err) return sendError(err, err, message.channel);
+	  													
+	  													pl.push({
+	  														title: title, 
+	  														id: id,
+	  														url: link, 
+	  														local: false
+	  													});
+
+	  													fs.writeFile(path.join(playlistPath, file), JSON.stringify(pl, null, '\t'), err =>{
+	  														if(err) return sendError("Writing Playlist File", err, message.channel);
+
+	  														message.channel.send("*" + title +"*\n has been added to `" + file.split('.')[0] + "` playlist");
+	  													});
+	  												});
+
+	  													
+  												});
+
+  											});
+  										}
+  									});
+  								});
+  							}else {
+  								message.channel.send("No URL provided please try again");
+  							}
+   						} else{
+  							message.channel.send("No index specified. Try again");
+  						}
+  					}
+  				}
 
   			}
   		} else {
