@@ -3,37 +3,44 @@ const fs = require('fs');
 const path = require('path');
 const request = require('request');
 const async = require('async');
-const bot = new Discord.Client();
-const botLogin = require(path.join(__dirname, 'config/botLogin.js'));
-const yt = require(path.join(__dirname, 'modules/youtube.js'));
 const URL = require('url');
+const bot = new Discord.Client();
 
 const localPath = path.join(__dirname, 'local');
 const playlistPath = path.join(__dirname, 'playlist');
 const tempFilesPath = path.join(__dirname, 'tempFiles');
-const botPreferenceFile = path.join(__dirname, 'config/preference.json');
-const logsPath = path.resolve(__dirname, 'logs');
+const logsPath = path.join(__dirname, 'logs');
+const configPath = path.join(__dirname, 'config');
+const modulesPath = path.join(__dirname, 'modules');
+
+const botLogin = require(path.join(configPath, 'botLogin.js'));
+const yt = require(path.join(modulesPath, 'youtube.js'));
+const botPreferenceFile = path.join(configPath, 'preference.json');
 
 try{
 	var botVersion = require(path.join(__dirname, 'package.json')).version;	
-	var botPreference = JSON.parse(fs.readFileSync(botPreferenceFile));
-
-	var paths = [localPath, playlistPath, tempFilesPath, logsPath];
-
-	for(var i = 0; i < paths.length; i++){
-		if(!fs.existsSync(paths[i])){
-			fs.mkdirSync(paths[i])
-		}
-	}
-
+	
 }catch(error) {
 	if(error) {
-		console.log("-----"  + "ERROR"+ "------");
 		console.log(error);
-		console.log("----------");
 		return;
 	}
 	var botVersion = "#?";
+}
+
+try{	
+	var botPreference = JSON.parse(fs.readFileSync(botPreferenceFile));
+}
+catch(err){
+	if(err) console.log(err);
+	var defualt = {
+		initCommand: ".", 
+		adminGroups: "admin"
+	}
+
+	fs.writeFile(botPreferenceFile, JSON.stringify(defualt, null, '\t'), err =>{
+		if(err) console.loge(err);
+	});
 }
 
 var adminRoles = botPreference.admingroups;
@@ -51,6 +58,14 @@ var playing = false;
 var stopped = false;
 var stayOnQueue = false;
 var looping = false;
+
+// Check existence of folders
+var paths = [localPath, playlistPath, tempFilesPath, logsPath];
+for(var i = 0; i < paths.length; i++){
+	if(!fs.existsSync(paths[i])){
+		fs.mkdirSync(paths[i])
+	}
+}
 
 // Prints errors to console and also reports error to user
 function sendError(title, error, channel){
