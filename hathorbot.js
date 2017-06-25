@@ -940,7 +940,7 @@ bot.on('message', message => {
 									});
 								}
 							}, err=>{
-								if(err) message.channel.send(err);
+								if(err) return sendError(err, err, message.channel);
 							});
 						});
 					}else{
@@ -1192,6 +1192,21 @@ bot.on('message', message => {
   		if(message.content.indexOf(' ') !== -1){
   			var param = message.content.split(' ')[1];
 
+  			function checkVC(){
+  				if(currentVoiceChannel !== message.member.voiceChannel || currentVoiceChannel){
+  					if(!playing){
+		  				if(message.member.voiceChannel){
+		  					message.member.voiceChannel.join();
+		  				 	currentVoiceChannel = message.member.voiceChannel;
+		  				} else{
+		  					return message.channel.send("Not in a voice channel.");
+		  				}
+		  			} else{
+		  				return message.channel.send("Bot is currently playing something, please join the channel and retry this command.");
+		  			}
+		  		}
+  			}
+
   			if(isNumber(param)){
   				param = Number(param);
   				fs.readdir(playlistPath, (error, files) => {
@@ -1218,20 +1233,8 @@ bot.on('message', message => {
   					}
   				});
   			} else{
-  				if(currentVoiceChannel !== message.member.voiceChannel || currentVoiceChannel){
-  					if(!playing){
-		  				if(message.member.voiceChannel){
-		  					message.member.voiceChannel.join();
-		  				 	currentVoiceChannel = message.member.voiceChannel;
-		  				} else{
-		  					return message.channel.send("Not in a voice channel.");
-		  				}
-		  			} else{
-		  				return message.channel.send("Bot is currently playing something, please join the channel and retry this command.");
-		  			}
-		  		}
-
   				if(param.toLowerCase() === 'save'){
+  					checkVC();
   					if(message.content.indexOf(' ', message.content.indexOf('save')) !== -1){  						
   						var playlistName = message.content.split(' ');
   						playlistName.splice(0,2);
