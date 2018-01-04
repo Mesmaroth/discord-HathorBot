@@ -34,7 +34,7 @@ try{
 catch(err){
 	if(err) console.log(err);
 	var defualt = {
-		initCommand: ".", 
+		initcmd: ".", 
 		adminGroups: "admin"
 	}
 
@@ -44,8 +44,8 @@ catch(err){
 }
 
 var adminRoles = botPreference.admingroups;
-var initCommand = botPreference.initcommand;
-var defualtGame = "v" + botVersion + " | " + initCommand + "help";	
+var initcmd = botPreference.initcmd;
+var defualtGame = "v" + botVersion + " | " + initcmd + "help";	
 
 // The object voice channel the bot is in
 var currentVoiceChannel = null;
@@ -84,7 +84,7 @@ function isNumber(obj) {
 function isCommand(message, command){
 	var init = message.slice(0,1);
 	var keyword = (message.indexOf(' ') !== -1) ? message.slice(1, message.indexOf(' ')) : message.slice(1);
-	if(init === initCommand && keyword.toLowerCase() === command.toLowerCase() ){
+	if(init === initcmd && keyword.toLowerCase() === command.toLowerCase() ){
 		return true;
 	}
 	return false;
@@ -343,7 +343,7 @@ bot.on('message', message => {
   		if(message.content.indexOf(' ') !== -1){
   			var init = message.content.split(' ')[1];
 
-  			initCommand = init;
+  			initcmd = init;
 
   			fs.readFile(botPreferenceFile, (error, file) => {
   				if(error) return sendError("Reading Preference File", error, message.channel);
@@ -354,7 +354,7 @@ bot.on('message', message => {
   					if(error) return sendError("Parsing Preference File", error, message.channel);
   				}
 
-  				file.initcommand = init;
+  				file.initcmd = init;
 
   				fs.writeFile(botPreferenceFile, JSON.stringify(file, null, '\t'), error =>{
   					if(error) return sendError("Writing Preference File");
@@ -569,35 +569,35 @@ bot.on('message', message => {
   			embed: {
   				color: 1752220,
   				description: "**Admin Commands**\n" +
-					"`" + initCommand+ "setinit`: set initializer command to run commands\n" + 
-					"`" + initCommand+ "addgroup`: add a group to enable admin commands for that group\n" +
+					"`" + initcmd+ "setinit`: set initializer command to run commands\n" + 
+					"`" + initcmd+ "addgroup`: add a group to enable admin commands for that group\n" +
 					"\n**General**\n" +
-					"`" + initCommand+ "about`: About this bot\n" +
-					"`" + initCommand+ "source`: Source link\n" +
-					"`" + initCommand+ "invite`: Get invite link to your bot\n" + 
-					"`" + initCommand+ "setVC`: Set the defualt channel your bot joins when ever the bot connects\n" + 
-					"`" + initCommand+ "join`: Bot will attempt to join your channel\n" +
+					"`" + initcmd+ "about`: About this bot\n" +
+					"`" + initcmd+ "source`: Source link\n" +
+					"`" + initcmd+ "invite`: Get invite link to your bot\n" + 
+					"`" + initcmd+ "setVC`: Set the defualt channel your bot joins when ever the bot connects\n" + 
+					"`" + initcmd+ "join`: Bot will attempt to join your channel\n" +
 					"\n**Music**\n" + 
-					"`" + initCommand+ "queue`: To view all songs in queue\n" +
-					"`" + initCommand+ "play [YT_URL]`: Plays a song from a youtube link\n" +
-					"`" + initCommand+ "play [index_number]`: Plays a song from a file that has been saved to the bot\n" +
-					"`" + initCommand+ "play [search key term]`: Plays the first result of youtube search\n" +
-					"`" + initCommand+ "play [playlist name or index]`: Queues and plays all songs in a playlist\n" +
-					"`" + initCommand+ "play`: Plays song in queue if it has been stopped\n" +
-					"`" + initCommand+ "stop`: Stops the song\n" +
-					"`" + initCommand+ "skip`: To skip the curr song\n" +
-					"`" + initCommand+ "replay`: Stops and replays song from the start\n" +
-					"`" + initCommand+ "local`: Displays all the songs saved by the bot\n" +
-					"`" + initCommand+ "remove [index_number]`: Removes a specific song from queue\n" +
-					"`" + initCommand+ "remove [#,#,#]`: Removes specific numbers seperated by commans in the queue\n" +
-					"`" + initCommand+ "save [YT_URL]`: Saves a song from youtube and stores it\n" +
-					"`" + initCommand+ "save`: Saves current song that's playing\n" +
-					"`" + initCommand+ "remlocal [index_number]`: Removes a song that has been saved locally\n" +
-					"`" + initCommand+ "readd`: Re-adds the currently playing song at the bottom of the queue\n" +
-					"`" + initCommand+ "playlist`: List all playlist\n" + 
-					"`" + initCommand+ "playlist [index_number]`: List all songs of the playlist\n" + 
-					"`" + initCommand+ "playlist save [PLAYLIST_NAME]`: Saves playlist\n" +
-					"`" + initCommand+ "playlist remove [index_number]`: Removes the playlist\n"
+					"`" + initcmd+ "queue`: To view all songs in queue\n" +
+					"`" + initcmd+ "play [YT_URL]`: Plays a song from a youtube link\n" +
+					"`" + initcmd+ "play [index_number]`: Plays a song from a file that has been saved to the bot\n" +
+					"`" + initcmd+ "play [search key term]`: Plays the first result of youtube search\n" +
+					"`" + initcmd+ "play [playlist name or index]`: Queues and plays all songs in a playlist\n" +
+					"`" + initcmd+ "play`: Plays song in queue if it has been stopped\n" +
+					"`" + initcmd+ "stop`: Stops the song\n" +
+					"`" + initcmd+ "skip`: To skip the curr song\n" +
+					"`" + initcmd+ "replay`: Stops and replays song from the start\n" +
+					"`" + initcmd+ "local`: Displays all the songs saved by the bot\n" +
+					"`" + initcmd+ "remove [index_number]`: Removes a specific song from queue\n" +
+					"`" + initcmd+ "remove [#,#,#]`: Removes specific numbers seperated by commans in the queue\n" +
+					"`" + initcmd+ "save [YT_URL]`: Saves a song from youtube and stores it\n" +
+					"`" + initcmd+ "save`: Saves current song that's playing\n" +
+					"`" + initcmd+ "remlocal [index_number]`: Removes a song that has been saved locally\n" +
+					"`" + initcmd+ "readd`: Re-adds the currently playing song at the bottom of the queue\n" +
+					"`" + initcmd+ "playlist`: List all playlist\n" + 
+					"`" + initcmd+ "playlist [index_number]`: List all songs of the playlist\n" + 
+					"`" + initcmd+ "playlist save [PLAYLIST_NAME]`: Saves playlist\n" +
+					"`" + initcmd+ "playlist remove [index_number]`: Removes the playlist\n"
   			}
   		});
   	}
