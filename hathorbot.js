@@ -587,6 +587,7 @@ bot.on('message', message => {
 					"`" + initcmd+ "stop`: Stops the song\n" +
 					"`" + initcmd+ "skip`: To skip the curr song\n" +
 					"`" + initcmd+ "replay`: Stops and replays song from the start\n" +
+					"`" + initcmd+ "loop`: Loops the entire queue over and over, execute command to turn off" +
 					"`" + initcmd+ "local`: Displays all the songs saved by the bot\n" +
 					"`" + initcmd+ "remove [index_number]`: Removes a specific song from queue\n" +
 					"`" + initcmd+ "remove [#,#,#]`: Removes specific numbers seperated by commans in the queue\n" +
