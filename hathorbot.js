@@ -1247,14 +1247,27 @@ bot.on('message', message => {
   								});
   							}
   						}
-  						
-  						fs.writeFile(path.join(playlistPath, playlistName + '.json'), JSON.stringify(playlist, null, '\t'), error =>{
-  							if(error) return sendError("Writing Playlist File", error, message.channel);
-  							message.channel.send("Playlist `" + playlistName + '` saved');
-  						});
+
+  						fs.readdir(playlistPath, (error, files) =>{
+  							if(error) return sendError("Readding Playlist Path", error, message.channel);
+
+  							for(var i = 0; i < files.length; i++){
+  								var fileName = files[i].split('.')[0];
+  								if(fileName.toLowerCase() === playlistName.toLowerCase()){
+  									message.channel.send("There is a playlist with this name already");
+  									return;
+  								}
+  							}
+
+  							fs.writeFile(path.join(playlistPath, playlistName + '.json'), JSON.stringify(playlist, null, '\t'), error =>{
+	  							if(error) return sendError("Writing Playlist File", error, message.channel);
+	  							message.channel.send("Playlist `" + playlistName + '` saved');
+	  						});
+  						});  						
   					}
+  					return;
   				}
-  				
+
   				if(param.toLowerCase() === 'remove'){
   					if(message.content.indexOf(' ', message.content.indexOf('remove')) !== -1){
   						var playlistIndex = message.content.split(' ')[2];
