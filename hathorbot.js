@@ -1301,6 +1301,10 @@ bot.on('message', message => {
 
   												var titleTrack = file[trackIndex-1].title;
   												file.splice(trackIndex - 1, 1);
+  												if(file.length === 0){
+  													message.channel.send("Please consider removing the playlist instead.");
+  													return;
+  												}
   												fs.writeFile(path.join(playlistPath, playlistFile), JSON.stringify(file, null, '\t'), error =>{
   													if(error) return sendError("Writing to Playlist File", error, message.channel);
   													message.channel.send('**Playlist**\nTrack `' + titleTrack +  '` has been remove from `' + playlistFileName + '` playlist')
@@ -1331,6 +1335,7 @@ bot.on('message', message => {
   							message.channel.send("No playlist found");
   						});
   					}
+  					return;
   				}
 
   				if(param.toLowerCase() === 'add'){
@@ -1397,8 +1402,8 @@ bot.on('message', message => {
   							message.channel.send("No index specified. Try again");
   						}
   					}
+  					return;
   				}
-
   			}
   		} else {
   			fs.readdir(playlistPath, (error, files) =>{
