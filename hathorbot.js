@@ -1270,18 +1270,61 @@ bot.on('message', message => {
   						});
   					}
   				}
-
+  				
   				if(param.toLowerCase() === 'remove'){
   					if(message.content.indexOf(' ', message.content.indexOf('remove')) !== -1){
   						var playlistIndex = message.content.split(' ')[2];
-  						playlistIndex = Number(playlistIndex);
+  						var trackIndex = message.content.split(' ')[3];
+  						
+  						if(!isNumber(playlistIndex)){
+  							message.channel.send('Please enter a playlist index number')
+  							return;
+  						} else playlistIndex = Number(playlistIndex);
+
+  						if(trackIndex){
+  							if(isNumber(trackIndex)){
+  								trackIndex = Number(trackIndex);
+  								fs.readdir(playlistPath, (error, files) =>{
+  									if(error) return sendError("Reading Playlist Path", error, message.channel);
+  									for(var i = 0; i < files.length; i++){
+  										if((i+1) === playlistIndex){  											
+  											var playlistFile = files[i];
+  											var playlistFileName = files[i].split('.')[0];
+
+  											fs.readFile(path.join(playlistPath, playlistFile), (error, file)=>{
+  												try{
+  													file = JSON.parse(file);  													
+  												} catch(error){
+  													if(error) return sendError("Parsing Playlist File", error, message.channel);  													
+  												}
+
+  												if(trackIndex > file.length || trackIndex <= 0){
+  													return message.channel.send('Please enter a correct index track number')
+  												}
+
+  												var titleTrack = file[trackIndex-1].title;
+  												file.splice(trackIndex - 1, 1);
+  												fs.writeFile(path.join(playlistPath, playlistFile), JSON.stringify(file, null, '\t'), error =>{
+  													if(error) return sendError("Writing to Playlist File", error, message.channel);
+  													message.channel.send('**Playlist**\nTrack `' + titleTrack +  '` has been remove from `' + playlistFileName + '` playlist')
+  												});
+  											});
+  										}
+  									}
+  								});
+  							} else{
+  								message.channel.send('Please enter a track index number in a playlist');
+  								return;
+  							}
+  							return;
+  						}					
 
   						fs.readdir(playlistPath, (error, files) => {
   							if(error) return sendError("Reading Playlist Path", error, message.channel);
   							for(var i = 0; i < files.length; i++){
   								if((i+1) === playlistIndex){
   									var title = files[i].split('.')[0];
-  									fs.unlink(playlistPath + files[i], error =>{
+  									fs.unlink(path.join(playlistPath, files[i]), error =>{
   										if(error) return sendError("Unlinking Playlist File", error, message.channel);
   										message.channel.send("Playlist `" + title + "` removed");
   									});
