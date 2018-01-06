@@ -335,11 +335,9 @@ bot.on('message', message => {
   		if(currentVoiceChannel)
   			currentVoiceChannel.leave();
   		bot.destroy();
-  	}
+  	}		
 
-	// Admin commands  	
-
-  	if(isCommand(message.content, 'setinit') && isAdmin(message)){
+  	if(isCommand(message.content, 'setinit') && isOwner(message)){
   		if(message.content.indexOf(' ') !== -1){
   			var init = message.content.split(' ')[1];
 
@@ -364,6 +362,8 @@ bot.on('message', message => {
   			});
   		}
   	}
+
+  	// Admin commands
 
   	
   	if(isCommand(message.content, 'addgroup') && isAdmin(message)){
@@ -574,33 +574,34 @@ bot.on('message', message => {
 					"\n**General**\n" +
 					"`" + initcmd+ "about`: About this bot\n" +
 					"`" + initcmd+ "source`: Source link\n" +
+					"`" + initcmd+ "uptime`: How long the bot has been up\n" +
 					"`" + initcmd+ "invite`: Get invite link to your bot\n" + 
-					"`" + initcmd+ "setVC`: Set the defualt channel your bot joins when ever the bot connects\n" + 
+					"`" + initcmd+ "setvc`: Set the defualt channel your bot joins when ever the bot connects\n" + 
 					"`" + initcmd+ "join`: Bot will attempt to join your channel\n" +
 					"\n**Music**\n" + 
-					"`" + initcmd + "queue`: To view all songs in queue\n" +
+					"`" + initcmd + "queue` or `playing`: To view all songs in queue\n" +
 					"`" + initcmd + "play [YT_URL]`: Plays a song from a youtube link\n" +
 					"`" + initcmd + "play [index_number]`: Plays a song from a file that has been saved to the bot\n" +
 					"`" + initcmd + "play [search key term]`: Plays the first result of youtube search\n" +
 					"`" + initcmd + "play [playlist name or index]`: Queues and plays all songs in a playlist\n" +
 					"`" + initcmd + "play`: Plays song in queue if it has been stopped\n" +
 					"`" + initcmd + "stop`: Stops the song\n" +
-					"`" + initcmd + "skip`: To skip the curr song\n" +
+					"`" + initcmd + "skip`: Skips to the next song\n" +
 					"`" + initcmd + "replay`: Stops and replays song from the start\n" +
+					"`" + initcmd + "readd`: Adds the current song back into queue\n" +
 					"`" + initcmd + "loop`: Loops the entire queue over and over, execute command to turn off" +
 					"`" + initcmd + "local`: Displays all the songs saved by the bot\n" +
 					"`" + initcmd + "remove [index_number]`: Removes a specific song from queue\n" +
 					"`" + initcmd + "remove [#,#,#]`: Removes specific numbers seperated by commans in the queue\n" +
 					"`" + initcmd + "save [YT_URL]`: Saves a song from youtube and stores it\n" +
 					"`" + initcmd + "save`: Saves current song that's playing\n" +
-					"`" + initcmd + "remlocal [index_number]`: Removes a song that has been saved locally\n" +
-					"`" + initcmd + "readd`: Re-adds the currently playing song at the bottom of the queue\n" +
+					"`" + initcmd + "remlocal [index_number]`: Removes a song that has been saved locally\n" +					
 					"`" + initcmd + "playlist`: List all playlist\n" + 
 					"`" + initcmd + "playlist [playlist_index]`: List all songs of the playlist\n" + 
 					"`" + initcmd + "playlist save [PLAYLIST_NAME]`: Saves playlist\n" +
 					"`" + initcmd + "playlist remove [playlist_index]`: Removes the playlist\n"+
 					"`" + initcmd + "playlist remove [playlist_index] [track_index]`: Removes a track from a playlist specified\n"+
-					"`" + initcmd + "playlist add [playlist_index] [YT_URL]: Add a track to a playlist"
+					"`" + initcmd + "playlist add [playlist_index] [YT_URL]`: Add a track to a playlist"
   			}
   		});
   	}
@@ -885,8 +886,6 @@ bot.on('message', message => {
 									}catch(error){
 										if(error) return sendError("Parsing Playlist File", error, message.channel);											
 									}
-
-									message.channel.send("Loading `" + file.split('.')[0] + "` playlist onto queue.");
 									
 									async.eachSeries(playlist, (song, callback) =>{
 										var title = song.title;
