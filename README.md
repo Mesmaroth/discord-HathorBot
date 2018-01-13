@@ -60,3 +60,4 @@ Library: [Discord.js](https://discord.js.org)
   - `playlist remove [playlist_index]`: Removes a playlist
   - `playlist remove [playlist_index] [playlist_track_index]`: Removes a playlist track from specified playlist
   - `playlist add [playlist_index] [YT_URL]`: Adds YouTube track into a playlist without having it queued
+  - `playlist rename [playlist_name or playlist_index] [new_playlist_name]`: Renames a playlist
