@@ -1,6 +1,6 @@
 {
   "name": "discord-hathorbot",
-  "version": "2.5.3",
+  "version": "2.5.4",
   "description": "Discord music bot",
   "main": "apollobot.js",
   "dependencies": {
@@ -9,7 +9,7 @@
     "node-opus": "^0.2.4",
     "uws": "^9.14.0",
     "youtube-search": "^1.0.9",
-    "ytdl-core": "^0.18.3"
+    "ytdl-core": "^0.18.7"
   },
   "author": "Robert (Mesmaroth)",
   "license": "MIT"
