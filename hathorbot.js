@@ -886,6 +886,8 @@ bot.on('message', message => {
 									}catch(error){
 										if(error) return sendError("Parsing Playlist File", error, message.channel);											
 									}
+
+									message.channel.send("Loading `" + files[index].split('.')[0] + '` playlist onto queue');
 									
 									async.eachSeries(playlist, (song, callback) =>{
 										var title = song.title;
@@ -938,7 +940,6 @@ bot.on('message', message => {
 										callback(null);
 									}, err =>{
 										if(err) return sendError("Getting Youtube Info", err, message.channel);
-										message.channel.send("`" + file.split('.')[0] + "` playlist finished loading to queue");							
 									});
 								}
 							}, err=>{
