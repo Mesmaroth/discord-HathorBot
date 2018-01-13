@@ -1403,6 +1403,47 @@ bot.on('message', message => {
   					}
   					return;
   				}
+
+  				if(param.toLowerCase() === 'rename'){
+  					if(message.content.indexOf(' ', message.content.indexOf('rename')) !== -1){
+  						var playlistName = message.content.split(' ')[2];
+  						var newPlaylistName = message.content.split(' ')[3];
+
+  						if(!newPlaylistName){
+  							message.channel.send("No playlist name was specified");
+  							return;
+  						}
+
+  						if(isNumber(playlistName)){
+  							playlistName = Number(playlistName);
+  						}
+
+  						var e = /^[a-zA-Z0-9_]*$/;
+  						if(!e.test(newPlaylistName)){
+  							message.channel.send("No symbols allowed! Use alpha, numeric, or underscore characters only");
+  							return;
+  						}
+
+  						fs.readdir(playlistPath, (err, files) =>{
+  							if(err) return sendError("Reading Playlist Path", err, message.channel);
+
+  							for(var i = 0; i < files.length; i++){
+  								if(files[i].split('.')[0].toLowerCase() === (isNumber(playlistName) ? playlistName : playlistName.toLowerCase()) || (playlistName - 1) === i){
+  									var oldPlPath = path.join(playlistPath, files[i]);
+  									var newPlPath = path.join(playlistPath, newPlaylistName + '.json');
+  									fs.rename(oldPlPath, newPlPath, (err)=>{
+  										if(err) return sendError("Renaming Playlist File", err, message.channel);
+  										message.channel.send("Playlist `" + files[i].split('.')[0] + "` has been renamed to `" + newPlaylistName + "`");  										
+  									});
+  									return;
+  								}
+  							}
+  							message.channel.send("Playlist `" + files[i].split('.')[0] + "` not found");
+  						});
+  					} else{
+  						message.channel.send("No name specified");
+  					}
+  				}
   			}
   		} else {
   			fs.readdir(playlistPath, (error, files) =>{
