@@ -601,7 +601,8 @@ bot.on('message', message => {
 					"`" + initcmd + "playlist save [PLAYLIST_NAME]`: Saves playlist\n" +
 					"`" + initcmd + "playlist remove [playlist_index]`: Removes the playlist\n"+
 					"`" + initcmd + "playlist remove [playlist_index] [track_index]`: Removes a track from a playlist specified\n"+
-					"`" + initcmd + "playlist add [playlist_index] [YT_URL]`: Add a track to a playlist"
+					"`" + initcmd + "playlist add [playlist_index] [YT_URL]`: Add a track to a playlist"+
+					"`" + initcmd + "playlist rename [playlist_name or playlist_index] [new_playlist_name]`: Renames a playlist"
   			}
   		});
   	}
