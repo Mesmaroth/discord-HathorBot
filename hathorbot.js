@@ -305,6 +305,22 @@ bot.on('disconnect', (event) =>{
 });
 
 bot.on('message', message => {
+	// List admin groups that are allowed to use admin commands
+	if(isCommand(message.content, 'listgroups')){
+		if(isOwner(message) || isAdmin(message)){
+			var list = [];
+			for(var i = 0; i < adminRoles.length; i++){
+				list.push("**"+(i+1) + "**. " + adminRoles[i]);
+			}
+			message.channel.send("**Admin Groups**", {
+				embed: {
+					description: list.join('\n'),
+					color: 15158332
+				}
+			});
+		}
+	}
+
 	// Command to add a certain group to use admin access
 	if(isCommand(message.content, 'addgroup')){
 		if(isOwner(message) || isAdmin(message)){
