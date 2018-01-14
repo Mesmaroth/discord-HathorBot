@@ -18,8 +18,8 @@ const yt = require(path.join(modulesPath, 'youtube.js'));
 const botPreferenceFile = path.join(configPath, 'preference.json');
 
 try{
-	var botVersion = require(path.join(__dirname, 'package.json')).version;	
-	
+	var botVersion = require(path.join(__dirname, 'package.json')).version;
+
 }catch(error) {
 	if(error) {
 		console.log(error);
@@ -28,13 +28,13 @@ try{
 	var botVersion = "#?";
 }
 
-try{	
+try{
 	var botPreference = JSON.parse(fs.readFileSync(botPreferenceFile));
 }
 catch(err){
 	if(err) console.log(err);
 	var defualt = {
-		initcmd: ".", 
+		initcmd: ".",
 		adminGroups: "admin"
 	}
 
@@ -45,7 +45,7 @@ catch(err){
 
 var adminRoles = botPreference.admingroups;
 var initcmd = botPreference.initcmd;
-var defualtGame = "v" + botVersion + " | " + initcmd + "help";	
+var defualtGame = "v" + botVersion + " | " + initcmd + "help";
 
 // The object voice channel the bot is in
 var currentVoiceChannel = null;
@@ -76,7 +76,7 @@ function sendError(title, error, channel){
 }
 
 //	Credit: https://stackoverflow.com/questions/1303646/check-whether-variable-is-number-or-string-in-javascript#1303650
-function isNumber(obj) {	
+function isNumber(obj) {
 	return !isNaN(parseFloat(obj))
 }
 
@@ -95,7 +95,7 @@ function isAdmin(message){
 	var roles = message.member.roles.array();
 	for(var role = 0; role < roles.length; role++){
 		for( var i = 0; i < adminRoles.length; i++){
-			if(roles[role].name.toLowerCase() === adminRoles[i])			
+			if(roles[role].name.toLowerCase() === adminRoles[i])
 				return true;
 		}
 	}
@@ -196,7 +196,7 @@ function botUptime(){
 *	After it has passed it checks to see if there is another in queue
 *	If there are more songs in queue, the first song is removed after it has been played unless
 *	it is set to loop, replay, or stopped
-*/	
+*/
 function play(connection, message) {
 	const song = queue[0];
 	if(!fs.existsSync(song.file)){
@@ -216,7 +216,7 @@ function play(connection, message) {
 						queue.shift();
 					} else
 						stayOnQueue = false;
-				}				
+				}
 
 				if(queue.length > 0){
 					play(connection, message);
@@ -237,7 +237,7 @@ function play(connection, message) {
 
 // Generate Invite link
 function getInvite(callback){
-	bot.generateInvite([ 
+	bot.generateInvite([
 		"CONNECT", "SPEAK", "READ_MESSAGES", "SEND_MESSAGES", "SEND_TTS_MESSAGES",
 		"ATTACH_FILES", "USE_VAD"
 	]).then( link => {
@@ -253,10 +253,10 @@ function clearTemp(){
 				callback();
 			}, ()=>{
 				console.log("Temp Folder cleared");
-			});			
+			});
 		}
 	});
-	
+
 }
 
 function isYTLink(input){
@@ -280,13 +280,13 @@ bot.on('ready', () => {
 
 	if(guilds.length > 0){
 		console.log("Servers:");
-		console.log(guilds.join("\n"));	
+		console.log(guilds.join("\n"));
 		console.log();
 	}
-	
+
 	setGame(defualtGame);
 
-	// If this bot isn't connected to any servers, then display a invite link in console 
+	// If this bot isn't connected to any servers, then display a invite link in console
 	if(bot.guilds.size === 0){
 		getInvite(link =>{
 			console.log("Invite this bot to your server using this link:\n"  + link);
@@ -299,7 +299,7 @@ bot.on('ready', () => {
 
 bot.on('disconnect', (event) =>{
 	console.log("Exited with code: " + event.code);
-	if(event.reason) 
+	if(event.reason)
 		console.log("Reason: " + event.reason);
 
 	removeTempFiles();
@@ -322,12 +322,12 @@ bot.on('message', message => {
 			bot.user.setAvatar(url);
 			console.log("DISCORD: Avatar changed");
 		}
-	}	
+	}
 
   	if(isCommand(message.content, 'setgame') && isOwner(message)){
   		if(message.content.indexOf(' ') !== -1){
   			var init = message.content.split(' ')[1];
-  			setGame(init);  			
+  			setGame(init);
   		}
   	}
 
@@ -335,7 +335,7 @@ bot.on('message', message => {
   		if(currentVoiceChannel)
   			currentVoiceChannel.leave();
   		bot.destroy();
-  	}		
+  	}
 
   	if(isCommand(message.content, 'setinit') && isOwner(message)){
   		if(message.content.indexOf(' ') !== -1){
@@ -365,7 +365,7 @@ bot.on('message', message => {
 
   	// Admin commands
 
-  	
+
   	if(isCommand(message.content, 'addgroup') && isAdmin(message)){
   		if(message.content.indexOf(' ') !== -1){
   			var group = message.content.split(' ');
@@ -386,9 +386,9 @@ bot.on('message', message => {
   				if(error) return sendError("Reading Preference File", error, message.channel);
 
   				try{
-  					file = JSON.parse(file);  					
+  					file = JSON.parse(file);
   				}catch(error){
-  					if(error) return sendError("Parsing Preference File", error, message.channel);  					
+  					if(error) return sendError("Parsing Preference File", error, message.channel);
   				}
 
   				for(var i = 0; i < file.admingroups.length; i++){
@@ -433,7 +433,7 @@ bot.on('message', message => {
   					file.push(report);
   					fs.writeFile(reportFile, file.join('\n'), error=>{
   						if(error) return sendError("Writing Report File", error, message.channel);
-  						message.channel.send("You're report has been filed. Thank you");				  						
+  						message.channel.send("You're report has been filed. Thank you");
   					});
   				});
   			}else{
@@ -482,7 +482,7 @@ bot.on('message', message => {
   		}
 
 	  	getInvite(link =>{
-	  		message.channel.send("**Stats**",{  			
+	  		message.channel.send("**Stats**",{
 	  			embed: {
 	  				author: {
 				      name: bot.user.username,
@@ -519,21 +519,21 @@ bot.on('message', message => {
   		var owner = message.guild.members.find(member =>{
   			return member.user.username === "Mesmaroth"
   		});
-  		
+
   		if(owner){
   			owner = "<@" + owner.id + ">"
   		}else
   			owner = "Mesmaroth"
 
   		getInvite(link =>{
-  			message.channel.send("**About**", {  			
+  			message.channel.send("**About**", {
 	  			embed: {
 	  				author: {
 				      name: bot.user.username,
 				      url: link,
 				      icon_url: bot.user.displayAvatarURL
 				    },
-				    color: 10181046,				
+				    color: 10181046,
 	  				fields: [{
 	  					name: "Username",
 	  					value: bot.user.username,
@@ -558,10 +558,10 @@ bot.on('message', message => {
 	  				thumbnail: {
 						url: bot.user.displayAvatarURL
 					}
-	  			}  			
+	  			}
 	  		});
   		});
-	  		
+
   	}
 
   	if(isCommand(message.content, 'help')){
@@ -569,16 +569,16 @@ bot.on('message', message => {
   			embed: {
   				color: 1752220,
   				description: "**Admin Commands**\n" +
-					"`" + initcmd+ "setinit`: set initializer command to run commands\n" + 
+					"`" + initcmd+ "setinit`: set initializer command to run commands\n" +
 					"`" + initcmd+ "addgroup`: add a group to enable admin commands for that group\n" +
 					"\n**General**\n" +
 					"`" + initcmd+ "about`: About this bot\n" +
 					"`" + initcmd+ "source`: Source link\n" +
 					"`" + initcmd+ "uptime`: How long the bot has been up\n" +
-					"`" + initcmd+ "invite`: Get invite link to your bot\n" + 
-					"`" + initcmd+ "setvc`: Set the defualt channel your bot joins when ever the bot connects\n" + 
+					"`" + initcmd+ "invite`: Get invite link to your bot\n" +
+					"`" + initcmd+ "setvc`: Set the defualt channel your bot joins when ever the bot connects\n" +
 					"`" + initcmd+ "join`: Bot will attempt to join your channel\n" +
-					"\n**Music**\n" + 
+					"\n**Music**\n" +
 					"`" + initcmd + "queue` or `playing`: To view all songs in queue\n" +
 					"`" + initcmd + "play [YT_URL]`: Plays a song from a youtube link\n" +
 					"`" + initcmd + "play [index_number]`: Plays a song from a file that has been saved to the bot\n" +
@@ -595,13 +595,13 @@ bot.on('message', message => {
 					"`" + initcmd + "remove [#,#,#]`: Removes specific numbers seperated by commans in the queue\n" +
 					"`" + initcmd + "save [YT_URL]`: Saves a song from youtube and stores it\n" +
 					"`" + initcmd + "save`: Saves current song that's playing\n" +
-					"`" + initcmd + "remlocal [index_number]`: Removes a song that has been saved locally\n" +					
-					"`" + initcmd + "playlist`: List all playlist\n" + 
-					"`" + initcmd + "playlist [playlist_index]`: List all songs of the playlist\n" + 
+					"`" + initcmd + "remlocal [index_number]`: Removes a song that has been saved locally\n" +
+					"`" + initcmd + "playlist`: List all playlist\n" +
+					"`" + initcmd + "playlist [playlist_index]`: List all songs of the playlist\n" +
 					"`" + initcmd + "playlist save [PLAYLIST_NAME]`: Saves playlist\n" +
 					"`" + initcmd + "playlist remove [playlist_index]`: Removes the playlist\n"+
 					"`" + initcmd + "playlist remove [playlist_index] [track_index]`: Removes a track from a playlist specified\n"+
-					"`" + initcmd + "playlist add [playlist_index] [YT_URL]`: Add a track to a playlist"+
+					"`" + initcmd + "playlist add [playlist_index] [YT_URL]`: Add a track to a playlist\n"+
 					"`" + initcmd + "playlist rename [playlist_name or playlist_index] [new_playlist_name]`: Renames a playlist"
   			}
   		});
@@ -611,7 +611,7 @@ bot.on('message', message => {
   		getInvite(link => {
   			message.channel.send("**Invite:** "  + link);
   		});
-  	}  	
+  	}
 
   	if(isCommand(message.content, 'uptime')){
   		var uptime = botUptime();
@@ -633,7 +633,7 @@ bot.on('message', message => {
 		  		});
   			}
 
-  			if(channel){  				
+  			if(channel){
   				defaultChannel.name = voiceChannelName;
 				defaultChannel.guild = guild.name;
 				defaultChannel.voiceID = channel.id;
@@ -646,7 +646,7 @@ bot.on('message', message => {
 
   	if(isCommand(message.content, 'join')){
   		var userVoiceChannel = message.member.voiceChannel;
-  		if(userVoiceChannel){	  			
+  		if(userVoiceChannel){
   			if(!playing){
   				if(currentVoiceChannel){
 	  				currentVoiceChannel.leave();
@@ -710,8 +710,8 @@ bot.on('message', message => {
   		if(playing && currentVoiceChannel !== message.member.voiceChannel){
 			message.channel.send("Currently playing something in another voice channel");
 			return;
-		}		
-		
+		}
+
 		if(!message.member.voiceChannel){
 			message.channel.send("You are not in a voice channel");
 			return;
@@ -729,12 +729,12 @@ bot.on('message', message => {
 		}
 
 		function pushPlay(title, fPath, local, id, URL){
-			if(id && URL){				
+			if(id && URL){
 				queue.push({
 			 		title: title,
 			 		id: id,
 			 		file: fPath,
-			 		local: local,			 		
+			 		local: local,
 			 		url: URL
 			 	});
 			} else if(!id && !URL){
@@ -744,7 +744,7 @@ bot.on('message', message => {
 			 		local: local
 			 	});
 			}
-			
+
 
 		 	if(!playing){
 		 		message.channel.send("**Playing:** " + title);
@@ -791,7 +791,7 @@ bot.on('message', message => {
 					pushPlay(title, filePath, false);
 				});
 			}
-		} else if(message.content.indexOf(' ') !== -1){			
+		} else if(message.content.indexOf(' ') !== -1){
 			var input = message.content.split(' ')[1];
 			var qUrl = URL.parse(input, true);
 			var isLink = isYTLink(input);
@@ -819,21 +819,21 @@ bot.on('message', message => {
 					 			message.channel.send("No file found with that address make sure it's a direct link to the file");
 					 		}else{
 					 			stream.pipe(fs.createWriteStream(filePath));
-					 		}	 			
+					 		}
 					 	});
 
 						stream.on('error', error => {
 							if(error) return sendError("Getting Sound File", error, message.channel);
-						});						
+						});
 
 						stream.on('complete', () =>{
 							if(fs.existsSync(filePath)){
 								pushPlay(title, filePath, false);
 							}
-						});	
+						});
 					}
-				} else 
-					message.channel.send("No file found. Make sure it's a direct link to the file");				
+				} else
+					message.channel.send("No file found. Make sure it's a direct link to the file");
 			} else if(isLink){
 				// Play audo by YTURL
 				var input = message.content.split(' ')[1];
@@ -846,9 +846,9 @@ bot.on('message', message => {
 						pushPlay(title, file, false, id, input);
 					});
 				});
-			} else{				
+			} else{
 				// Play audio file by index number
-				var indexFile = message.content.split(' ')[1];	
+				var indexFile = message.content.split(' ')[1];
 				if(isNumber(indexFile)){
 					indexFile = Number(indexFile);
 					fs.readdir(localPath, (error, files) =>{
@@ -857,7 +857,7 @@ bot.on('message', message => {
 							if( indexFile === (i+1)){
 								var title = files[i].split('.')[0];
 								var file = path.join(localPath, files[i]);
-								
+
 								pushPlay(title, file, true);
 								return;
 							}
@@ -878,23 +878,23 @@ bot.on('message', message => {
 								pl = Number(pl);
 							} else
 								pl = pl.toLowerCase();
-								
+
 							async.eachOf(files, (file, index, callback)=>{
 								if((index+1) === pl || files[index].split('.')[0].toLowerCase() === pl){
 									try{
 										var playlist = fs.readFileSync(path.join(playlistPath, files[index]));
 										playlist = JSON.parse(playlist);
 									}catch(error){
-										if(error) return sendError("Parsing Playlist File", error, message.channel);											
+										if(error) return sendError("Parsing Playlist File", error, message.channel);
 									}
 
 									message.channel.send("Loading `" + files[index].split('.')[0] + '` playlist onto queue');
-									
+
 									async.eachSeries(playlist, (song, callback) =>{
 										var title = song.title;
 										var URL = song.url;
 										var id = song.id;
-										var local = song.local;										
+										var local = song.local;
 
 										if(song.local){
 											queue.push({
@@ -919,8 +919,8 @@ bot.on('message', message => {
 
 												yt.getFile(URL, filePath, ()=>{
 													queue.push({
-														title: title, 
-														file: filePath, 
+														title: title,
+														file: filePath,
 														id: id,
 														url: URL,
 														local: false
@@ -963,12 +963,12 @@ bot.on('message', message => {
 								return;
 							}
 							var file = path.join(tempFilesPath, id + '.mp3' );
-							
+
 							yt.getFile(songURL, file, () =>{
 								pushPlay(title, file, false, id, songURL);
 							});
 						});
-					}						
+					}
 				}
 			}
   		} else{
@@ -996,7 +996,7 @@ bot.on('message', message => {
   			playing = false;
   			stayOnQueue = true;
   			stopped = true;
-  			botPlayback.end();  			  			
+  			botPlayback.end();
   		} else
   			message.channel.send("Nothing to stop");
   	}
@@ -1010,7 +1010,7 @@ bot.on('message', message => {
   		if(playing){
   			var prevSong = queue[0].title;
   			playing = false;
-  			stayOnQueue = false;  			
+  			stayOnQueue = false;
   			botPlayback.end();
   			if(queue.length > 0)
   				message.channel.send("**Skipped:** " + prevSong + "\n**Playing:** " + queue[0].title);
@@ -1040,7 +1040,7 @@ bot.on('message', message => {
   		if(playing){
   			playing = false;
   			stayOnQueue = true;
-  			botPlayback.end();  			
+  			botPlayback.end();
   		} else
   			message.channel.send("Need to be playing something to replay");
   	}
@@ -1077,7 +1077,7 @@ bot.on('message', message => {
   					message.channel.send("Once of your parameters is not a number. Please try again");
   					return;
   				}
-  			}  			
+  			}
 
   			var list = [];
   			for(var x = 0; x < param.length; x++){
@@ -1095,7 +1095,7 @@ bot.on('message', message => {
 						queue.splice(x, 1);
 						message.channel.send("**Removed:** `" + title + "` from queue");
   					}
-  				}			
+  				}
   			}
   		}
   	}
@@ -1117,12 +1117,12 @@ bot.on('message', message => {
 	  		});
 
 	  	}
-	  	else{	  		
+	  	else{
 	  		if(playing){
 	  			var song = queue[0];
 		  		var title = song.title.replace(/[&\/\\#,+()$~%.'":*?<>{}|]/g,'');
 			  	var output = './local/' + title + '.mp3';
-	  			if(!song.local){		  		
+	  			if(!song.local){
 		  			if(!fs.existsSync(output)){
 		  				fs.createReadStream(song.file).pipe(fs.createWriteStream(output));
 		  				message.channel.send("**Saved:** *" + title + "*");
@@ -1138,11 +1138,11 @@ bot.on('message', message => {
 	  	}
   	}
 
-  	if(isCommand(message.content, 'remlocal')){  		
+  	if(isCommand(message.content, 'remlocal')){
   		var index = Number(message.content.split(' ')[1]);
 
   		fs.readdir(localPath, (error, files) =>{
-  			if(error) return sendError("Remove Local", error, message.channel);  			
+  			if(error) return sendError("Remove Local", error, message.channel);
   			for (var i = 0; i < files.length; i++) {
 	  			if((i+1) === index){
 	  				if(!playing){
@@ -1209,7 +1209,7 @@ bot.on('message', message => {
   							}catch(error){
   								if(error) return sendError("Reading Playlist File", error, message.channel);
   							}
-  							
+
   							var playlistTitle = files[i].split('.')[0];
 							var songs = [];
 
@@ -1223,7 +1223,7 @@ bot.on('message', message => {
   				});
   			} else{
   				if(param.toLowerCase() === 'save'){
-  					if(message.content.indexOf(' ', message.content.indexOf('save')) !== -1){  						
+  					if(message.content.indexOf(' ', message.content.indexOf('save')) !== -1){
   						var playlistName = message.content.split(' ');
   						playlistName.splice(0,2);
   						playlistName = playlistName.join(' ');
@@ -1264,7 +1264,7 @@ bot.on('message', message => {
 	  							if(error) return sendError("Writing Playlist File", error, message.channel);
 	  							message.channel.send("Playlist `" + playlistName + '` saved');
 	  						});
-  						});  						
+  						});
   					}
   					return;
   				}
@@ -1273,7 +1273,7 @@ bot.on('message', message => {
   					if(message.content.indexOf(' ', message.content.indexOf('remove')) !== -1){
   						var playlistIndex = message.content.split(' ')[2];
   						var trackIndex = message.content.split(' ')[3];
-  						
+
   						if(!isNumber(playlistIndex)){
   							message.channel.send('Please enter a playlist index number')
   							return;
@@ -1285,15 +1285,15 @@ bot.on('message', message => {
   								fs.readdir(playlistPath, (error, files) =>{
   									if(error) return sendError("Reading Playlist Path", error, message.channel);
   									for(var i = 0; i < files.length; i++){
-  										if((i+1) === playlistIndex){  											
+  										if((i+1) === playlistIndex){
   											var playlistFile = files[i];
   											var playlistFileName = files[i].split('.')[0];
 
   											fs.readFile(path.join(playlistPath, playlistFile), (error, file)=>{
   												try{
-  													file = JSON.parse(file);  													
+  													file = JSON.parse(file);
   												} catch(error){
-  													if(error) return sendError("Parsing Playlist File", error, message.channel);  													
+  													if(error) return sendError("Parsing Playlist File", error, message.channel);
   												}
 
   												if(trackIndex > file.length || trackIndex <= 0){
@@ -1319,7 +1319,7 @@ bot.on('message', message => {
   								return;
   							}
   							return;
-  						}					
+  						}
 
   						fs.readdir(playlistPath, (error, files) => {
   							if(error) return sendError("Reading Playlist Path", error, message.channel);
@@ -1374,11 +1374,11 @@ bot.on('message', message => {
 	  													}
 	  												}, err =>{
 	  													if(err) return sendError(err, err, message.channel);
-	  													
+
 	  													pl.push({
-	  														title: title, 
+	  														title: title,
 	  														id: id,
-	  														url: link, 
+	  														url: link,
 	  														local: false
 	  													});
 
@@ -1389,7 +1389,7 @@ bot.on('message', message => {
 	  													});
 	  												});
 
-	  													
+
   												});
 
   											});
@@ -1435,7 +1435,7 @@ bot.on('message', message => {
   									var newPlPath = path.join(playlistPath, newPlaylistName + '.json');
   									fs.rename(oldPlPath, newPlPath, (err)=>{
   										if(err) return sendError("Renaming Playlist File", err, message.channel);
-  										message.channel.send("Playlist `" + files[i].split('.')[0] + "` has been renamed to `" + newPlaylistName + "`");  										
+  										message.channel.send("Playlist `" + files[i].split('.')[0] + "` has been renamed to `" + newPlaylistName + "`");
   									});
   									return;
   								}
@@ -1453,7 +1453,7 @@ bot.on('message', message => {
   				for(var i = 0; i < files.length; i++){
   					files[i] = "**" + (i+1) + ".** " + files[i].split('.')[0];
   				}
-  				
+
   				if(files.length > 0)
   					message.channel.send("**Playlist**\n" + files.join("\n"));
   				else {
@@ -1467,7 +1467,7 @@ bot.on('message', message => {
 bot.on('voiceStateUpdate', (oldMember, newMember) =>{
 	if(newMember.id === bot.user.id){
 		newMember.voiceChannel = currentVoiceChannel;
-	}	
+	}
 
 	if(currentVoiceChannel && oldMember.voiceChannel){
 		if(oldMember.voiceChannel === currentVoiceChannel && newMember.voiceChannel !== currentVoiceChannel  && currentVoiceChannel.members.size === 1){
@@ -1485,7 +1485,7 @@ bot.on('voiceStateUpdate', (oldMember, newMember) =>{
 
 			currentVoiceChannel.leave();
 		}
-	}		
+	}
 });
 
 bot.login(botLogin.token);
