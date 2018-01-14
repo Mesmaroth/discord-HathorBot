@@ -107,7 +107,7 @@ function isOwner(message){
 	if(message.member.id === botLogin.owner_id)
 		return true
 	else
-	return false;
+		return false;
 }
 
 function getGuildByString(guildName){
@@ -284,7 +284,7 @@ bot.on('ready', () => {
 
 	setGame(defualtGame);
 
-	// If this bot isn't connected to any servers, then display a invite link in console
+	// Displays invite link if the bot isn't conntected to any servers
 	if(bot.guilds.size === 0){
 		getInvite(link =>{
 			console.log("Invite this bot to your server using this link:\n"  + link);
@@ -305,109 +305,130 @@ bot.on('disconnect', (event) =>{
 });
 
 bot.on('message', message => {
-	// Owner Commands
-	if(isCommand(message.content, 'setusername') && isOwner(message)){
-		if(message.content.indexOf(' ') !== -1){
-			var username = message.content.split(' ')[1];
-			bot.user.setUsername(username);
-			console.log("DISCORD: Username set to " + username);
+	// Command to add a certain group to use admin access
+	if(isCommand(message.content, 'addgroup')){
+		if(isOwner(message) || isAdmin(message)){
+			if(message.content.indexOf(' ') !== -1){
+				var group = message.content.split(' ');
+				group.splice(0,1);
+				group = group.join(" ");
+
+				group = message.guild.roles.find( role => {
+					return role.name.toLowerCase() === group.toLowerCase();
+				});
+
+				if(!group){
+					message.channel.send("No group found");
+					return;
+				}else
+					group = group.name.toLowerCase();
+
+				fs.readFile(botPreferenceFile, (error, file) =>{
+					if(error) return sendError("Reading Preference File", error, message.channel);
+
+					try{
+						file = JSON.parse(file);
+					}catch(error){
+						if(error) return sendError("Parsing Preference File", error, message.channel);
+					}
+
+					for(var i = 0; i < file.admingroups.length; i++){
+						if(file.admingroups[i] === group)
+							return message.channel.send("This group has already been added");
+					}
+
+					file.admingroups.push(group);
+
+					adminRoles = file.admingroups;
+
+					fs.writeFile(botPreferenceFile, JSON.stringify(file, null, '\t'), error =>{
+						if(error) return sendError("Writing to Preference File", error, message.channel);
+
+						message.channel.send("Group `" + group + '` added');
+					});
+				});
+			}
+		} else {
+			message.channel.send("You do not have access to this command.");
 		}
 	}
 
-	if(isCommand(message.content, 'setavatar') && isOwner(message)){
-		if(message.content.indexOf(' ') !== -1){
-			var url = message.content.split(' ')[1];
-			bot.user.setAvatar(url);
-			console.log("DISCORD: Avatar changed");
+	// Admin Commands
+	if(isCommand(message.content, 'setusername')){
+		if(isOwner(message) || isAdmin(message)){
+			if(message.content.indexOf(' ') !== -1){
+				var username = message.content.split(' ')[1];
+				bot.user.setUsername(username);
+				console.log("DISCORD: Username set to " + username);
+			}
+		} else{
+			message.channel.send("You do not have access to this command.");
 		}
 	}
 
-  	if(isCommand(message.content, 'setgame') && isOwner(message)){
-  		if(message.content.indexOf(' ') !== -1){
-  			var init = message.content.split(' ')[1];
-  			setGame(init);
-  		}
+	if(isCommand(message.content, 'setavatar')){
+		if(isOwner(message) || isAdmin(message)){
+			if(message.content.indexOf(' ') !== -1){
+				var url = message.content.split(' ')[1];
+				bot.user.setAvatar(url);
+				console.log("DISCORD: Avatar changed");
+			}
+		} else{
+			message.channel.send("You do not have access to this command.");
+		}
+	}
+
+  	if(isCommand(message.content, 'setgame') && isAdmin(message)){
+  		if(isOwner(message) || isAdmin(message)){
+				if(message.content.indexOf(' ') !== -1){
+	  			var init = message.content.split(' ')[1];
+	  			setGame(init);
+	  		}
+			} else{
+				message.channel.send("You do not have access to this command.");
+			}
   	}
 
-  	if(isCommand(message.content, 'exit') && isOwner(message)){
-  		if(currentVoiceChannel)
-  			currentVoiceChannel.leave();
-  		bot.destroy();
+  	if(isCommand(message.content, 'exit')){
+  		if(isOwner(message) || isAdmin(message)){
+				if(currentVoiceChannel)
+	  			currentVoiceChannel.leave();
+	  		bot.destroy();
+			} else{
+				message.channel.send("You do not have access to this command.");
+			}
   	}
 
-  	if(isCommand(message.content, 'setinit') && isOwner(message)){
-  		if(message.content.indexOf(' ') !== -1){
-  			var init = message.content.split(' ')[1];
+  	if(isCommand(message.content, 'setinit')){
+  		if(isOwner(message) || isAdmin(message)){
+				if(message.content.indexOf(' ') !== -1){
+	  			var init = message.content.split(' ')[1];
 
-  			initcmd = init;
+	  			initcmd = init;
 
-  			fs.readFile(botPreferenceFile, (error, file) => {
-  				if(error) return sendError("Reading Preference File", error, message.channel);
+	  			fs.readFile(botPreferenceFile, (error, file) => {
+	  				if(error) return sendError("Reading Preference File", error, message.channel);
 
-  				try{
-  					file = JSON.parse(file);
-  				}catch(error){
-  					if(error) return sendError("Parsing Preference File", error, message.channel);
-  				}
+	  				try{
+	  					file = JSON.parse(file);
+	  				}catch(error){
+	  					if(error) return sendError("Parsing Preference File", error, message.channel);
+	  				}
 
-  				file.initcmd = init;
+	  				file.initcmd = init;
 
-  				fs.writeFile(botPreferenceFile, JSON.stringify(file, null, '\t'), error =>{
-  					if(error) return sendError("Writing Preference File");
+	  				fs.writeFile(botPreferenceFile, JSON.stringify(file, null, '\t'), error =>{
+	  					if(error) return sendError("Writing Preference File");
 
-  					message.channel.send("Command initializer set as `" + init + "`");
-  				});
-  			});
-  		}
+	  					message.channel.send("Command initializer set as `" + init + "`");
+	  				});
+	  			});
+	  		}
+			} else{
+				message.channel.send("You do not have access to this command.");
+			}
   	}
-
-  	// Admin commands
-
-
-  	if(isCommand(message.content, 'addgroup') && isAdmin(message)){
-  		if(message.content.indexOf(' ') !== -1){
-  			var group = message.content.split(' ');
-  			group.splice(0,1);
-  			group = group.join(" ");
-
-  			group = message.guild.roles.find( role => {
-  				return role.name.toLowerCase() === group.toLowerCase();
-  			});
-
-  			if(!group){
-  				message.channel.send("No group found");
-  				return;
-  			}else
-  				group = group.name.toLowerCase();
-
-  			fs.readFile(botPreferenceFile, (error, file) =>{
-  				if(error) return sendError("Reading Preference File", error, message.channel);
-
-  				try{
-  					file = JSON.parse(file);
-  				}catch(error){
-  					if(error) return sendError("Parsing Preference File", error, message.channel);
-  				}
-
-  				for(var i = 0; i < file.admingroups.length; i++){
-  					if(file.admingroups[i] === group)
-  						return message.channel.send("This group has already been added");
-  				}
-
-  				file.admingroups.push(group);
-
-  				adminRoles = file.admingroups;
-
-  				fs.writeFile(botPreferenceFile, JSON.stringify(file, null, '\t'), error =>{
-  					if(error) return sendError("Writing to Preference File", error, message.channel);
-
-  					message.channel.send("Group `" + group + '` added');
-  				});
-  			});
-  		}
-  	}
-
-  	// ----------------------
+  	// -----------------------------------------------------------------------
 
   	if(isCommand(message.content, 'source')){
   		message.channel.send("**Source:** https://github.com/Mesmaroth/discord-HathorBot");
