@@ -100,15 +100,13 @@ function isAdmin(message){
 		}
 	}
 
-	message.channel.send("You aren't admin for this command.");
 	return false;
 }
 
 function isOwner(message){
 	if(message.member.id === botLogin.owner_id)
 		return true
-
-	message.channel.send("You aren't Owner for this command");
+	else
 	return false;
 }
 
