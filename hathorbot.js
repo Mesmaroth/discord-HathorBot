@@ -369,6 +369,38 @@ bot.on('message', message => {
 		}
 	}
 
+	// Remove a group from admin access
+	if(isCommand(message.content, 'remgroup')){
+		if(isOwner(message) || isAdmin(message)){
+			if(message.content.lastIndexOf(' ') !== -1){
+				var groupName = message.content.split(' ')[1].toLowerCase();
+
+				for(var i = 0; i < adminRoles.length; i++){
+					if(groupName === adminRoles[i]){
+						adminRoles.splice(i, 1);
+
+						fs.readFile(botPreferenceFile, (err, file)=>{
+							if(err) return sendError("Reading Preference File", err, message.channel);
+
+							try{
+								file = JSON.parse(file)
+							}catch(err){
+								if(err) return sendError("Parsing Preference File", err, message.channel);
+							}
+
+							file.admingroups = adminRoles;
+
+							fs.writeFile(botPreferenceFile, JSON.stringify(file, null, '\t'), err =>{
+								if(err) return sendError("Writing to Preference File", err, message.channel);
+								message.channel.send("Group `" + groupName + "` has been removed.");
+							});
+						});
+					}
+				}
+			}
+		}
+	}
+
 	// Admin Commands
 	if(isCommand(message.content, 'setusername')){
 		if(isOwner(message) || isAdmin(message)){
@@ -1109,7 +1141,7 @@ bot.on('message', message => {
   				if(isNumber(param[i])){
   					param[i] = Number(param[i]);
   				}else{
-  					message.channel.send("Once of your parameters is not a number. Please try again");
+  					message.channel.send("One of your parameters is not a number. Please try again");
   					return;
   				}
   			}
