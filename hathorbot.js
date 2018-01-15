@@ -487,7 +487,7 @@ bot.on('message', message => {
   			var user = message.member.user.username;
   			var msg = message.content.split(' ');
   			var report;
-  			var reportFile = path.join(logsPath, message.guild.name + '_reports.txt');
+  			var reportFile = path.join(logsPath, message.guild.id + '_reports');
 
   			msg.splice(0,1);
   			msg = msg.join(' ');
@@ -500,7 +500,7 @@ bot.on('message', message => {
   					file.push(report);
   					fs.writeFile(reportFile, file.join('\n'), error=>{
   						if(error) return sendError("Writing Report File", error, message.channel);
-  						message.channel.send("You're report has been filed. Thank you");
+  						message.channel.send("Your report has been filed. Thank you");
   					});
   				});
   			}else{
