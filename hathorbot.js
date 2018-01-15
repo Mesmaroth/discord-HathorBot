@@ -123,7 +123,7 @@ function getChannelByString(guild, channelName){
 }
 
 function setGame(game){
-	bot.user.setGame(game);
+	bot.user.setActivity(game);
 	if(game)
 		console.log("DISCORD: GAME SET: " + game)
 }
@@ -710,7 +710,7 @@ bot.on('message', message => {
 						"`" + initcmd + "help music`: View Music Commands\n"
 					}
 				});
-			}			
+			}
   	}
 
   	if(isCommand(message.content, 'invite')){
