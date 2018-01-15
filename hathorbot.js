@@ -681,6 +681,7 @@ bot.on('message', message => {
 							"`" + initcmd + "setavatar`: Set a avatar for the bot to use\n"+
 							"`" + initcmd + "setgame`: Sets the name of the game the bot is playing\n"+
 							"`" + initcmd + "setinit`: Sets the initial command\n"+
+							"`" + initcmd + "reports`: View reports\n"+
 							"`" + initcmd + "exit`: Shutdown bot\n"
 						}
 					});
@@ -692,6 +693,8 @@ bot.on('message', message => {
 						embed: {
 							color: 1752220,
 							description: "`" + initcmd+ "about`: About this bot\n" +
+							"`" + initcmd+ "stats`: View stats\n" +
+							"`" + initcmd+ "report`: Report a problem\n" +
 							"`" + initcmd+ "source`: Source link\n" +
 							"`" + initcmd+ "uptime`: How long the bot has been up\n" +
 							"`" + initcmd+ "invite`: Get invite link to your bot\n" +
