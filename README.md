@@ -1,5 +1,5 @@
 # discord-HathorBot
-User-friendly and easy to use music bot for your discord server. This project is still a Work In Progress and is not a finished product. Add me at Mesmaroth#4335 on discord for any questions or guide to help set it up.
+User-friendly and easy to use music bot for your discord server. This project is still a Work In Progress and is not a finished product. Add me at Mesmaroth#4335 on discord for any questions, guide to help set it up, or to help me make this bot better.
 
 Library: [Discord.js](https://discord.js.org)
 
