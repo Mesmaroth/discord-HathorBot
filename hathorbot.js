@@ -534,11 +534,6 @@ bot.on('message', message => {
 										color: 0xee3239,
 										description: file
 									}
-								}).then(()=>{
-									file = "";
-									fs.writeFile(path.join(logsPath, files[i]), file, error=>{
-										if(error) return sendError("Writing Log file", error, message.channel);
-									});
 								});
 							});
 							return;
