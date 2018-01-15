@@ -18,15 +18,15 @@ Library: [Discord.js](https://discord.js.org)
 
 ## Commands:
 
-### Owner Commands
-  - `setusername [NAME]`: Sets the username of bot
-  - `setavatar [URL]`: Sets the avatar of the bot
-  - `setgame [name]`: Sets the name of the game the bot is playing
-  - `setinit [command]`: Sets the initializer command the bot needs to enter commands
-  - `exit`: disconnects bot from discord
-
 ### Admin Commands
-  - `addgroup [group_name]`: Add a certain group to use admin access
+  - `listgroup`: List groups that have admin access
+  - `addgroup [group_name]`: Add a group to use admin access
+  - `remgroup [group_name]`: Remove a group from admin access
+  - `setusername [NAME]`: Set a username for the bot
+  - `setavatar [URL]`: Set a avatar for the bot to use
+  - `setgame [name]`: Sets the name of the game the bot is playing
+  - `setinit [command]`: Sets the initial command the bot needs to enter commands e.g The "." in ".play"
+  - `exit`: disconnects bot from discord  
 
 ### General
   - `about`: About this bot
@@ -54,7 +54,7 @@ Library: [Discord.js](https://discord.js.org)
   - `save [YT_URL]`: Saves a song from youtube and stores it
   - `save`: Saves current song to local instead of downloading it from YT (faster)
   - `remlocal [index_number]`: Removes a song that has been saved locally
-  - `playlist`: List all playlist 
+  - `playlist`: List all playlist
   - `playlist [playlist_index]`: List the songs of a playlist
   - `playlist save [playlist_name]`: Saves everything that is queued into a playlist
   - `playlist remove [playlist_index]`: Removes a playlist
