@@ -593,7 +593,7 @@ bot.on('message', message => {
 	  				color: 1752220,
 	  				fields: [{
 	  					name: "Members",
-	  					value: "`" + bot.users.size + "` Total\n`" + totalOnline + "` Online\n\n`" + message.guild.memberCount + "` this server\n`" + guildTotalOnline + "` online this server",
+	  					value: "`" + bot.users.size + "` Total\n`" + totalOnline + "` Online\n\n`" + message.guild.memberCount + "` total this server\n`" + guildTotalOnline + "` online this server",
 	  					inline: true
 	  				}, {
 	  					name: "Channels",
