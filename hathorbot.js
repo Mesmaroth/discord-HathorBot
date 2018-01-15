@@ -516,6 +516,40 @@ bot.on('message', message => {
   		return;
   	}
 
+		if(isCommand(message.content, 'reports')){
+			if(isOwner(message) || isAdmin(message)){
+				fs.readdir(logsPath, (error, files)=>{
+					if(error) return sendError("Reading Logs Path", error, message.channel);
+
+					for(var i = 0; i < files.length; i++){
+						if(files[i].split('_')[0] === message.guild.id){
+							fs.readFile(path.join(logsPath, files[i]),'utf-8', (error, file)=>{
+								if(error) return sendError("Reading Report File", error, message.channel);
+
+								// Clear the report once it's been read
+								if(file === "") return message.channel.send("No reports available");
+
+								message.channel.send("**Reports**", {
+									embed: {
+										color: 0xee3239,
+										description: file
+									}
+								}).then(()=>{
+									file = "";
+									fs.writeFile(path.join(logsPath, files[i]), file, error=>{
+										if(error) return sendError("Writing Log file", error, message.channel);
+									});
+								});
+							});
+							return;
+						}
+					}
+					message.channel.send("No reports available");
+					return;
+				})
+			}
+		}
+
   	if(isCommand(message.content, 'stats')){
   		const users = bot.users.array();
   		const guildMembers = message.guild.members.array();
