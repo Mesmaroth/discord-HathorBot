@@ -632,46 +632,85 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'help')){
-  		message.channel.send("**Commands**", {
-  			embed: {
-  				color: 1752220,
-  				description: "**Admin Commands**\n" +
-					"`" + initcmd+ "setinit`: set initializer command to run commands\n" +
-					"`" + initcmd+ "addgroup`: add a group to enable admin commands for that group\n" +
-					"\n**General**\n" +
-					"`" + initcmd+ "about`: About this bot\n" +
-					"`" + initcmd+ "source`: Source link\n" +
-					"`" + initcmd+ "uptime`: How long the bot has been up\n" +
-					"`" + initcmd+ "invite`: Get invite link to your bot\n" +
-					"`" + initcmd+ "setvc`: Set the defualt channel your bot joins when ever the bot connects\n" +
-					"`" + initcmd+ "join`: Bot will attempt to join your channel\n" +
-					"\n**Music**\n" +
-					"`" + initcmd + "queue` or `playing`: To view all songs in queue\n" +
-					"`" + initcmd + "play [YT_URL]`: Plays a song from a youtube link\n" +
-					"`" + initcmd + "play [index_number]`: Plays a song from a file that has been saved to the bot\n" +
-					"`" + initcmd + "play [search key term]`: Plays the first result of youtube search\n" +
-					"`" + initcmd + "play [playlist name or index]`: Queues and plays all songs in a playlist\n" +
-					"`" + initcmd + "play`: Plays song in queue if it has been stopped\n" +
-					"`" + initcmd + "stop`: Stops the song\n" +
-					"`" + initcmd + "skip`: Skips to the next song\n" +
-					"`" + initcmd + "replay`: Stops and replays song from the start\n" +
-					"`" + initcmd + "readd`: Adds the current song back into queue\n" +
-					"`" + initcmd + "loop`: Loops the entire queue over and over, execute command to turn off" +
-					"`" + initcmd + "local`: Displays all the songs saved by the bot\n" +
-					"`" + initcmd + "remove [index_number]`: Removes a specific song from queue\n" +
-					"`" + initcmd + "remove [#,#,#]`: Removes specific numbers seperated by commans in the queue\n" +
-					"`" + initcmd + "save [YT_URL]`: Saves a song from youtube and stores it\n" +
-					"`" + initcmd + "save`: Saves current song that's playing\n" +
-					"`" + initcmd + "remlocal [index_number]`: Removes a song that has been saved locally\n" +
-					"`" + initcmd + "playlist`: List all playlist\n" +
-					"`" + initcmd + "playlist [playlist_index]`: List all songs of the playlist\n" +
-					"`" + initcmd + "playlist save [PLAYLIST_NAME]`: Saves playlist\n" +
-					"`" + initcmd + "playlist remove [playlist_index]`: Removes the playlist\n"+
-					"`" + initcmd + "playlist remove [playlist_index] [track_index]`: Removes a track from a playlist specified\n"+
-					"`" + initcmd + "playlist add [playlist_index] [YT_URL]`: Add a track to a playlist\n"+
-					"`" + initcmd + "playlist rename [playlist_name or playlist_index] [new_playlist_name]`: Renames a playlist"
-  			}
-  		});
+			if(message.content.indexOf(' ') !== -1){
+				var prt = message.content.split(' ')[1];
+
+				if(prt.toLowerCase() === 'admin'){
+					message.channel.send("**Admin Commands**", {
+						embed: {
+							color: 1752220,
+							description: "`" + initcmd + "setinit`: set initializer command to run commands\n"+
+							"`" + initcmd + "listgroup`: list all groups that have admin access\n"+
+							"`" + initcmd + "addgroup`: add a group to enable admin access\n"+
+							"`" + initcmd + "remgroup`: removes a group from admin access\n"+
+							"`" + initcmd + "setusername`: Set a username for the bot\n"+
+							"`" + initcmd + "setavatar`: Set a avatar for the bot to use\n"+
+							"`" + initcmd + "setgame`: Sets the name of the game the bot is playing\n"+
+							"`" + initcmd + "setinit`: Sets the initial command\n"+
+							"`" + initcmd + "exit`: Shutdown bot\n"
+						}
+					});
+						return;
+				}
+
+				if(prt.toLowerCase() === 'general'){
+					message.channel.send("**General Commands**", {
+						embed: {
+							color: 1752220,
+							description: "`" + initcmd+ "about`: About this bot\n" +
+							"`" + initcmd+ "source`: Source link\n" +
+							"`" + initcmd+ "uptime`: How long the bot has been up\n" +
+							"`" + initcmd+ "invite`: Get invite link to your bot\n" +
+							"`" + initcmd+ "setvc`: Set the defualt channel your bot joins when ever the bot connects\n" +
+							"`" + initcmd+ "join`: Bot will attempt to join your channel\n"
+						}
+					});
+						return;
+				}
+
+				if(prt.toLowerCase() === 'music'){
+					message.channel.send("**Music Commands**", {
+						embed: {
+							color: 1752220,
+							description: "`" + initcmd + "queue` or `playing`: To view all songs in queue\n" +
+							"`" + initcmd + "play [YT_URL]`: Plays a song from a youtube link\n" +
+							"`" + initcmd + "play [index_number]`: Plays a song from a file that has been saved to the bot\n" +
+							"`" + initcmd + "play [search key term]`: Plays the first result of youtube search\n" +
+							"`" + initcmd + "play [playlist name or index]`: Queues and plays all songs in a playlist\n" +
+							"`" + initcmd + "play`: Plays song in queue if it has been stopped\n" +
+							"`" + initcmd + "stop`: Stops the song\n" +
+							"`" + initcmd + "skip`: Skips to the next song\n" +
+							"`" + initcmd + "replay`: Stops and replays song from the start\n" +
+							"`" + initcmd + "readd`: Adds the current song back into queue\n" +
+							"`" + initcmd + "loop`: Loops the entire queue over and over, execute command to turn off\n" +
+							"`" + initcmd + "local`: Displays all the songs saved by the bot\n" +
+							"`" + initcmd + "remove [index_number]`: Removes a specific song from queue\n" +
+							"`" + initcmd + "remove [#,#,#]`: Removes specific numbers seperated by commans in the queue\n" +
+							"`" + initcmd + "save [YT_URL]`: Saves a song from youtube and stores it\n" +
+							"`" + initcmd + "save`: Saves current song that's playing\n" +
+							"`" + initcmd + "remlocal [index_number]`: Removes a song that has been saved locally\n" +
+							"`" + initcmd + "playlist`: List all playlist\n" +
+							"`" + initcmd + "playlist [playlist_index]`: List all songs of the playlist\n" +
+							"`" + initcmd + "playlist save [PLAYLIST_NAME]`: Saves playlist\n" +
+							"`" + initcmd + "playlist remove [playlist_index]`: Removes the playlist\n"+
+							"`" + initcmd + "playlist remove [playlist_index] [track_index]`: Removes a track from a playlist specified\n"+
+							"`" + initcmd + "playlist add [playlist_index] [YT_URL]`: Add a track to a playlist\n"+
+							"`" + initcmd + "playlist rename [playlist_name or playlist_index] [new_playlist_name]`: Renames a playlist"
+						}
+					});
+					return;
+				}
+			} else{
+				message.channel.send("**Commands**", {
+					embed: {
+						color: 1752220,
+						description: "**Admin Commands**\n" +
+						"`" + initcmd + "help admin`: View Admin commands\n"+
+						"`" + initcmd + "help general`: View General commands\n"+
+						"`" + initcmd + "help music`: View Music Commands\n"
+					}
+				});
+			}			
   	}
 
   	if(isCommand(message.content, 'invite')){
