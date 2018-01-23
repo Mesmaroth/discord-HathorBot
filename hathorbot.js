@@ -682,6 +682,7 @@ bot.on('message', message => {
 							"`" + initcmd + "setgame`: Sets the name of the game the bot is playing\n"+
 							"`" + initcmd + "setinit`: Sets the initial command\n"+
 							"`" + initcmd + "reports`: View reports\n"+
+							"`" + initcmd + "delreports`: Clear reports that have been read already\n"+
 							"`" + initcmd + "exit`: Shutdown bot\n"
 						}
 					});
