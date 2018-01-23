@@ -364,9 +364,7 @@ bot.on('message', message => {
 					});
 				});
 			}
-		} else {
-			message.channel.send("You do not have access to this command.");
-		}
+		} else message.channel.send("You do not have access to this command.");
 	}
 
 	// Remove a group from admin access
@@ -398,7 +396,7 @@ bot.on('message', message => {
 					}
 				}
 			}
-		}
+		} else message.channel.send("You do not have access to this command.");
 	}
 
 	// Admin Commands
@@ -409,9 +407,7 @@ bot.on('message', message => {
 				bot.user.setUsername(username);
 				console.log("DISCORD: Username set to " + username);
 			}
-		} else{
-			message.channel.send("You do not have access to this command.");
-		}
+		} else message.channel.send("You do not have access to this command.");
 	}
 
 	if(isCommand(message.content, 'setavatar')){
@@ -421,9 +417,7 @@ bot.on('message', message => {
 				bot.user.setAvatar(url);
 				console.log("DISCORD: Avatar changed");
 			}
-		} else{
-			message.channel.send("You do not have access to this command.");
-		}
+		} else message.channel.send("You do not have access to this command.");
 	}
 
   	if(isCommand(message.content, 'setgame') && isAdmin(message)){
@@ -432,9 +426,7 @@ bot.on('message', message => {
 	  			var init = message.content.split(' ')[1];
 	  			setGame(init);
 	  		}
-			} else{
-				message.channel.send("You do not have access to this command.");
-			}
+			} else message.channel.send("You do not have access to this command.");
   	}
 
   	if(isCommand(message.content, 'exit')){
@@ -442,9 +434,7 @@ bot.on('message', message => {
 				if(currentVoiceChannel)
 	  			currentVoiceChannel.leave();
 	  		bot.destroy();
-			} else{
-				message.channel.send("You do not have access to this command.");
-			}
+			} else message.channel.send("You do not have access to this command.");
   	}
 
   	if(isCommand(message.content, 'setinit')){
@@ -472,9 +462,7 @@ bot.on('message', message => {
 	  				});
 	  			});
 	  		}
-			} else{
-				message.channel.send("You do not have access to this command.");
-			}
+			} else message.channel.send("You do not have access to this command.");
   	}
   	// -----------------------------------------------------------------------
 
@@ -513,7 +501,6 @@ bot.on('message', message => {
   		} else{
   			message.channel.send("o_O ??");
   		}
-  		return;
   	}
 
 		if(isCommand(message.content, 'reports')){
@@ -540,9 +527,27 @@ bot.on('message', message => {
 						}
 					}
 					message.channel.send("No reports available");
-					return;
+				});
+			} else message.channel.send("You do not have access to this command.");
+		}
+
+		if(isCommand(message.content, 'delreports')){
+			if(isOwner(message) || isAdmin(message)){
+				fs.readdir(logsPath, (error, files) => {
+					if(error) return sendError('Reading Logs Path', error, message.channel);
+
+					for(var i = 0; i < files.length; i++){
+						if(files[i].split('_')[0] === message.guild.id){
+							fs.unlink(path.join(logsPath, files[i]), error =>{
+								if(error) return sendError("Unlinking log file", error, message.channel);
+								message.channel.send("All reports have been deleted");
+							});
+							return;
+						}
+					}
+					message.channel.send("No report file found");
 				})
-			}
+			} else message.channel.send("You do not have access to this command.");
 		}
 
   	if(isCommand(message.content, 'stats')){
