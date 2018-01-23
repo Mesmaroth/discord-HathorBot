@@ -27,6 +27,7 @@ Library: [Discord.js](https://discord.js.org)
   - `setgame [name]`: Sets the name of the game the bot is playing
   - `setinit [command]`: Sets the initial command the bot needs to enter commands e.g The "." in ".play"
   - `reports`: View reports that have been filed
+  - `delreports`: Clear any reports that have been read
   - `exit`: disconnects bot from discord  
 
 ### General
