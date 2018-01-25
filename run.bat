@@ -1,2 +1,2 @@
-node hathorbot.js 
+node app.js 
 pause
