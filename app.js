@@ -841,7 +841,7 @@ bot.on('message', message => {
   			message.channel.send("**Local Songs**", {
   				embed: {
   					color: 10181046,
-  					description: files.length > 1 ? files.join("\n") : "No Local files found"
+  					description: files.length > 0 ? files.join("\n") : "No Local files found"
   				}
   			});
   		});
