@@ -832,7 +832,7 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'local') || isCommand(message.content, 'l')){
-  		fs.readdir('./local/', (error, files) =>{
+  		fs.readdir(localPath, (error, files) =>{
   			if(error) return sendError("Reading Local directory", error, message.channel);
   			for(var i = 0; i < files.length; i++){
   				files[i] = "**" + (i+1) + ".** " + files[i].split(".")[0];
