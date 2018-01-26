@@ -857,13 +857,12 @@ bot.on('message', message => {
 		}
 
 		if(!message.member.voiceChannel){
-			message.channel.send("You are not in a voice channel");
+			message.channel.send("You aren't in a voice channel");
 			return;
 		}
 
 		if(currentVoiceChannel !== message.member.voiceChannel){
-			if(currentVoiceChannel)
-				currentVoiceChannel.leave();
+			if(currentVoiceChannel) currentVoiceChannel.leave();
 
 			currentVoiceChannel = message.member.voiceChannel;
 			if(playing){
@@ -907,7 +906,7 @@ bot.on('message', message => {
 				stopped = false;
 	  			stayOnQueue = false;
 	  			queue.splice(0,1);
-	  		}
+	  	}
 
 			var ext = file.filename.split('.');
 			ext = ext[ext.length - 1];
@@ -983,11 +982,11 @@ bot.on('message', message => {
 				var input = message.content.split(' ')[1];
 				yt.getInfo(input, (error, rawData, id, title, length_seconds) => {
 					if(error) return sendError("Youtube Info", error, message.channel);
-					var file = path.join(tempFilesPath, id + '.mp3');
+					var filePath = path.join(tempFilesPath, id + '.mp3');
 
-					yt.getFile(input, file, () =>{
-
-						pushPlay(title, file, false, id, input);
+					yt.getFile(input, filePath, (err) =>{
+						if(err) return sendError("Getting YT Stream", err, message.channel);
+						pushPlay(title, filePath, false, id, input);
 					});
 				});
 			} else{
