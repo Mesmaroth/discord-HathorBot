@@ -4,32 +4,30 @@ const path = require('path');
 const search = require('youtube-search')
 const youtubeAPI = require(path.join(path.resolve(__dirname, '..'), 'config/botLogin')).youtubeAPI;
 
-// const readline = require('readline');
+module.exports.search = function(message) {
+	return new Promise((resolve, reject) => {
+		search(message, {maxResults: 5, key: youtubeAPI}, function(err, results) {
+			if(err) reject(err);
 
-module.exports.search = function(message, callback) {
-	var opts = {
-	  maxResults: 5,
-	  key: youtubeAPI
-	};
-
-	search(message, opts, function(error, results) {
-	 	if(error) callback(error);
-
-	 	if(results){
-	 		var searchResults = [];
-	 		for(var i = 0 ; i < results.length; i++){
-	 			if(i === 5) break;
-	 			if(results[i].kind === 'youtube#video'){
-	 				searchResults.push({
-		 				title: results[i].title,
-		 				id: results[i].id,
-		 				url: results[i].link
-		 			});
-	 			}
-	 		}
-			callback(null, searchResults);
-	 	}
+			if(results){
+				var searchResults = [];
+				for(var i = 0 ; i < results.length; i++){
+					if(i === 5) break;
+					if(results[i].kind === 'youtube#video'){
+						searchResults.push({
+							title: results[i].title,
+							id: results[i].id,
+							url: results[i].link
+						});
+					}
+				}
+				resolve(searchResults);
+			} else {
+				reject(new Error('No results found'));
+			}
+		});
 	});
+	
 }
 
 var ytdl_options = {
@@ -37,10 +35,28 @@ var ytdl_options = {
 	filter: 'audioonly'
 }
 
-module.exports.getInfo = function(url, callback){
-	ytdl.getInfo(url, ytdl_options, (error, rawData) =>{
-		if(error) return callback(error);
-		callback(null, rawData, rawData.video_id, rawData.title, rawData.length_seconds);
+module.exports.getInfo = function(opts){
+	return new Promise((resolve, reject) => {
+		try{
+			ytdl.getInfo(opts.url, ytdl_options, (err, rawData) => {
+				if(err) reject(err);
+				var filePath;
+				if("local" in opts){
+					filePath = path.join(opts.local, rawData.title+'.mp3');
+				} else
+					filePath = path.join(opts.temp, rawData.video_id+'.mp3');
+
+				resolve({
+					path: filePath,
+					url: opts.url,
+					id: rawData.video_id,
+					title: rawData.title,
+					length: rawData.length_seconds
+				});
+			});
+		} catch(err) {
+			if(err) reject(err)
+		}
 	});
 }
 
@@ -48,39 +64,14 @@ module.exports.getStream = function(url,callback){
 	callback(ytdl(url, ytdl_options));
 }
 
-module.exports.getFile = function(url, filePath, callback){
-	if(fs.existsSync(filePath)){
-		callback();
-	}else{
-		var audioOut = fs.createWriteStream(filePath);
-		var stream = ytdl(url, ytdl_options);
-
-		// var starttime;
-
-		stream.pipe(audioOut);
-
-		// stream.once('response', (res) =>{
-			// starttime = Date.now();
-		// });
-
-		// stream.on('progress', (chunkLength, downloaded, total) => {
-			// Progress output
-			// const floatDownloaded = downloaded / total;
-		  // const downloadedMinutes = (Date.now() - starttime) / 1000 / 60;
-			// readline.cursorTo(process.stdout, 0);
-		  // process.stdout.write(`${(floatDownloaded * 100).toFixed(2)}% downloaded`);
-		  // process.stdout.write(`(${(downloaded / 1024 / 1024).toFixed(2)}MB of ${(total / 1024 / 1024).toFixed(2)}MB)\n`);
-		  // process.stdout.write(`running for: ${downloadedMinutes.toFixed(2)}minutes`);
-		  // process.stdout.write(`, estimated time left: ${(downloadedMinutes / floatDownloaded - downloadedMinutes).toFixed(2)}minutes `);
-			// readline.moveCursor(process.stdout, 0, -1);
-		// });
-
-		stream.on('error', err => {
-			if(err) return callback(err);
-		});
-
-		stream.on('finish', ()=>{
-			callback();
-		});
-	}
+module.exports.getFile = function(opts){
+	return new Promise((resolve, reject) => {
+		try{
+			ytdl(opts.url, ytdl_options).pipe(fs.createWriteStream(opts.path))
+			setTimeout(resolve, 8000)
+		}
+		catch(err){
+			if(err) reject(err)
+		}
+	});
 }
