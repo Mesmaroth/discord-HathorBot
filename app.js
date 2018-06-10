@@ -47,7 +47,7 @@ catch(err){
 
 var adminRoles = botPreference.admingroups;
 var initcmd = botPreference.initcmd;
-var defaultGame = (process.argv.length > 2)?`${process.argv[2]} | v${botVersion}`:`v${botVersion} | ${initcmd}help`;
+var defaultGame = (process.argv.length > 2)?`${process.argv.slice(2, process.argv.length).join(' ')} | v${botVersion}`:`v${botVersion} | ${initcmd}help`;
 
 // The object voice channel the bot is in
 var currentVoiceChannel = null;
@@ -1310,7 +1310,6 @@ bot.on('message', message => {
 	  						return;
 	  					}
 	  				}
-
 	  			}
   			}
   			message.channel.send("No local file found with that index.");
