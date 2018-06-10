@@ -62,12 +62,21 @@ var stayOnQueue = false;
 var looping = false;
 
 // Check existence of folders
-var paths = [localPath, playlistPath, tempFilesPath, logsPath];
-for(var i = 0; i < paths.length; i++){
-	if(!fs.existsSync(paths[i])){
-		fs.mkdirSync(paths[i])
-	}
-}
+var folderPaths = [localPath, playlistPath, tempFilesPath, logsPath];
+async.each(folderPaths, (path, callback) => {
+	fs.access(path, fs.constants.F_OK, err => {
+		if(err) {
+			if(err.code === 'ENOENT'){
+				fs.mkdir(path, err => {
+					if(err) callback(err);
+					else console.log(`Path created: ${path}\n`);
+				});
+			}
+		}
+	});
+}, (err) => {
+	if(err) console.log(`${err}\n`);
+});
 
 // Prints errors to console and also reports error to user
 function sendError(title, error, channel){
@@ -101,7 +110,6 @@ function isAdmin(message){
 				return true;
 		}
 	}
-
 	return false;
 }
 
