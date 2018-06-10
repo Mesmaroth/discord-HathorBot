@@ -229,7 +229,6 @@ function play(connection, message) {
 				if(queue.length > 0){
 					play(connection, message);
 				} else{
-					// setGame(defualtGame);
 					setTimeout(()=>{
 						removeTempFiles();
 					}, 1500);
@@ -292,7 +291,7 @@ bot.on('ready', () => {
 		console.log();
 	}
 
-	setGame(defualtGame);
+	setGame(defaultGame);
 
 	// Displays invite link if the bot isn't conntected to any servers
 	if(bot.guilds.size === 0){
@@ -898,7 +897,6 @@ bot.on('message', message => {
 			 	});
 			}
 
-
 		 	if(!playing){
 		 		message.channel.send("**Playing:** " + title);
 		 		currentVoiceChannel.join().then( connection => {
@@ -955,7 +953,7 @@ bot.on('message', message => {
 	  			queue.splice(0,1);
 	  		}
 
-			// Play audio by direct url link
+			// Play audio by non-youtube url link
 			if( qUrl.hostname !== null && qUrl.hostname !== "www.youtube.com" && qUrl.hostname !== "youtu.be"){
 				if(input.endsWith('.mp3')){
 					var file = input.slice(input.lastIndexOf('/') + 1).replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g,'');
@@ -987,18 +985,22 @@ bot.on('message', message => {
 					}
 				} else
 					message.channel.send("No file found. Make sure it's a direct link to the file");
-			} else if(isLink){
+			} else if(isLink){ 
 				// Play audo by YTURL
-				var input = message.content.split(' ')[1];
-				yt.getInfo(input, (error, rawData, id, title, length_seconds) => {
-					if(error) return sendError("Youtube Info", error, message.channel);
-					var filePath = path.join(tempFilesPath, id + '.mp3');
-
-					yt.getFile(input, filePath, (err) =>{
-						if(err) return sendError("Getting YT Stream", err, message.channel);
-						pushPlay(title, filePath, false, id, input);
-					});
-				});
+				var url = message.content.split(' ')[1];
+				yt.getInfo({url: url, temp: tempFilesPath})
+				.then(song => {
+					yt.getFile({url: url, path: song.path})
+					.then(() => {
+						pushPlay(song.title, song.path, false, song.id, url);
+					})
+					.catch( err => {
+						throw err
+					})					
+				})
+				.catch(err => {
+					if(err) sendError("Youtube Request", err, message.channel);
+				})
 			} else{
 				// Play audio file by index number
 				var indexFile = message.content.split(' ')[1];
@@ -1093,7 +1095,7 @@ bot.on('message', message => {
 										}
 										callback(null);
 									}, err =>{
-										if(err) return sendError("Getting Youtube Info", err, message.channel);
+										if(err) return sendError("Youtube Request", err, message.channel);
 									});
 								}
 							}, err=>{
@@ -1101,25 +1103,26 @@ bot.on('message', message => {
 							});
 						});
 					}else{
-						input = input.join();
 						//	Play Youtube by search
-						yt.search(input, (error, searchResults) =>{
-							if(error) return sendError("Youtube Search", error, message.channel);
-							var id, title, songURL;
-
-							if(searchResults.length > 0){
-								id = searchResults[0].id;
-								title = searchResults[0].title;
-								songURL = searchResults[0].url;
-							} else{
-								message.channel.send("Couldn't find what you were looking for");
+						input = input.join();						
+						yt.search(input).then(searchResults => {
+							var song = {}
+							if(searchResults.length === 0){
+								message.channel.send("Couldn't find what you were looking for.");
 								return;
 							}
-							var file = path.join(tempFilesPath, id + '.mp3' );
-
-							yt.getFile(songURL, file, () =>{
-								pushPlay(title, file, false, id, songURL);
+							song.id = searchResults[0].id;
+							song.title = searchResults[0].title;
+							song.url = searchResults[0].url;
+							song.path = path.join(tempFilesPath, searchResults[0].id + '.mp3' );
+							
+							yt.getFile({url: song.url, path: song.path}).then(() =>{
+								pushPlay(song.title, song.path, false, song.id, song.url);
+							}).catch(err => {
+								throw err
 							});
+						}).catch(err => {
+							if(err) sendError('Youtube Request', err, message.channel);
 						});
 					}
 				}
@@ -1254,21 +1257,19 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'save')){
-  		if(currentVoiceChannel !== message.member.voiceChannel){
-			message.channel.send("Not in the bot's voice channel");
-  			return;
-  		}
-
 	  	if(message.content.indexOf(' ') !== -1){
-	  		var url = message.content.split(' ')[1];
-	  		yt.getInfo(url, (error, rawData, id, title, length_seconds) =>{
-	  			if(error) return sendError("Youtube Info", error, message.channel);
-	  			var title = title.replace(/[&\/\\#,+()$~%.'":*?<>{}|]/g,'');
-	  			yt.getFile(url, './local/' + title + '.mp3', () =>{
-	  				message.channel.send("**Saved:** *" + title + "*");
-	  			});
-	  		});
-
+			var url = message.content.split(' ')[1];
+			yt.getInfo({url: url, local: localPath})
+			.then(song => {
+				song.title = song.title.replace(/[&\/\\#,+()$~%.'":*?<>{}|]/g,'');
+				yt.getFile(song)
+				.then(song => {
+				message.channel.send("**Saved:** *" + song.title + "*");
+				})
+			})
+			.catch(err => {
+				if(err) sendError("Youtube Info", error, message.channel);
+			});
 	  	}
 	  	else{
 	  		if(playing){
