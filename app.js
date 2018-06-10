@@ -6,46 +6,48 @@ const async = require('async');
 const URL = require('url');
 const bot = new Discord.Client();
 
+// Paths
+const modulesPath = path.join(__dirname, 'modules');
 const localPath = path.join(__dirname, 'local');
 const playlistPath = path.join(__dirname, 'playlist');
 const tempFilesPath = path.join(__dirname, 'tempFiles');
 const logsPath = path.join(__dirname, 'logs');
 const configPath = path.join(__dirname, 'config');
-const modulesPath = path.join(__dirname, 'modules');
 
-const botLogin = require(path.join(configPath, 'botLogin.js'));
+// Modules
 const yt = require(path.join(modulesPath, 'youtube.js'));
+
+
+// Config
+const botLogin = require(path.join(configPath, 'botLogin.js'));
 const botPreferenceFile = path.join(configPath, 'preference.json');
 
+// Get bot version
 try{
 	var botVersion = require(path.join(__dirname, 'package.json')).version;
-
-}catch(error) {
-	if(error) {
-		console.log(error);
-		return;
-	}
-	var botVersion = "#?";
+}catch(err) {
+	if(err) {
+		console.error(new Error('Package.json not found'));
+		var botVersion = "#?";
+	}	
 }
+
+var botPreference = {initcmd: '.', adminGroups: 'admins'};
 
 try{
-	var botPreference = JSON.parse(fs.readFileSync(botPreferenceFile));
+	botPreference = JSON.parse(fs.readFileSync(botPreferenceFile));
 }
 catch(err){
-	if(err) console.log(err);
-	var defualt = {
-		initcmd: ".",
-		adminGroups: "admin"
-	}
-
-	fs.writeFile(botPreferenceFile, JSON.stringify(defualt, null, '\t'), err =>{
-		if(err) console.loge(err);
+	if(err) console.error(err);
+	var defaultPreference = {initcmd: '.', adminGroups: 'admin'};
+	fs.writeFile(botPreferenceFile, JSON.stringify(defaultPreference, null, '\t'), err =>{
+		if(err) console.error(`Failed to write to ${botPreferenceFile}\n${err}`);
 	});
 }
 
 var adminRoles = botPreference.admingroups;
 var initcmd = botPreference.initcmd;
-var defualtGame = "v" + botVersion + " | " + initcmd + "help";
+var defaultGame = (process.argv.length > 2)?`${process.argv[2]} | v${botVersion}`:`v${botVersion} | ${initcmd}help`;
 
 // The object voice channel the bot is in
 var currentVoiceChannel = null;
