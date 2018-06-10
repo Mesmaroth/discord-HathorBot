@@ -1300,12 +1300,12 @@ bot.on('message', message => {
   			for (var i = 0; i < files.length; i++) {
 	  			if((i+1) === index){
 	  				if(!playing){
-	  					fs.unlinkSync(localPath + files[i]);
+	  					fs.unlinkSync(path.join(localPath, files[i]));
 	  					message.channel.send("Removed " + files[i].split('.')[0]);
 	  					return;
 	  				} else{
 	  					if(files[i] !== queue[0].title + '.mp3'){
-	  						fs.unlinkSync(localPath + files[i]);
+	  						fs.unlinkSync(path.join(localPath, files[i]));
 	  						message.channel.send("Removed " + files[i].split('.')[0]);
 	  						return;
 	  					}
