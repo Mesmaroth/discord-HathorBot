@@ -135,20 +135,20 @@ function getChannelByString(guild, channelName){
 function setGame(game){
 	bot.user.setActivity(game);
 	if(game)
-		console.log("DISCORD: GAME SET: " + game)
+		console.log(`Game Set to ${game}`);
 }
 
 // Removes all temporary files downloaded from youtube
 function removeTempFiles(){
-	fs.readdir(tempFilesPath, (error, files) =>{
-		if(error) return sendError("Reading Temp Path", error, message.channel);
-
+	fs.readdir(tempFilesPath, (err, files) =>{
+		if(err) callback(err);
 		async.each(files, (file, callback) =>{
-			fs.unlink(path.join(tempFilesPath, file), error =>{
-				if(error) return callback(error);
-				callback(null);
+			fs.unlink(path.join(tempFilesPath, file), err =>{
+				if(err) return callback(err);
 			});
 		});
+	}, err => {
+		if(err) console.error(err);
 	});
 }
 
