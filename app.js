@@ -247,8 +247,7 @@ function play(connection, message) {
 // Generate Invite link
 function getInvite(callback){
 	bot.generateInvite([
-		"CONNECT", "SPEAK", "READ_MESSAGES", "SEND_MESSAGES", "SEND_TTS_MESSAGES",
-		"ATTACH_FILES", "USE_VAD"
+		"CONNECT", "SPEAK", "SEND_MESSAGES", "ATTACH_FILES", "USE_VAD", "CHANGE_NICKNAME"
 	]).then( link => {
 		callback(link);
 	});
@@ -635,53 +634,45 @@ bot.on('message', message => {
 	  	});
   	}
 
-  	if(isCommand(message.content, 'about')){
-  		var owner = message.guild.members.find(member =>{
-  			return member.user.username === "Mesmaroth"
-  		});
-
-  		if(owner){
-  			owner = "<@" + owner.id + ">"
-  		}else
-  			owner = "Mesmaroth"
-
-  		getInvite(link =>{
-  			message.channel.send("**About**", {
-	  			embed: {
-	  				author: {
-				      name: bot.user.username,
-				      url: link,
-				      icon_url: bot.user.displayAvatarURL
-				    },
-				    color: 10181046,
-	  				fields: [{
-	  					name: "Username",
-	  					value: bot.user.username,
-	  					inline: true
-	  				},{
-	  					name: "Version",
-	  					value: "HathorBot v" + botVersion,
-	  					inline: true
-	  				},{
-	  					name: "Author",
-	  					value: "Robert (" + owner + ")",
-	  					inline: true
-	  				},{
-	  					name: "Library",
-	  					value: "Discord.js",
-	  					inline: true
-	  				},{
-	  					name: "Source",
-	  					value: "https://github.com/Mesmaroth/discord-HathorBot",
-	  					inline: false
-	  				}],
-	  				thumbnail: {
-						url: bot.user.displayAvatarURL
-					}
-	  			}
-	  		});
-  		});
-
+  	if(isCommand(message.content, 'about')) {
+		message.channel.send("**About**", {
+			embed: {
+				author: {
+				name: bot.user.username,
+				url: link,
+				icon_url: bot.user.displayAvatarURL(),
+				thumbnail: {
+					url: bot.user.displayAvatarURL()
+				}
+			  },
+			  color: 10181046,
+				fields: [{
+					name: "Username",
+					value: bot.user.username,
+					inline: true
+				},{
+					name: "Version",
+					value: "HathorBot v" + botVersion,
+					inline: true
+				},{
+					name: "Author",
+					value: "Robert Sandoval (Mesmaroth)",
+					inline: true
+				},{
+					name: "Library",
+					value: "Discord.js",
+					inline: true
+				},{
+					name: "Source",
+					value: "https://github.com/Mesmaroth/discord-HathorBot",
+					inline: false
+				}],
+				thumbnail: {
+					url: bot.user.displayAvatarURL()
+				}
+			}
+		});
+		return
   	}
 
   	if(isCommand(message.content, 'help')){
