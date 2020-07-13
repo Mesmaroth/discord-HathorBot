@@ -4,6 +4,7 @@ const path = require('path');
 const request = require('request');
 const async = require('async');
 const URL = require('url');
+const { search } = require('./modules/youtube');
 const bot = new Discord.Client();
 
 // Paths
@@ -80,8 +81,9 @@ async.each(folderPaths, (path, callback) => {
 
 // Prints errors to console and also reports error to user
 function sendError(title, error, channel){
-	console.log("-----"  + "ERROR"+ "------");
-	console.log(error);
+	console.log("-----"  + "ERROR " + title + " ------");
+	console.log(error.message);
+	console.log(error.stack);
 	console.log("----------");
 	channel.send("**" + title + " Error**\n```" + error.message +"```");
 }
@@ -212,8 +214,8 @@ function play(connection, message) {
 		queue.shift();
 	}
 
-	botPlayback = connection.playFile(song.file)
-		.on('end', ()=>{
+	botPlayback = connection.play(song.file)
+		.on('finish', ()=>{
 			playing = false;
 
 			if(!stopped){
@@ -238,7 +240,7 @@ function play(connection, message) {
 		.on('error', (error)=>{
 			sendError("Playback", error, message.channel);
 		});
-	botPlayback.setVolume(0.5);
+	// botPlayback.setVolume(0.5);
 	playing = true;
 }
 
@@ -277,18 +279,17 @@ function isYTLink(input){
 
 bot.on('ready', () => {
 	console.log("HathorBot V" + botVersion)
+	console.log("----------------\n")
 	console.log(bot.user.username + " (" + bot.user.id + ")");
 
 	// display servers
 	var guilds = [];
-	bot.guilds.array().forEach( (guild) =>{
+	bot.guilds.cache.array().forEach( (guild) =>{
 		guilds.push(guild.name);
 	});
 
 	if(guilds.length > 0){
-		console.log("Servers:");
-		console.log(guilds.join("\n"));
-		console.log();
+		console.log("Servers:" + guilds.join(" ") + "\n");
 	}
 
 	setGame(defaultGame);
@@ -314,6 +315,15 @@ bot.on('disconnect', (event) =>{
 });
 
 bot.on('message', message => {
+	// Disable DMs
+	if(message.channel.type == 'dm' && message.author.id == '113794078839144456' && message.author.id != bot.user.id) {
+		message.channel.send("Direct messages have been disabled for this bot. Nice try " + message.author.username + ".");
+		return;
+	} else if (message.channel.type == 'dm' && message.author.id != bot.user.id) {
+		message.channel.send("Direct messages have been disabled for this bot.");
+		return;
+	}
+
 	// List admin groups that are allowed to use admin commands
 	if(isCommand(message.content, 'listgroups')){
 		if(isOwner(message) || isAdmin(message)){
@@ -798,7 +808,7 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'join')){
-  		var userVoiceChannel = message.member.voiceChannel;
+  		var userVoiceChannel = message.member.voice.channel;
   		if(userVoiceChannel){
   			if(!playing){
   				if(currentVoiceChannel){
@@ -823,18 +833,18 @@ bot.on('message', message => {
   		if(songs.length > 0){
   			if(songs.length === 1){
   				if(looping){
-  					message.channel.send("**Queue - Playlist\t[LOOPING]**\n**Playing:** " + songs[0]);
+  					message.channel.send("**Queue\t[LOOPING]**\n**Playing:** " + songs[0]);
   				} else
-  					message.channel.send("**Queue - Playlist**\n**Playing:** " + songs[0]);
+  					message.channel.send("**Queue**\n**Playing:** " + songs[0]);
   			} else{
   				var firstSong = songs.shift();
   				for (var i = 0; i < songs.length; i++) {
   					songs[i] = "**" + (i+1) + ". **"+ songs[i];
   				}
   				if(looping){
-  					message.channel.send("**Queue - Playlist\t[LOOPING]**\n**Playing:** " + firstSong + "\n\n" + songs.join("\n"));
+  					message.channel.send("**Queue\t[LOOPING]**\n**Playing:** " + firstSong + "\n\n" + songs.join("\n"));
   				} else
-  					message.channel.send("**Queue - Playlist**\n**Playing:** " + firstSong + "\n\n" + songs.join("\n"));
+  					message.channel.send("**Queue**\n**Playing:** " + firstSong + "\n\n" + songs.join("\n"));
   			}
   		} else
   			message.channel.send("No songs queued");
@@ -858,22 +868,21 @@ bot.on('message', message => {
 
   	if(isCommand(message.content, 'play') || isCommand(message.content, 'p')){
   		var file = message.attachments.first();
-
   		// Handle playing audio for a single channel
-  		if(playing && currentVoiceChannel !== message.member.voiceChannel){
+  		if(playing && currentVoiceChannel !== message.member.voice.channel){
 			message.channel.send("Currently playing something in another voice channel");
 			return;
 		}
 
-		if(!message.member.voiceChannel){
+		if(!message.member.voice.channel){
 			message.channel.send("You aren't in a voice channel");
 			return;
 		}
 
-		if(currentVoiceChannel !== message.member.voiceChannel){
+		if(currentVoiceChannel !== message.member.voice.channel){
 			if(currentVoiceChannel) currentVoiceChannel.leave();
 
-			currentVoiceChannel = message.member.voiceChannel;
+			currentVoiceChannel = message.member.voice.channel;
 			if(playing){
 				message.channel.send("Currently playing something");
 				return;
@@ -999,7 +1008,7 @@ bot.on('message', message => {
 					})					
 				})
 				.catch(err => {
-					if(err) sendError("Youtube Request", err, message.channel);
+					if(err) sendError("Youtube Request", err, message.channel); 
 				})
 			} else{
 				// Play audio file by index number
@@ -1102,12 +1111,12 @@ bot.on('message', message => {
 								if(err) return sendError(err, err, message.channel);
 							});
 						});
-					}else{
+					}else {
 						//	Play Youtube by search
 						input = input.join();						
 						yt.search(input).then(searchResults => {
 							var song = {}
-							if(searchResults.length === 0){
+							if(searchResults.length === 0) {
 								message.channel.send("Couldn't find what you were looking for.");
 								return;
 							}
@@ -1143,8 +1152,8 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'stop')){
-  		if(currentVoiceChannel !== message.member.voiceChannel){
-			message.channel.send("Not in the bot's voice channel");
+  		if(currentVoiceChannel !== message.member.voice.channel){
+			message.channel.send("You are not in the bot's voice channel");
   			return;
   		}
 
@@ -1158,8 +1167,8 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'skip')){
-  		if(currentVoiceChannel !== message.member.voiceChannel){
-			message.channel.send("Not in the bot's voice channel");
+  		if(currentVoiceChannel !== message.member.voice.channel){
+			message.channel.send("You are not in the bot's voice channel");
   			return;
   		}
 
@@ -1167,7 +1176,8 @@ bot.on('message', message => {
   			var prevSong = queue[0].title;
   			playing = false;
   			stayOnQueue = false;
-  			botPlayback.end();
+			botPlayback.end();
+			queue.shift();
   			if(queue.length > 0)
   				message.channel.send("**Skipped:** " + prevSong + "\n**Playing:** " + queue[0].title);
   			else
@@ -1179,8 +1189,12 @@ bot.on('message', message => {
   				if(stayOnQueue)
   					stayOnQueue = false;
   				queue.shift();
-  				message.channel.send("**Skipped:** " + prevSong + "\n**Playing:** " + queue[0].title);
-  				play(voiceConnection, message);
+				if(queue.length > 0) {
+					message.channel.send("**Skipped:** " + prevSong + "\n**Playing:** " + queue[0].title);
+					play(voiceConnection, message);
+				}
+				else
+					message.channel.send("**Skipped:** " + prevSong);
   			} else{
   				message.channel.send("Nothing to skip");
   			}
@@ -1188,8 +1202,8 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'replay')){
-  		if(currentVoiceChannel !== message.member.voiceChannel){
-			message.channel.send("Not in the bot's voice channel");
+  		if(currentVoiceChannel !== message.member.voice.channel){
+			message.channel.send("You are not in the bot's voice channel");
   			return;
   		}
 
@@ -1202,8 +1216,8 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'remove')){
-  		if(currentVoiceChannel !== message.member.voiceChannel){
-			message.channel.send("Not in the bot's voice channel");
+  		if(currentVoiceChannel !== message.member.voice.channel){
+			message.channel.send("You are not in the bot's voice channel");
   			return;
   		}
 
@@ -1263,7 +1277,7 @@ bot.on('message', message => {
 			.then(song => {
 				song.title = song.title.replace(/[&\/\\#,+()$~%.'":*?<>{}|]/g,'');
 				yt.getFile(song)
-				.then(song => {
+				.then(() => {
 				message.channel.send("**Saved:** *" + song.title + "*");
 				})
 			})
@@ -1317,8 +1331,8 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'readd')){
-  		if(currentVoiceChannel !== message.member.voiceChannel){
-			message.channel.send("Not in the bot's voice channel");
+  		if(currentVoiceChannel !== message.member.voice.channel){
+			message.channel.send("You are not in the bot's voice channel");
   			return;
   		}
 
@@ -1331,8 +1345,8 @@ bot.on('message', message => {
   	}
 
   	if(isCommand(message.content, 'loop')){
-  		if(currentVoiceChannel !== message.member.voiceChannel){
-			message.channel.send("Not in the bot's voice channel");
+  		if(currentVoiceChannel !== message.member.voice.channel){
+			message.channel.send("You are not in the bot's voice channel");
   			return;
   		}
 
@@ -1619,11 +1633,11 @@ bot.on('message', message => {
 
 bot.on('voiceStateUpdate', (oldMember, newMember) =>{
 	if(newMember.id === bot.user.id){
-		newMember.voiceChannel = currentVoiceChannel;
+		newMember.channel = currentVoiceChannel;
 	}
 
-	if(currentVoiceChannel && oldMember.voiceChannel){
-		if(oldMember.voiceChannel === currentVoiceChannel && newMember.voiceChannel !== currentVoiceChannel  && currentVoiceChannel.members.size === 1){
+	if(currentVoiceChannel && oldMember.channel){
+		if(oldMember.channel === currentVoiceChannel && newMember.channel !== currentVoiceChannel  && currentVoiceChannel.members.size === 1){
 			if(queue.length > 0){
 				queue.splice(0, queue.length);
 			}
