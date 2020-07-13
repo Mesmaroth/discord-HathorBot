@@ -5,7 +5,7 @@ Library: [Discord.js](https://discord.js.org)
 ## Installation:
 
 ### Windows
-  - Install [Node.JS](https://nodejs.org/en/) 6.0 or greater
+  - Install [Node.JS](https://nodejs.org/en/) 12.x or greater
   - Install [Python v2.7.x](https://www.python.org/downloads/)
   - Install [Windows Build Tools](https://github.com/felixrieseberg/windows-build-tools)
   - Install [node-gyp](https://github.com/nodejs/node-gyp) (Open command prompt and enter `npm install -g node-gyp`)
