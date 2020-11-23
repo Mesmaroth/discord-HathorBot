@@ -33,22 +33,30 @@ try{
 	}	
 }
 
-var botPreference = {initcmd: '.', adminGroups: 'admins'};
+var botPreference = {}
 
 try{
-	botPreference = JSON.parse(fs.readFileSync(botPreferenceFile));
+	botPreference = JSON.parse(fs.readFileSync(botPreferenceFile))
 }
 catch(err){
 	if(err) console.error(err);
 	var defaultPreference = {initcmd: '.', adminGroups: 'admin'};
 	fs.writeFile(botPreferenceFile, JSON.stringify(defaultPreference, null, '\t'), err =>{
-		if(err) console.error(`Failed to write to ${botPreferenceFile}\n${err}`);
+		if(err) console.error(`Failed to write to ${botPreferenceFile}\n${err}`)
 	});
 }
 
 var adminRoles = botPreference.admingroups;
 var initcmd = botPreference.initcmd;
-var defaultGame = (process.argv.length > 2)?`${process.argv.slice(2, process.argv.length).join(' ')} | v${botVersion}`:`v${botVersion} | ${initcmd}help`;
+
+// Determine Game Title displayed
+if(process.argv.length > 2) {
+	defaultGame = `${process.argv.slice(2, process.argv.length).join(' ')} | v${botVersion}`
+} else if (botPreference.game || botPreference.game !== "") {
+	defaultGame = botPreference.game + ` | v${botVersion}`;
+} else {
+	defaultGame = `v${botVersion} | ${initcmd}help`
+}
 
 // The object voice channel the bot is in
 var currentVoiceChannel = null;
@@ -990,6 +998,7 @@ bot.on('message', message => {
 				var url = message.content.split(' ')[1];
 				yt.getInfo({url: url, temp: tempFilesPath})
 				.then(song => {
+					message.channel.send("**Downloading:** " + song.title);
 					yt.getFile({url: url, path: song.path})
 					.then(() => {
 						pushPlay(song.title, song.path, false, song.id, url);
@@ -1115,7 +1124,7 @@ bot.on('message', message => {
 							song.title = searchResults[0].title;
 							song.url = searchResults[0].url;
 							song.path = path.join(tempFilesPath, searchResults[0].id + '.mp3' );
-							
+							message.channel.send("**Downloading:** " + song.title)
 							yt.getFile({url: song.url, path: song.path}).then(() =>{
 								pushPlay(song.title, song.path, false, song.id, song.url);
 							}).catch(err => {
@@ -1267,6 +1276,7 @@ bot.on('message', message => {
 			yt.getInfo({url: url, local: localPath})
 			.then(song => {
 				song.title = song.title.replace(/[&\/\\#,+()$~%.'":*?<>{}|]/g,'');
+				message.channel.send("**Downloading**: " + song.tiitle)
 				yt.getFile(song)
 				.then(() => {
 				message.channel.send("**Saved:** *" + song.title + "*");
