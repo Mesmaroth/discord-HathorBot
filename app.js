@@ -6,6 +6,7 @@ const async = require('async');
 const URL = require('url');
 const { search } = require('./modules/youtube');
 const bot = new Discord.Client();
+const cron = require('node-cron');
 
 // Paths
 const modulesPath = path.join(__dirname, 'modules');
@@ -145,7 +146,7 @@ function getChannelByString(guild, channelName){
 function setGame(game){
 	bot.user.setActivity(game);
 	if(game)
-		console.log(`Game Set to ${game}`);
+		console.log(`Game set to ${game}`);
 }
 
 // Removes all temporary files downloaded from youtube
@@ -286,7 +287,7 @@ function isYTLink(input){
 
 bot.on('ready', () => {
 	console.log("HathorBot V" + botVersion)
-	console.log("----------------\n")
+	console.log("----------------")
 	console.log(bot.user.username + " (" + bot.user.id + ")");
 
 	// display servers
@@ -308,7 +309,12 @@ bot.on('ready', () => {
 		});
 		console.log();
 	}
-
+	// Set the game every day. This is due to a bug that makes
+	// the game disappear show empty when running the bot
+	// for long periods.
+	cron.schedule('0 12 * * *', function() {
+		setGame(defaultGame)
+	});
 	clearTemp();
 });
 
