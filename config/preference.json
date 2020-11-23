@@ -1,4 +1,5 @@
 {
 	"initcmd" : ".",
-	"admingroups" : ["admin"]
+	"admingroups" : ["admin"],
+	"game" : ".help"
 }
