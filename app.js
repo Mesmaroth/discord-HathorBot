@@ -313,7 +313,7 @@ bot.on('ready', () => {
 	// the game disappear show empty when running the bot
 	// for long periods.
 	cron.schedule('0 12 * * *', function() {
-		setGame(defaultGame)
+		bot.user.setActivity(defaultGame);
 	});
 	clearTemp();
 });
