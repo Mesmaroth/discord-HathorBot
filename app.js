@@ -1634,3 +1634,11 @@ bot.on('voiceStateUpdate', (oldMember, newMember) =>{
 });
 
 bot.login(botLogin.token);
+
+process.on('SIGINT', function() {
+	console.log("> Caught interrupt signal, shutting down...");
+	if(currentVoiceChannel)
+				currentVoiceChannel.leave();	
+	bot.destroy();
+    process.exit();
+});
