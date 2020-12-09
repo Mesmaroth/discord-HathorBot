@@ -424,12 +424,19 @@ bot.on('message', message => {
 			} else message.channel.send("You do not have access to this command.");
   	}
 
-  	if(isCommand(message.content, 'exit')){
-  		if(isOwner(message) || isAdmin(message)){
-				if(currentVoiceChannel)
-	  			currentVoiceChannel.leave();
-	  		bot.destroy();
-			} else message.channel.send("You do not have access to this command.");
+  	if(isCommand(message.content, 'exit')) {
+  		if(isOwner(message) || isAdmin(message)) {
+			console.log("> Shutting down...");
+			message.channel.send("Shutting down...")
+			.then(()=> {
+				bot.destroy();
+				removeTempFiles();
+				process.exit(0);
+			})
+			if(currentVoiceChannel)
+				currentVoiceChannel.leave();			
+		} else 
+			message.channel.send("You do not have access to this command.");
   	}
 
   	if(isCommand(message.content, 'setinit')){
@@ -470,11 +477,11 @@ bot.on('message', message => {
   			var user = message.member.user.username;
   			var msg = message.content.split(' ');
   			var report;
-  			var reportFile = path.join(logsPath, message.guild.id + '_reports');
+  			var reportFile = path.join(logsPath, 'log_reports');
 
   			msg.splice(0,1);
   			msg = msg.join(' ');
-  			report = getDateTime() + " " + user + "@"+ message.guild.name + ": " + msg;
+  			report = moment().format('MM/DD/YYYY - HH:mm:ss') + " " + user + "@"+ message.guild.name + ": " + msg;
 
   			if(fs.existsSync(reportFile)){
   				fs.readFile(reportFile, 'utf-8', (error, file)=>{
@@ -492,7 +499,7 @@ bot.on('message', message => {
   					message.channel.send("You're report has been filed. Thank you");
   				});
   			}
-  			console.log("REPORT: " + user + " from " + message.guild.name + " submitted a report.");
+  			console.log("> Report: " + user + " from " + message.guild.name + " submitted a report.");
   		} else{
   			message.channel.send("o_O ??");
   		}
@@ -546,9 +553,9 @@ bot.on('message', message => {
 		}
 
   	if(isCommand(message.content, 'stats')){
-  		const users = bot.users.array();
-  		const guildMembers = message.guild.members.array();
-  		const channels = bot.channels.array();
+  		const users = bot.users.cache.array();
+  		const guildMembers = message.guild.members.cache.array();
+  		const channels = bot.channels.cache.array();
 
   		var guildTotalOnline = 0;
   		var totalOnline = 0;
@@ -577,26 +584,26 @@ bot.on('message', message => {
   				nonGuildChannels++
   		}
 
-	  	getInvite(link =>{
+	  	getInvite(inviteLink => {
 	  		message.channel.send("**Stats**",{
 	  			embed: {
 	  				author: {
 				      name: bot.user.username,
-				      url: link,
-				      icon_url: bot.user.displayAvatarURL
+				      url: inviteLink,
+				      icon_url: bot.user.displayAvatarURL()
 				    },
 	  				color: 1752220,
 	  				fields: [{
 	  					name: "Members",
-	  					value: "`" + bot.users.size + "` Total\n`" + totalOnline + "` Online\n\n`" + message.guild.memberCount + "` total this server\n`" + guildTotalOnline + "` online this server",
+						  value: "`" + bot.users.cache.array().length + "` Total\n`" + totalOnline + "` Online\n\n`" + message.guild.memberCount + "` total this server\n`" + guildTotalOnline + "` online this server",
 	  					inline: true
 	  				}, {
 	  					name: "Channels",
-	  					value: "`" + (bot.channels.size - nonGuildChannels)+ "` Total\n`" + message.guild.channels.size + "` this server\n`" + totalTextChannels + "` Total Text\n`" + totalVoiceChannels + "` Total Voice",
+	  					value: "`" + (bot.channels.cache.array().length - nonGuildChannels)+ "` Total\n`" + message.guild.channels.cache.array().length + "` this server\n`" + totalTextChannels + "` Total Text\n`" + totalVoiceChannels + "` Total Voice",
 	  					inline: true
 	  				}, {
 	  					name: "Servers",
-	  					value: bot.guilds.size,
+	  					value: bot.guilds.cache.array().length,
 	  					inline: true
 	  				}, {
 	  					name: "Uptime",
@@ -604,7 +611,7 @@ bot.on('message', message => {
 	  					inline: true
 	  				}],
 	  				thumbnail: {
-						url: bot.user.displayAvatarURL
+						url: bot.user.displayAvatarURL()
 					}
 	  			}
 	  		});
@@ -615,7 +622,7 @@ bot.on('message', message => {
 		message.channel.send("**About**", {
 			embed: {
 				author: {
-				name: bot.user.username,
+				name: 'Hathor Bot',
 				url: link,
 				icon_url: bot.user.displayAvatarURL(),
 				thumbnail: {
@@ -629,11 +636,11 @@ bot.on('message', message => {
 					inline: true
 				},{
 					name: "Version",
-					value: "HathorBot v" + botVersion,
+					value: botVersion,
 					inline: true
 				},{
 					name: "Author",
-					value: "Robert Sandoval (Mesmaroth)",
+					value: "Mesmaroth",
 					inline: true
 				},{
 					name: "Library",
@@ -1239,38 +1246,39 @@ bot.on('message', message => {
   		}
   	}
 
-  	if(isCommand(message.content, 'save')){
-	  	if(message.content.indexOf(' ') !== -1){
+  	if(isCommand(message.content, 'save')) {
+	  	if(message.content.indexOf(' ') !== -1) {
 			var url = message.content.split(' ')[1];
 			yt.getInfo({url: url, local: localPath})
 			.then(song => {
 				song.title = song.title.replace(/[&\/\\#,+()$~%.'":*?<>{}|]/g,'');
-				message.channel.send("**Downloading**: " + song.tiitle)
+				message.channel.send("**Downloading**: " + song.title)
 				yt.getFile(song)
 				.then(() => {
 				message.channel.send("**Saved:** *" + song.title + "*");
 				})
 			})
 			.catch(err => {
-				if(err) sendError("Youtube Info", error, message.channel);
+				if(err) 
+					sendError("Youtube Info", error, message.channel);
 			});
 	  	}
-	  	else{
-	  		if(playing){
+	  	else {
+	  		if(playing) {
 	  			var song = queue[0];
 		  		var title = song.title.replace(/[&\/\\#,+()$~%.'":*?<>{}|]/g,'');
 			  	var output = './local/' + title + '.mp3';
-	  			if(!song.local){
-		  			if(!fs.existsSync(output)){
+	  			if(!song.local) {
+		  			if(!fs.existsSync(output)) {
 		  				fs.createReadStream(song.file).pipe(fs.createWriteStream(output));
 		  				message.channel.send("**Saved:** *" + title + "*");
-		  			} else{
+		  			} else {
 		  				message.channel.send("You already saved this song")
 		  			}
-		  		} else{
+		  		} else {
 		  			message.channel.send("You already saved this song");
 		  		}
-	  		} else{
+	  		} else {
 	  			message.channel.send("Not playing anything to save");
 	  		}
 	  	}
