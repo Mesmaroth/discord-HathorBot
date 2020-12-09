@@ -4,9 +4,10 @@ const path = require('path');
 const request = require('request');
 const async = require('async');
 const URL = require('url');
-const { search } = require('./modules/youtube');
 const bot = new Discord.Client();
 const cron = require('node-cron');
+const chalk = require("chalk");
+const moment = require("moment");
 
 // Paths
 const modulesPath = path.join(__dirname, 'modules');
@@ -19,31 +20,32 @@ const configPath = path.join(__dirname, 'config');
 // Modules
 const yt = require(path.join(modulesPath, 'youtube.js'));
 
-
 // Config
 const botLogin = require(path.join(configPath, 'botLogin.js'));
 const botPreferenceFile = path.join(configPath, 'preference.json');
 
 // Get bot version
-try{
+try {
 	var botVersion = require(path.join(__dirname, 'package.json')).version;
-}catch(err) {
+} catch(err) {
 	if(err) {
 		console.error(new Error('Package.json not found'));
 		var botVersion = "#?";
 	}	
 }
 
-var botPreference = {}
+var botPreference = {};
 
-try{
-	botPreference = JSON.parse(fs.readFileSync(botPreferenceFile))
+try {
+	botPreference = JSON.parse(fs.readFileSync(botPreferenceFile));
 }
-catch(err){
-	if(err) console.error(err);
+catch(err) {
+	if(err) 
+		console.error(err);
 	var defaultPreference = {initcmd: '.', adminGroups: 'admin'};
 	fs.writeFile(botPreferenceFile, JSON.stringify(defaultPreference, null, '\t'), err =>{
-		if(err) console.error(`Failed to write to ${botPreferenceFile}\n${err}`)
+		if(err) 
+			console.error(`Failed to write to ${botPreferenceFile}\n${err}`);
 	});
 }
 
@@ -52,11 +54,11 @@ var initcmd = botPreference.initcmd;
 
 // Determine Game Title displayed
 if(process.argv.length > 2) {
-	defaultGame = `${process.argv.slice(2, process.argv.length).join(' ')} | v${botVersion}`
+	defaultGame = `${process.argv.slice(2, process.argv.length).join(' ')} | v${botVersion}`;
 } else if (botPreference.game || botPreference.game !== "") {
 	defaultGame = botPreference.game + ` | v${botVersion}`;
 } else {
-	defaultGame = `v${botVersion} | ${initcmd}help`
+	defaultGame = `v${botVersion} | ${initcmd}help`;
 }
 
 // The object voice channel the bot is in
@@ -72,48 +74,53 @@ var stayOnQueue = false;
 var looping = false;
 
 // Check existence of folders
-var folderPaths = [localPath, playlistPath, tempFilesPath, logsPath];
-async.each(folderPaths, (path, callback) => {
-	fs.access(path, fs.constants.F_OK, err => {
-		if(err) {
-			if(err.code === 'ENOENT'){
-				fs.mkdir(path, err => {
-					if(err) callback(err);
-					else console.log(`Path created: ${path}\n`);
-				});
+function buildRequiredDirectories() {
+	var folderPaths = [localPath, playlistPath, tempFilesPath, logsPath];
+	async.each(folderPaths, (path, callback) => {
+		fs.access(path, fs.constants.F_OK, err => {
+			if(err) {
+				if(err.code === 'ENOENT') {
+					fs.mkdir(path, err => {
+						if(err) 
+							callback(err);
+						else
+							console.log(`> Path created: ${path}\n`);
+					});
+				}
 			}
-		}
+		});
+	}, (err) => {
+		if(err) 
+			console.log(`${err}\n`);
 	});
-}, (err) => {
-	if(err) console.log(`${err}\n`);
-});
+}
 
 // Prints errors to console and also reports error to user
-function sendError(title, error, channel){
+function sendError(title, error, channel) {
 	console.log("-----"  + "ERROR " + title + " ------");
 	console.log(error.message);
 	console.log(error.stack);
 	console.log("----------");
-	channel.send("**" + title + " Error**\n```" + error.message +"```");
+	channel.send("**" + title + " Error**\n Something went wrong!");
 }
 
 //	Credit: https://stackoverflow.com/questions/1303646/check-whether-variable-is-number-or-string-in-javascript#1303650
 function isNumber(obj) {
-	return !isNaN(parseFloat(obj))
+	return !isNaN(parseFloat(obj));
 }
 
 // Command validation
-function isCommand(message, command){
+function isCommand(message, command) {
 	var init = message.slice(0,1);
 	var keyword = (message.indexOf(' ') !== -1) ? message.slice(1, message.indexOf(' ')) : message.slice(1);
-	if(init === initcmd && keyword.toLowerCase() === command.toLowerCase() ){
+	if(init === initcmd && keyword.toLowerCase() === command.toLowerCase() ) {
 		return true;
 	}
 	return false;
 }
 
 // Checks for a specific role the user is in to run admin commands
-function isAdmin(message){
+function isAdmin(message) {
 	var roles = message.member.roles.array();
 	for(var role = 0; role < roles.length; role++){
 		for( var i = 0; i < adminRoles.length; i++){
@@ -124,71 +131,49 @@ function isAdmin(message){
 	return false;
 }
 
-function isOwner(message){
+function isOwner(message) {
 	if(message.member.id === botLogin.owner_id)
 		return true
 	else
 		return false;
 }
 
-function getGuildByString(guildName){
+function getGuildByString(guildName) {
 	return bot.guilds.filterArray( (guild) =>{
 		return guild.name === guildName;
 	})[0];
 }
 
-function getChannelByString(guild, channelName){
+function getChannelByString(guild, channelName) {
 	return guild.channels.filterArray( (channel) =>{
 		return channel.name === channelName;
 	})[0];
 }
 
-function setGame(game){
+function setGame(game) {
 	bot.user.setActivity(game);
 	if(game)
 		console.log(`Game set to ${game}`);
 }
 
-// Removes all temporary files downloaded from youtube
-function removeTempFiles(){
-	fs.readdir(tempFilesPath, (err, files) =>{
-		if(err) callback(err);
+function removeTempFiles() {
+	fs.readdir(tempFilesPath, (err, files) => {
+		if(err) {
+			if(err.code != 'ENOENT') {
+				throw err;
+			} else if(err.code === "ENOENT")
+				return;
+		}
+		console.log("> Removing temporary files...");
 		async.each(files, (file, callback) =>{
 			fs.unlink(path.join(tempFilesPath, file), err =>{
 				if(err) return callback(err);
 			});
 		});
-	}, err => {
-		if(err) console.error(err);
 	});
 }
 
-function getDateTime() {
-
-    var date = new Date();
-
-    var hour = date.getHours();
-    hour = (hour < 10 ? "0" : "") + hour;
-
-    var min  = date.getMinutes();
-    min = (min < 10 ? "0" : "") + min;
-
-    var sec  = date.getSeconds();
-    sec = (sec < 10 ? "0" : "") + sec;
-
-    var year = date.getFullYear();
-
-    var month = date.getMonth() + 1;
-    month = (month < 10 ? "0" : "") + month;
-
-    var day  = date.getDate();
-    day = (day < 10 ? "0" : "") + day;
-
-
-    return month + "/" + day + "/" + year + "," + hour + ":" + min + ":" + sec;
-}
-
-function botUptime(){
+function botUptime() {
 	var uptimeSeconds = 0, uptimeMinutes = 0, uptimeHours = 0, uptimeDays = 0;
 
 	uptimeSeconds = Math.floor(bot.uptime/1000);
@@ -222,31 +207,24 @@ function play(connection, message) {
 		message.channel.send("**ERROR:** `" + queue[0].title + "` file not found. Skipping...");
 		queue.shift();
 	}
-
 	botPlayback = connection.play(song.file)
 		.on('finish', ()=>{
 			playing = false;
-
-			if(!stopped){
-				if(looping){
+			if(!stopped) {
+				if(looping ){
 					queue.push(queue.shift());
-				} else{
-					if(!stayOnQueue){
+				} else {
+					if(!stayOnQueue) {
 						queue.shift();
 					} else
 						stayOnQueue = false;
 				}
-
-				if(queue.length > 0){
+				if(queue.length > 0) {
 					play(connection, message);
-				} else{
-					setTimeout(()=>{
-						removeTempFiles();
-					}, 1500);
 				}
 			}
 		})
-		.on('error', (error)=>{
+		.on('error', (error)=> {
 			sendError("Playback", error, message.channel);
 		});
 	// botPlayback.setVolume(0.5);
@@ -254,29 +232,20 @@ function play(connection, message) {
 }
 
 // Generate Invite link
-function getInvite(callback){
-	bot.generateInvite([
-		"CONNECT", "SPEAK", "SEND_MESSAGES", "ATTACH_FILES", "USE_VAD", "CHANGE_NICKNAME"
-	]).then( link => {
+function getInvite(callback) {
+	bot.generateInvite({
+		permissions: [ "CONNECT", 
+		"SPEAK",
+		"SEND_MESSAGES",
+		"ATTACH_FILES",
+		"USE_VAD",
+		"CHANGE_NICKNAME"]
+	}).then( link => {
 		callback(link);
 	});
 }
 
-function clearTemp(){
-	fs.readdir(tempFilesPath, (error, files) =>{
-		if(files.length > 0){
-			async.each(files, (file, callback) =>{
-				fs.unlinkSync(path.join(tempFilesPath, file));
-				callback();
-			}, ()=>{
-				console.log("Temp Folder cleared");
-			});
-		}
-	});
-
-}
-
-function isYTLink(input){
+function isYTLink(input ) {
 	/* YT REGEX : https://stackoverflow.com/questions/3717115/regular-expression-for-youtube-links
 	*	by Adrei Zisu
 	*/
@@ -285,54 +254,48 @@ function isYTLink(input){
 	return YT_REG.test(input);
 }
 
-bot.on('ready', () => {
-	console.log("HathorBot V" + botVersion)
-	console.log("----------------")
-	console.log(bot.user.username + " (" + bot.user.id + ")");
-
-	// display servers
-	var guilds = [];
-	bot.guilds.cache.array().forEach( (guild) =>{
-		guilds.push(guild.name);
-	});
-
-	if(guilds.length > 0){
-		console.log("Servers:" + guilds.join(" ") + "\n");
-	}
-
-	setGame(defaultGame);
-
-	// Displays invite link if the bot isn't conntected to any servers
-	if(bot.guilds.size === 0){
-		getInvite(link =>{
-			console.log("Invite this bot to your server using this link:\n"  + link);
-		});
-		console.log();
-	}
-	// Set the game every day. This is due to a bug that makes
-	// the game disappear show empty when running the bot
-	// for long periods.
-	cron.schedule('0 12 * * *', function() {
+function runJobs() {
+	// Set the game every 12 hours. This is due to a bug that makes
+	// the game disappear when running the bot for long hours
+	cron.schedule('0 */12 * * *', function() {
 		bot.user.setActivity(defaultGame);
 	});
-	clearTemp();
-});
 
-bot.on('disconnect', (event) =>{
-	console.log("Exited with code: " + event.code);
-	if(event.reason)
-		console.log("Reason: " + event.reason);
+	// Remove temporary downloaded files every three hours
+	cron.schedule('0 */3 * * *', function() {
+		removeTempFiles();
+	});
+}
 
-	removeTempFiles();
-	process.exit(0);
+bot.on('ready', () => {
+	console.log(chalk.yellow("Hathor Bot - ") + chalk.green(`v${botVersion}`));
+	console.log("----------------");
+	console.log("Username: " + chalk.blue(bot.user.username));
+	console.log("Bot ID: " + chalk.blue(bot.user.id));
+
+	// display servers
+	if(bot.guilds.cache.array().length > 0) {
+		console.log("Servers:");
+		bot.guilds.cache.array().forEach( (guild) => {
+			console.log(chalk.blue(`  ${guild.name}\n`));
+		});	
+	}
+	bot.user.setActivity(defaultGame);
+
+	// Displays invite link if the bot isn't conntected to any servers
+	if(bot.guilds.cache.array().length === 0) {
+		getInvite(link => {
+			console.log(`> Invite this bot to your server using this link:\n${link}\n`)
+		});
+	}
+
+	buildRequiredDirectories();
+	runJobs();
 });
 
 bot.on('message', message => {
 	// Disable DMs
-	if(message.channel.type == 'dm' && message.author.id == '113794078839144456' && message.author.id != bot.user.id) {
-		message.channel.send("Direct messages have been disabled for this bot. Nice try " + message.author.username + ".");
-		return;
-	} else if (message.channel.type == 'dm' && message.author.id != bot.user.id) {
+	if (message.channel.type == 'dm' && message.author.id != bot.user.id) {
 		message.channel.send("Direct messages have been disabled for this bot.");
 		return;
 	}
