@@ -1,6 +1,6 @@
 {
   "name": "discord-hathorbot",
-  "version": "2.10.0",
+  "version": "2.10.2",
   "description": "Discord music bot",
   "main": "app.js",
   "dependencies": {
@@ -14,7 +14,7 @@
     "request": "^2.88.2",
     "uws": "^200.0.0",
     "yt-search": "^2.5.1",
-    "ytdl-core": "^4.1.4"
+    "ytdl-core": "^4.4.1"
   },
   "author": {
     "name": "Robert Sandoval (Mesmaroth)"
