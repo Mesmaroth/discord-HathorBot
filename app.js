@@ -72,6 +72,7 @@ var playing = false;
 var stopped = false;
 var stayOnQueue = false;
 var looping = false;
+var skipping = false;
 
 // Check existence of folders
 function buildRequiredDirectories() {
@@ -211,13 +212,19 @@ function play(connection, message) {
 		.on('finish', ()=>{
 			playing = false;
 			if(!stopped) {
-				if(looping ){
-					queue.push(queue.shift());
-				} else {
-					if(!stayOnQueue) {
-						queue.shift();
-					} else
+				if(looping) {
+					queue.push(queue.shift());					
+				} else {					
+					if(!stayOnQueue)
+						if(skipping) {
+							skipping = false;
+						}
+						else {
+							queue.shift();
+						}							
+					else {
 						stayOnQueue = false;
+					}
 				}
 				if(queue.length > 0) {
 					play(connection, message);
@@ -1151,13 +1158,14 @@ bot.on('message', message => {
   		if(playing){
   			var prevSong = queue[0].title;
   			playing = false;
-  			stayOnQueue = false;
-			botPlayback.end();
+			stayOnQueue = false;
+			skipping = true;
 			queue.shift();
+			botPlayback.end();
   			if(queue.length > 0)
   				message.channel.send("**Skipped:** " + prevSong + "\n**Playing:** " + queue[0].title);
   			else
-  				message.channel.send("**Skipped:** " + prevSong);
+				  message.channel.send("**Skipped:** " + prevSong);
   		} else{
   			if(queue.length > 0){
   				var prevSong = queue[0].title;
