@@ -1,5 +1,5 @@
 # Discord Hathor Bot
-User-friendly and easy to use music bot for your discord server. This project is a SLOW Work In Progress.
+User-friendly and easy to use music bot for your discord server.
 Library: [Discord.js](https://discord.js.org)
 
 ## Installation:
