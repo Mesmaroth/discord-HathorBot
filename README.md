@@ -1,4 +1,6 @@
-# Discord Hathor Bot
+# [Outdated] Discord Hathor Bot
+**Notice**: This project is outdated and is not using the latest/current library updates.
+
 User-friendly and easy to use music bot for your discord server.
 Library: [Discord.js](https://discord.js.org)
 
